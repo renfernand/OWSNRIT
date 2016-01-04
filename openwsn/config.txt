@@ -1,0 +1,100 @@
+ %------------------------------------------------------------------------------------------------
+OWSNRIT5
+Renato Fernandes
+06/ago/2015
+This version has:
+esta versao eh a anterior melhorado o mecanismo do RIT
+         
+%------------------------------------------------------------------------------------------------
+OWSNRIT4
+Renato Fernandes
+06/mar/2015
+This version has:
+   - Esta versao retorna a versao anterior de berkley de dezembro..Ela foi baseada no firmware MyLinkxs
+     que eu passei para o vitor em fevereiro.
+   - implementado o CSMA CA...(mas nao estou contente com os resultados...verificar melhor o mecanismo)
+   - funcionando o RIT com comandos DIO e DAO...
+   - Esta versao funcionou o PING com timeout alto...tempo esta demorando mais que 2000 ms
+   - Funcionou tambem o COAP da lampada...com a funcao /d.
+
+Problemas:
+   - existe uma instabilidade muito grande em ligar o dagroot com o openvisualizer...onde verifiquei 
+   que sem o emulador...o comando esta indo do Openvisualizer mas a msg nem chega na serial...
+   ou seja, deve estar relacionada a desabilitar a interrupcao e nao liga-la no tempo certo...
+     
+Proximos Passos:
+    - testar o RIT em uma topologia com mais de 1 no com roteamento.
+         
+%------------------------------------------------------------------------------------------------
+OWSNRIT3
+Renato Fernandes
+06/fev/2015
+This version has:
+   - fiz o merge com a ultima versao de berkley que peguei hoje. Ela contem algo
+   diferente na partida como dagroot onde agora ele ja envia o RPL.
+Problemas:
+   - Esta versao esta funcionando o RIT porem esta com um erro no frame RPL-DAO onde ele precisa de 
+     ack e esta falhando esta parte...portanto eu desabilitei o ack neste caso...e esta funcionando...
+     enganando as camadas superiores falando que eu recebi um ack..
+   - O comando do RPL DAO eh o primeiro comando que usa o mecanimo do RIT...os outros comandos sao enviados 
+     diretamente...Neste caso ele geralmente nao consegue enviar o comando de primeira...nao sei por que...acredito
+     que a inclusao do CSMA vai melhorar este caso.
+     
+     vou agora para a versao RIT4 onde vou implementar o CSMA
+  
+  
+  
+ 
+TODO!!!!
+  O frame do protocolo nao esta seguindo o padrao do RIT..e sim do TSCH...MUDAR o QUE FOR PRECISO
+  Implementar o CSMA...
+   
+ %------------------------------------------------------------------------------------------------
+Renato Fernandes
+01/fev/2015
+This version has:
+  - Estou implementando o RIT ja...porem ainda sem o CSMA_CA.
+  - Eu coloquei tambem tabela de vizinhos fixos...nao sei porque...na verdade ele ignora os frames que nao sao vizinhos...
+  
+  
+  
+  
+ 
+TODO!!!!
+  O frame do protocolo nao esta seguindo o padrao do RIT..e sim do TSCH...MUDAR o QUE FOR PRECISO
+  Implementar o CSMA...
+   
+ 
+%------------------------------------------------------------------------------------------------
+Renato Fernandes
+25/jan/2015
+This version has:
+  - com RIT ligado e SINK (DAG ROOT) - Ele consegue enviar dados pelo OpenVisualizer
+     o DAGROOT envia o ICMPV6 (RPL) e o mote escravo responde. (nao consigo ver se ele fechou a comm acho que sim)
+     
+   - So que depois de um determinado ponto de envio de RPL - a comunicacao do slave some.
+   
+   - Tambem no browser nao aparece informacao...talvez por causa das msgs que nao estao corretas.
+   
+   proximos passos:
+   1) agora no slave tentar ver por que esta travando e tentar verificar o ping ate aonde esta chegando.
+   2) no SINK tentar habilitar a serial 2 para comunicacao...esta ruim sem debug.
+     
+
+%------------------------------------------------------------------------------------------------
+Renato Fernandes
+12/dez/2014
+This version has:
+1) Include the MYLINKXS_REMOTE_CONTROL that you can configure up to 5 buttons from a remote control
+   to be controled by the IOT.
+  This version use the ARDUINO SENSOR MOTE using almost the same structure of the OpenSensor.
+  In order to use this feature you need to enable the MYLINKXS_REMOTE_CONTROL in the osens.h
+  using the UART1 in the pins 18 and 19 as the OSENS
+  TODO!!!! Only test with the Phillips Control RC5 that has 12 bits.
+  DOes not implemented CRC in the serial communication.
+  
+2) Include the MYLINKXS_LIGHT_CONTROL, that used to control a light using IOT. This feature 
+   use only the I/O pins directly from the board.   
+  In order to use this feature you need to enable the MYLINKXS_LIGHT_CONTROL in the osens.h
+
+3) Serial debug that use UART0 to debug using DBG_LOG function.

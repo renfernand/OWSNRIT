@@ -1,0 +1,2632 @@
+Archive member included because of file (symbol)
+
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+                              ./openstack/04-TRAN/opencoap.o (memcmp)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+                              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o (memcpy)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+                              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o (memset)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+                              ./openapps/osens/osens_app.o (strlen)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubdf3.o)
+                              ./openapps/osens/osens_app.o (__aeabi_dsub)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivdf3.o)
+                              ./openapps/osens/osens_app.o (__aeabi_dmul)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_cmpdf2.o)
+                              ./openapps/osens/osens_app.o (__aeabi_dcmplt)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixdfsi.o)
+                              ./openapps/osens/osens_app.o (__aeabi_d2iz)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+                              ./openapps/osens/osens_app.o (__aeabi_d2uiz)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_truncdfsf2.o)
+                              ./openapps/osens/osens_app.o (__aeabi_d2f)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubsf3.o)
+                              ./openstack/02b-MAChigh/neighbors.o (__aeabi_fadd)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivsf3.o)
+                              ./openstack/02b-MAChigh/neighbors.o (__aeabi_fmul)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunssfsi.o)
+                              ./openstack/02b-MAChigh/neighbors.o (__aeabi_f2uiz)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o)
+                              ./openapps/osens/osens_app.o (__aeabi_uldivmod)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+                              ./openapps/osens/osens_app.o (__aeabi_d2lz)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+                              ./openapps/osens/osens_app.o (__aeabi_d2ulz)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+                              c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o) (__gnu_uldivmod_helper)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_dvmd_tls.o)
+                              c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o) (__aeabi_ldiv0)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+                              c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o) (__divdi3)
+c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+                              c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o) (__udivdi3)
+
+Allocating common symbols
+Common symbol       size              file
+
+icmpv6echo_vars     0x14              ./openstack/03b-IPv6/icmpv6echo.o
+bufrffrxlen         0x1               ./drivers/common/openserial.o
+scheduler_vars      0x80              ./kernel/openos/scheduler.o
+bufrffrx            0x64              ./drivers/common/openserial.o
+pvObjList           0x348             ./openstack/02a-MAClow/IEEE802154RIT.o
+openqueue_vars      0x960             ./openstack/cross-layers/openqueue.o
+cleds_vars          0x24              ./openapps/cleds/cleds.o
+dao_address         0x11              ./openstack/03b-IPv6/icmpv6rpl.o
+macTxGpInterframeDelay
+                    0x1               ./bsp/boards/cc2538em/mac_csp_tx.o
+cexample_vars       0x28              ./openapps/cexample/cexample.o
+debugstatusRFF      0x1               ./drivers/common/openserial.o
+adaptive_sync_vars  0x2c              ./openstack/02a-MAClow/adaptive_sync.o
+uart_vars           0x8               ./bsp/boards/cc2538em/uart.o
+rffframelen         0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+cstorm_vars         0x28              ./openapps/cstorm/cstorm.o
+num_rx_bytes        0x1               ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+numOfQueueInsertionErrors
+                    0x4               ./openstack/02a-MAClow/IEEE802154RIT.o
+numAvailableElements
+                    0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+flagSerialTx        0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+tx_data_len         0x1               ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+board_info          0x18              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+sm_state            0x8               ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+maxElements         0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+schedule            0x1c8             ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+opencoap_vars       0x8               ./openstack/04-TRAN/opencoap.o
+advRIT              0xf0              ./openstack/cross-layers/openqueue.o
+c6t_vars            0x24              ./openapps/c6t/c6t.o
+tx_frame            0x80              ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+dao_stat            0x3               ./openstack/02a-MAClow/IEEE802154RIT.o
+osens_desc_vars     0x24              ./openapps/osens/osens_app.o
+dio_stat            0x3               ./openstack/02a-MAClow/IEEE802154RIT.o
+macTxType           0x1               ./bsp/boards/cc2538em/mac_csp_tx.o
+tohlone_vars        0x38              ./openapps/tohlone/tohlone.o
+scheduler_dbg       0x2               ./kernel/openos/scheduler.o
+rffnewsendmsg       0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+macRITstate         0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+tcp_vars            0x30              ./openstack/04-TRAN/opentcp.o
+openserial_vars     0x1dc             ./drivers/common/openserial.o
+MsgNeedAck          0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+rffslotOffset       0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+flagErrorOccurred   0x4               ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+macRITActualPos     0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+element             0x28              ./openstack/02a-MAClow/IEEE802154RIT.o
+sixtop_vars         0xc               ./openstack/02b-MAChigh/sixtop.o
+rffinputcount       0x1               ./drivers/common/openserial.o
+rx_frame            0x80              ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+RITQueue_ElementPending
+                    0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+cwellknown_vars     0x24              ./openapps/cwellknown/cwellknown.o
+macTxActive         0x1               ./bsp/boards/cc2538em/mac_csp_tx.o
+icmpv6rpl_vars      0x56              ./openstack/03b-IPv6/icmpv6rpl.o
+random_vars         0x2               ./openstack/cross-layers/openrandom.o
+cinfo_vars          0x24              ./openapps/cinfo/cinfo.o
+bufRffTxCount       0x1               ./drivers/common/openserial.o
+radiotimer_vars     0x8               ./bsp/boards/cc2538em/radiotimer.o
+ucFlagTxReOpen      0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+frame               0x80              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+idmanager_vars      0x46              ./openstack/cross-layers/idmanager.o
+rffstate            0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+neighbors_vars      0x15c             ./openstack/02b-MAChigh/neighbors.o
+bufRffTx            0x64              ./drivers/common/openserial.o
+ans                 0x30              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ieee154e_vars       0x3c              ./openstack/02a-MAClow/IEEE802154RIT.o
+bsp_timer_vars      0x14              ./bsp/boards/cc2538em/bsp_timer.o
+opentimers_vars     0xd0              ./drivers/common/opentimers.o
+bufRffTxLen         0x1               ./drivers/common/openserial.o
+radio_vars          0xc               ./bsp/boards/cc2538em/radio.o
+ieee154e_stats      0xf               ./openstack/02a-MAClow/IEEE802154RIT.o
+radio_csma_vars     0x5               ./bsp/boards/cc2538em/mac_csp_tx.o
+osens_val_vars      0x24              ./openapps/osens/osens_app.o
+address_1           0x11              ./openstack/02a-MAClow/IEEE802154RIT.o
+sensor_points       0x408             ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+rffframetype        0x1               ./openstack/02a-MAClow/IEEE802154RIT.o
+schedule_vars       0x150             ./openstack/02b-MAChigh/schedule.o
+cmd                 0x30              ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ieee154e_dbg        0x10              ./openstack/02a-MAClow/IEEE802154RIT.o
+
+Discarded input sections
+
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .text          0x00000000      0x260 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .bss           0x00000000       0x10 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .rodata        0x00000000       0x30 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_info    0x00000000      0x4d3 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_abbrev  0x00000000      0x18c ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_loc     0x00000000      0x12c ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_macinfo
+                0x00000000     0xce5a ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_line    0x00000000      0x585 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_str     0x00000000      0x3fc ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .debug_frame   0x00000000       0xc0 ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .text          0x00000000      0x3f8 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .bss           0x00000000       0x28 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .rodata        0x00000000       0x30 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_info    0x00000000      0x48e ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_abbrev  0x00000000      0x1a2 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_loc     0x00000000      0x1d4 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_macinfo
+                0x00000000     0xd935 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_line    0x00000000      0x5f7 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_str     0x00000000      0x372 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .debug_frame   0x00000000      0x128 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ COMMON         0x00000000      0x100 ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+ .text          0x00000000       0xc8 ./bsp/boards/cc2538em/source/watchdog.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/watchdog.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_info    0x00000000       0xe3 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_abbrev  0x00000000       0x83 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_loc     0x00000000       0x70 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_macinfo
+                0x00000000     0x41a8 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_line    0x00000000      0x348 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_str     0x00000000      0x160 ./bsp/boards/cc2538em/source/watchdog.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/watchdog.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/watchdog.o
+ .debug_frame   0x00000000       0x48 ./bsp/boards/cc2538em/source/watchdog.o
+ .text          0x00000000      0x6d0 ./bsp/boards/cc2538em/source/udma.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/udma.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/udma.o
+ .debug_info    0x00000000      0x5f3 ./bsp/boards/cc2538em/source/udma.o
+ .debug_abbrev  0x00000000      0x15d ./bsp/boards/cc2538em/source/udma.o
+ .debug_loc     0x00000000      0x4ec ./bsp/boards/cc2538em/source/udma.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/udma.o
+ .debug_macinfo
+                0x00000000     0x90bd ./bsp/boards/cc2538em/source/udma.o
+ .debug_line    0x00000000      0x429 ./bsp/boards/cc2538em/source/udma.o
+ .debug_str     0x00000000      0x44a ./bsp/boards/cc2538em/source/udma.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/udma.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/udma.o
+ .debug_frame   0x00000000      0x29c ./bsp/boards/cc2538em/source/udma.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/uarthal.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/uarthal.o
+ .text          0x00000000      0x144 ./bsp/boards/cc2538em/source/systick.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/systick.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/systick.o
+ .debug_info    0x00000000      0x16f ./bsp/boards/cc2538em/source/systick.o
+ .debug_abbrev  0x00000000       0xb2 ./bsp/boards/cc2538em/source/systick.o
+ .debug_loc     0x00000000      0x1a4 ./bsp/boards/cc2538em/source/systick.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/systick.o
+ .debug_macinfo
+                0x00000000     0xb88a ./bsp/boards/cc2538em/source/systick.o
+ .debug_line    0x00000000      0x349 ./bsp/boards/cc2538em/source/systick.o
+ .debug_str     0x00000000      0x1c8 ./bsp/boards/cc2538em/source/systick.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/systick.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/systick.o
+ .debug_frame   0x00000000       0xf8 ./bsp/boards/cc2538em/source/systick.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .text          0x00000000      0x3b0 ./bsp/boards/cc2538em/source/ssi.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/ssi.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_info    0x00000000      0x4f3 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_abbrev  0x00000000       0xe3 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_loc     0x00000000      0x3f0 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_macinfo
+                0x00000000     0x4770 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_line    0x00000000      0x3d0 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_str     0x00000000      0x2f7 ./bsp/boards/cc2538em/source/ssi.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/ssi.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/ssi.o
+ .debug_frame   0x00000000      0x210 ./bsp/boards/cc2538em/source/ssi.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/sleepmode.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/sleepmode.o
+ .text          0x00000000      0x880 ./bsp/boards/cc2538em/source/sha256.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/sha256.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_info    0x00000000      0x2ee ./bsp/boards/cc2538em/source/sha256.o
+ .debug_abbrev  0x00000000      0x10a ./bsp/boards/cc2538em/source/sha256.o
+ .debug_loc     0x00000000      0x118 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_macinfo
+                0x00000000     0x9be1 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_line    0x00000000      0x456 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_str     0x00000000      0x22b ./bsp/boards/cc2538em/source/sha256.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/sha256.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/sha256.o
+ .debug_frame   0x00000000       0xb4 ./bsp/boards/cc2538em/source/sha256.o
+ .text          0x00000000     0x14d4 ./bsp/boards/cc2538em/source/pka.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/pka.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/pka.o
+ .debug_info    0x00000000      0x97d ./bsp/boards/cc2538em/source/pka.o
+ .debug_abbrev  0x00000000      0x14d ./bsp/boards/cc2538em/source/pka.o
+ .debug_loc     0x00000000      0x494 ./bsp/boards/cc2538em/source/pka.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/pka.o
+ .debug_macinfo
+                0x00000000     0x539b ./bsp/boards/cc2538em/source/pka.o
+ .debug_line    0x00000000      0x598 ./bsp/boards/cc2538em/source/pka.o
+ .debug_str     0x00000000      0x47c ./bsp/boards/cc2538em/source/pka.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/pka.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/pka.o
+ .debug_frame   0x00000000      0x278 ./bsp/boards/cc2538em/source/pka.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/ioc.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/ioc.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/interrupt.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/interrupt.o
+ .text          0x00000000      0x4d8 ./bsp/boards/cc2538em/source/i2c.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/i2c.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_info    0x00000000      0x494 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_abbrev  0x00000000      0x10d ./bsp/boards/cc2538em/source/i2c.o
+ .debug_loc     0x00000000      0x5d0 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_macinfo
+                0x00000000     0x7585 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_line    0x00000000      0x3f6 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_str     0x00000000      0x39e ./bsp/boards/cc2538em/source/i2c.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/i2c.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/i2c.o
+ .debug_frame   0x00000000      0x328 ./bsp/boards/cc2538em/source/i2c.o
+ .text          0x00000000      0x63c ./bsp/boards/cc2538em/source/gptimer.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/gptimer.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_info    0x00000000      0x67f ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_abbrev  0x00000000       0xc3 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_loc     0x00000000      0x540 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_macinfo
+                0x00000000     0x6284 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_line    0x00000000      0x441 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_str     0x00000000      0x327 ./bsp/boards/cc2538em/source/gptimer.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/gptimer.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/gptimer.o
+ .debug_frame   0x00000000      0x2b8 ./bsp/boards/cc2538em/source/gptimer.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/gpio.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/gpio.o
+ .text          0x00000000      0x268 ./bsp/boards/cc2538em/source/flash.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/flash.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/flash.o
+ .debug_info    0x00000000      0x507 ./bsp/boards/cc2538em/source/flash.o
+ .debug_abbrev  0x00000000      0x146 ./bsp/boards/cc2538em/source/flash.o
+ .debug_loc     0x00000000      0x1ec ./bsp/boards/cc2538em/source/flash.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/flash.o
+ .debug_macinfo
+                0x00000000     0x499e ./bsp/boards/cc2538em/source/flash.o
+ .debug_line    0x00000000      0x380 ./bsp/boards/cc2538em/source/flash.o
+ .debug_str     0x00000000      0x357 ./bsp/boards/cc2538em/source/flash.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/flash.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/flash.o
+ .debug_frame   0x00000000      0x118 ./bsp/boards/cc2538em/source/flash.o
+ .text          0x00000000        0xc ./bsp/boards/cc2538em/source/debug.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/debug.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/debug.o
+ .debug_info    0x00000000       0xbe ./bsp/boards/cc2538em/source/debug.o
+ .debug_abbrev  0x00000000       0x68 ./bsp/boards/cc2538em/source/debug.o
+ .debug_loc     0x00000000       0x38 ./bsp/boards/cc2538em/source/debug.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/debug.o
+ .debug_macinfo
+                0x00000000     0x3465 ./bsp/boards/cc2538em/source/debug.o
+ .debug_line    0x00000000      0x2e3 ./bsp/boards/cc2538em/source/debug.o
+ .debug_str     0x00000000      0x139 ./bsp/boards/cc2538em/source/debug.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/debug.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/debug.o
+ .debug_frame   0x00000000       0x2c ./bsp/boards/cc2538em/source/debug.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/cpu.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/cpu.o
+ .text          0x00000000      0x954 ./bsp/boards/cc2538em/source/ccm.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/ccm.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_info    0x00000000      0x415 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_abbrev  0x00000000      0x107 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_loc     0x00000000      0x138 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_macinfo
+                0x00000000     0x830f ./bsp/boards/cc2538em/source/ccm.o
+ .debug_line    0x00000000      0x3eb ./bsp/boards/cc2538em/source/ccm.o
+ .debug_str     0x00000000      0x2b5 ./bsp/boards/cc2538em/source/ccm.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/ccm.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/ccm.o
+ .debug_frame   0x00000000       0xc4 ./bsp/boards/cc2538em/source/ccm.o
+ .text          0x00000000      0x4e0 ./bsp/boards/cc2538em/source/aes.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/aes.o
+ .bss           0x00000000       0x14 ./bsp/boards/cc2538em/source/aes.o
+ .debug_info    0x00000000      0x1e4 ./bsp/boards/cc2538em/source/aes.o
+ .debug_abbrev  0x00000000       0xdf ./bsp/boards/cc2538em/source/aes.o
+ .debug_loc     0x00000000       0xc8 ./bsp/boards/cc2538em/source/aes.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/aes.o
+ .debug_macinfo
+                0x00000000     0x8312 ./bsp/boards/cc2538em/source/aes.o
+ .debug_line    0x00000000      0x372 ./bsp/boards/cc2538em/source/aes.o
+ .debug_str     0x00000000      0x1fe ./bsp/boards/cc2538em/source/aes.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/aes.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/aes.o
+ .debug_frame   0x00000000       0x84 ./bsp/boards/cc2538em/source/aes.o
+ .text          0x00000000      0x120 ./bsp/boards/cc2538em/source/adc.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/adc.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/adc.o
+ .debug_info    0x00000000      0x192 ./bsp/boards/cc2538em/source/adc.o
+ .debug_abbrev  0x00000000       0xc3 ./bsp/boards/cc2538em/source/adc.o
+ .debug_loc     0x00000000      0x138 ./bsp/boards/cc2538em/source/adc.o
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/source/adc.o
+ .debug_macinfo
+                0x00000000     0x444e ./bsp/boards/cc2538em/source/adc.o
+ .debug_line    0x00000000      0x34b ./bsp/boards/cc2538em/source/adc.o
+ .debug_str     0x00000000      0x1d4 ./bsp/boards/cc2538em/source/adc.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/adc.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/adc.o
+ .debug_frame   0x00000000       0xb8 ./bsp/boards/cc2538em/source/adc.o
+ .text          0x00000000        0x0 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_info    0x00000000      0x109 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_abbrev  0x00000000       0x5d ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_aranges
+                0x00000000       0x18 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_macinfo
+                0x00000000     0x5474 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_line    0x00000000      0x3ec ./bsp/boards/cc2538em/source/acc_bsp.o
+ .debug_str     0x00000000      0x15a ./bsp/boards/cc2538em/source/acc_bsp.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/source/acc_bsp.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/uart.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/uart.o
+ .rodata        0x00000000       0x30 ./bsp/boards/cc2538em/uart.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/startup_gcc.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/radiotimer.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/radiotimer.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/radiotimer.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/radio.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/radio.o
+ .rodata        0x00000000       0x30 ./bsp/boards/cc2538em/radio.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/leds.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/leds.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/leds.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/eui64.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/eui64.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/debugpins.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/debugpins.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/debugpins.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/bsp_timer.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/bsp_timer.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/bsp_timer.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/board.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/board.o
+ .rodata        0x00000000       0x30 ./bsp/boards/cc2538em/board.o
+ .text          0x00000000        0x0 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .data          0x00000000        0x0 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .bss           0x00000000        0x0 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .rodata        0x00000000       0x24 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_info    0x00000000      0x109 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_abbrev  0x00000000       0x5d ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_aranges
+                0x00000000       0x18 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_macinfo
+                0x00000000     0x5474 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_line    0x00000000      0x3e9 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .debug_str     0x00000000      0x157 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/acc_srf06eb.o
+ .data          0x00000000        0x0 ./drivers/common/opentimers.o
+ .bss           0x00000000        0x0 ./drivers/common/opentimers.o
+ .rodata        0x00000000       0x30 ./drivers/common/opentimers.o
+ .data          0x00000000        0x0 ./drivers/common/openserial.o
+ .bss           0x00000000        0xc ./drivers/common/openserial.o
+ .rodata        0x00000000      0x240 ./drivers/common/openserial.o
+ .data          0x00000000        0x0 ./drivers/common/openhdlc.o
+ .bss           0x00000000        0x0 ./drivers/common/openhdlc.o
+ .data          0x00000000        0x0 ./kernel/openos/scheduler.o
+ .bss           0x00000000        0x0 ./kernel/openos/scheduler.o
+ .rodata        0x00000000       0x30 ./kernel/openos/scheduler.o
+ .data          0x00000000        0x0 ./openapps/c6t/c6t.o
+ .bss           0x00000000        0x0 ./openapps/c6t/c6t.o
+ .text          0x00000000      0x2d0 ./openapps/cexample/cexample.o
+ .data          0x00000000        0x0 ./openapps/cexample/cexample.o
+ .bss           0x00000000        0x0 ./openapps/cexample/cexample.o
+ .rodata        0x00000000       0x74 ./openapps/cexample/cexample.o
+ .debug_info    0x00000000      0xcb3 ./openapps/cexample/cexample.o
+ .debug_abbrev  0x00000000      0x1a4 ./openapps/cexample/cexample.o
+ .debug_loc     0x00000000      0x100 ./openapps/cexample/cexample.o
+ .debug_aranges
+                0x00000000       0x20 ./openapps/cexample/cexample.o
+ .debug_macinfo
+                0x00000000     0x6e21 ./openapps/cexample/cexample.o
+ .debug_line    0x00000000      0x617 ./openapps/cexample/cexample.o
+ .debug_str     0x00000000     0x140c ./openapps/cexample/cexample.o
+ .comment       0x00000000       0x71 ./openapps/cexample/cexample.o
+ .ARM.attributes
+                0x00000000       0x33 ./openapps/cexample/cexample.o
+ .debug_frame   0x00000000       0xa8 ./openapps/cexample/cexample.o
+ COMMON         0x00000000       0x28 ./openapps/cexample/cexample.o
+ .data          0x00000000        0x0 ./openapps/cinfo/cinfo.o
+ .bss           0x00000000        0x0 ./openapps/cinfo/cinfo.o
+ .data          0x00000000        0x0 ./openapps/cleds/cleds.o
+ .bss           0x00000000        0x0 ./openapps/cleds/cleds.o
+ .data          0x00000000        0x0 ./openapps/cstorm/cstorm.o
+ .bss           0x00000000        0x0 ./openapps/cstorm/cstorm.o
+ .data          0x00000000        0x0 ./openapps/cwellknown/cwellknown.o
+ .bss           0x00000000        0x0 ./openapps/cwellknown/cwellknown.o
+ .data          0x00000000        0x0 ./openapps/openapps.o
+ .bss           0x00000000        0x0 ./openapps/openapps.o
+ .rodata        0x00000000       0x70 ./openapps/openapps.o
+ .text          0x00000000      0xd98 ./openapps/osens/osens_app.o
+ .data          0x00000000        0x0 ./openapps/osens/osens_app.o
+ .bss           0x00000000      0x10c ./openapps/osens/osens_app.o
+ .rodata        0x00000000       0xd8 ./openapps/osens/osens_app.o
+ .debug_info    0x00000000     0x1020 ./openapps/osens/osens_app.o
+ .debug_abbrev  0x00000000      0x288 ./openapps/osens/osens_app.o
+ .debug_loc     0x00000000      0x298 ./openapps/osens/osens_app.o
+ .debug_aranges
+                0x00000000       0x20 ./openapps/osens/osens_app.o
+ .debug_macinfo
+                0x00000000     0x5c00 ./openapps/osens/osens_app.o
+ .debug_line    0x00000000      0x69d ./openapps/osens/osens_app.o
+ .debug_str     0x00000000      0xf2a ./openapps/osens/osens_app.o
+ .comment       0x00000000       0x71 ./openapps/osens/osens_app.o
+ .ARM.attributes
+                0x00000000       0x33 ./openapps/osens/osens_app.o
+ .debug_frame   0x00000000      0x190 ./openapps/osens/osens_app.o
+ COMMON         0x00000000       0x48 ./openapps/osens/osens_app.o
+ .text          0x00000000        0x0 ./openapps/rrt/rrt.o
+ .data          0x00000000        0x0 ./openapps/rrt/rrt.o
+ .bss           0x00000000        0x0 ./openapps/rrt/rrt.o
+ .rodata        0x00000000       0x30 ./openapps/rrt/rrt.o
+ .debug_info    0x00000000      0x136 ./openapps/rrt/rrt.o
+ .debug_abbrev  0x00000000       0x5d ./openapps/rrt/rrt.o
+ .debug_aranges
+                0x00000000       0x18 ./openapps/rrt/rrt.o
+ .debug_macinfo
+                0x00000000     0x538f ./openapps/rrt/rrt.o
+ .debug_line    0x00000000      0x3f5 ./openapps/rrt/rrt.o
+ .debug_str     0x00000000      0x15c ./openapps/rrt/rrt.o
+ .comment       0x00000000       0x71 ./openapps/rrt/rrt.o
+ .ARM.attributes
+                0x00000000       0x33 ./openapps/rrt/rrt.o
+ .data          0x00000000        0x0 ./openapps/techo/techo.o
+ .bss           0x00000000        0x0 ./openapps/techo/techo.o
+ .rodata        0x00000000       0x30 ./openapps/techo/techo.o
+ .text          0x00000000      0x2a0 ./openapps/tohlone/tohlone_webpages.o
+ .data          0x00000000        0x0 ./openapps/tohlone/tohlone_webpages.o
+ .bss           0x00000000        0x0 ./openapps/tohlone/tohlone_webpages.o
+ .rodata        0x00000000       0x48 ./openapps/tohlone/tohlone_webpages.o
+ .debug_info    0x00000000      0x2e4 ./openapps/tohlone/tohlone_webpages.o
+ .debug_abbrev  0x00000000       0xcd ./openapps/tohlone/tohlone_webpages.o
+ .debug_loc     0x00000000      0x144 ./openapps/tohlone/tohlone_webpages.o
+ .debug_aranges
+                0x00000000       0x20 ./openapps/tohlone/tohlone_webpages.o
+ .debug_macinfo
+                0x00000000     0x548b ./openapps/tohlone/tohlone_webpages.o
+ .debug_line    0x00000000      0x45f ./openapps/tohlone/tohlone_webpages.o
+ .debug_str     0x00000000      0x240 ./openapps/tohlone/tohlone_webpages.o
+ .comment       0x00000000       0x71 ./openapps/tohlone/tohlone_webpages.o
+ .ARM.attributes
+                0x00000000       0x33 ./openapps/tohlone/tohlone_webpages.o
+ .debug_frame   0x00000000       0xc4 ./openapps/tohlone/tohlone_webpages.o
+ .text          0x00000000      0x2fc ./openapps/tohlone/tohlone.o
+ .data          0x00000000        0x0 ./openapps/tohlone/tohlone.o
+ .bss           0x00000000        0x0 ./openapps/tohlone/tohlone.o
+ .rodata        0x00000000       0x40 ./openapps/tohlone/tohlone.o
+ .debug_info    0x00000000      0x89c ./openapps/tohlone/tohlone.o
+ .debug_abbrev  0x00000000      0x191 ./openapps/tohlone/tohlone.o
+ .debug_loc     0x00000000      0x19e ./openapps/tohlone/tohlone.o
+ .debug_aranges
+                0x00000000       0x20 ./openapps/tohlone/tohlone.o
+ .debug_macinfo
+                0x00000000     0x57f3 ./openapps/tohlone/tohlone.o
+ .debug_line    0x00000000      0x578 ./openapps/tohlone/tohlone.o
+ .debug_str     0x00000000      0xd1b ./openapps/tohlone/tohlone.o
+ .comment       0x00000000       0x71 ./openapps/tohlone/tohlone.o
+ .ARM.attributes
+                0x00000000       0x33 ./openapps/tohlone/tohlone.o
+ .debug_frame   0x00000000       0xf4 ./openapps/tohlone/tohlone.o
+ COMMON         0x00000000       0x38 ./openapps/tohlone/tohlone.o
+ .data          0x00000000        0x0 ./openapps/uecho/uecho.o
+ .bss           0x00000000        0x0 ./openapps/uecho/uecho.o
+ .rodata        0x00000000       0x30 ./openapps/uecho/uecho.o
+ .data          0x00000000        0x0 ./openstack/02a-MAClow/topology.o
+ .bss           0x00000000        0x0 ./openstack/02a-MAClow/topology.o
+ .rodata        0x00000000       0x30 ./openstack/02a-MAClow/topology.o
+ .data          0x00000000        0x0 ./openstack/02a-MAClow/adaptive_sync.o
+ .bss           0x00000000        0x0 ./openstack/02a-MAClow/adaptive_sync.o
+ .rodata        0x00000000       0x40 ./openstack/02a-MAClow/adaptive_sync.o
+ .data          0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .rodata        0x00000000       0x40 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .text          0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154E.o
+ .data          0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154E.o
+ .bss           0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154E.o
+ .rodata        0x00000000       0x30 ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_info    0x00000000      0x136 ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_abbrev  0x00000000       0x5d ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_aranges
+                0x00000000       0x18 ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_macinfo
+                0x00000000     0x69b3 ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_line    0x00000000      0x468 ./openstack/02a-MAClow/IEEE802154E.o
+ .debug_str     0x00000000      0x16c ./openstack/02a-MAClow/IEEE802154E.o
+ .comment       0x00000000       0x71 ./openstack/02a-MAClow/IEEE802154E.o
+ .ARM.attributes
+                0x00000000       0x33 ./openstack/02a-MAClow/IEEE802154E.o
+ .data          0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154.o
+ .bss           0x00000000        0x0 ./openstack/02a-MAClow/IEEE802154.o
+ .rodata        0x00000000       0x30 ./openstack/02a-MAClow/IEEE802154.o
+ .data          0x00000000        0x0 ./openstack/02b-MAChigh/sixtop.o
+ .bss           0x00000000        0xc ./openstack/02b-MAChigh/sixtop.o
+ .rodata        0x00000000       0x40 ./openstack/02b-MAChigh/sixtop.o
+ .data          0x00000000        0x0 ./openstack/02b-MAChigh/schedule.o
+ .bss           0x00000000        0x0 ./openstack/02b-MAChigh/schedule.o
+ .rodata        0x00000000       0x30 ./openstack/02b-MAChigh/schedule.o
+ .data          0x00000000        0x0 ./openstack/02b-MAChigh/processIE.o
+ .bss           0x00000000        0x0 ./openstack/02b-MAChigh/processIE.o
+ .rodata        0x00000000       0x40 ./openstack/02b-MAChigh/processIE.o
+ .data          0x00000000        0x0 ./openstack/02b-MAChigh/otf.o
+ .bss           0x00000000        0x0 ./openstack/02b-MAChigh/otf.o
+ .rodata        0x00000000       0x40 ./openstack/02b-MAChigh/otf.o
+ .data          0x00000000        0x0 ./openstack/02b-MAChigh/neighbors.o
+ .bss           0x00000000        0x0 ./openstack/02b-MAChigh/neighbors.o
+ .rodata        0x00000000       0x40 ./openstack/02b-MAChigh/neighbors.o
+ .data          0x00000000        0x0 ./openstack/03a-IPHC/openbridge.o
+ .rodata        0x00000000       0x30 ./openstack/03a-IPHC/openbridge.o
+ .data          0x00000000        0x0 ./openstack/03a-IPHC/iphc.o
+ .bss           0x00000000        0xc ./openstack/03a-IPHC/iphc.o
+ .rodata        0x00000000       0x40 ./openstack/03a-IPHC/iphc.o
+ .data          0x00000000        0x0 ./openstack/03b-IPv6/icmpv6rpl.o
+ .data          0x00000000        0x0 ./openstack/03b-IPv6/icmpv6echo.o
+ .rodata        0x00000000       0x30 ./openstack/03b-IPv6/icmpv6echo.o
+ .data          0x00000000        0x0 ./openstack/03b-IPv6/icmpv6.o
+ .rodata        0x00000000       0x40 ./openstack/03b-IPv6/icmpv6.o
+ .data          0x00000000        0x0 ./openstack/03b-IPv6/forwarding.o
+ .rodata        0x00000000       0x40 ./openstack/03b-IPv6/forwarding.o
+ .data          0x00000000        0x0 ./openstack/04-TRAN/openudp.o
+ .bss           0x00000000        0x0 ./openstack/04-TRAN/openudp.o
+ .rodata        0x00000000       0x70 ./openstack/04-TRAN/openudp.o
+ .data          0x00000000        0x0 ./openstack/04-TRAN/opentcp.o
+ .bss           0x00000000        0x0 ./openstack/04-TRAN/opentcp.o
+ .rodata        0x00000000       0x30 ./openstack/04-TRAN/opentcp.o
+ .data          0x00000000        0x0 ./openstack/04-TRAN/opencoap.o
+ .rodata        0x00000000       0x70 ./openstack/04-TRAN/opencoap.o
+ .data          0x00000000        0x0 ./openstack/cross-layers/packetfunctions.o
+ .bss           0x00000000        0x0 ./openstack/cross-layers/packetfunctions.o
+ .rodata        0x00000000       0x30 ./openstack/cross-layers/packetfunctions.o
+ .data          0x00000000        0x0 ./openstack/cross-layers/openrandom.o
+ .bss           0x00000000        0x0 ./openstack/cross-layers/openrandom.o
+ .rodata        0x00000000       0x30 ./openstack/cross-layers/openrandom.o
+ .data          0x00000000        0x0 ./openstack/cross-layers/openqueue.o
+ .bss           0x00000000        0x0 ./openstack/cross-layers/openqueue.o
+ .rodata        0x00000000       0x30 ./openstack/cross-layers/openqueue.o
+ .data          0x00000000        0x0 ./openstack/cross-layers/idmanager.o
+ .bss           0x00000000        0x0 ./openstack/cross-layers/idmanager.o
+ .rodata        0x00000000       0x40 ./openstack/cross-layers/idmanager.o
+ .data          0x00000000        0x0 ./openstack/openstack.o
+ .bss           0x00000000        0x0 ./openstack/openstack.o
+ .rodata        0x00000000       0x80 ./openstack/openstack.o
+ .data          0x00000000        0x0 ./projects/common/03oos_openwsn/03oos_openwsn.o
+ .bss           0x00000000        0x0 ./projects/common/03oos_openwsn/03oos_openwsn.o
+ .rodata        0x00000000       0x30 ./projects/common/03oos_openwsn/03oos_openwsn.o
+ .text          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+ .text          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+ .text          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+ .text          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .text.strlen   0x00000000       0x60 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .debug_frame   0x00000000       0x20 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-strlen.o)
+ .text          0x00000000      0x370 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubdf3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubdf3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubdf3.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubdf3.o)
+ .text          0x00000000      0x424 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivdf3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivdf3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivdf3.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivdf3.o)
+ .text          0x00000000      0x110 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_cmpdf2.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_cmpdf2.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_cmpdf2.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_cmpdf2.o)
+ .text          0x00000000       0x50 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixdfsi.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixdfsi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixdfsi.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixdfsi.o)
+ .text          0x00000000       0x40 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunsdfsi.o)
+ .text          0x00000000       0xa0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_truncdfsf2.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_truncdfsf2.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_truncdfsf2.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_truncdfsf2.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubsf3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubsf3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivsf3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivsf3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunssfsi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunssfsi.o)
+ .text          0x00000000       0x2c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_aeabi_uldivmod.o)
+ .text          0x00000000       0x34 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+ .debug_frame   0x00000000       0x2c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixdfdi.o)
+ .text          0x00000000       0x44 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+ .debug_frame   0x00000000       0x2c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_fixunsdfdi.o)
+ .text          0x00000000       0x60 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+ .debug_frame   0x00000000       0x50 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(bpabi.o)
+ .text          0x00000000        0x4 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_dvmd_tls.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x00000000       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_dvmd_tls.o)
+ .text          0x00000000      0x2bc c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .ARM.extab     0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .ARM.exidx     0x00000000        0x8 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .debug_frame   0x00000000       0x34 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_divdi3.o)
+ .text          0x00000000      0x28c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .data          0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .bss           0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .ARM.extab     0x00000000        0x0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .ARM.exidx     0x00000000        0x8 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .ARM.attributes
+                0x00000000       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+ .debug_frame   0x00000000       0x34 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_udivdi3.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00200000         0x0007ffd4         xr
+FLASH_CCA        0x0027ffd4         0x0000000c         xr
+SRAM             0x20004000         0x00006000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+LOAD ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+LOAD ./bsp/boards/cc2538em/osens_itf/mylinkxs.o
+LOAD ./bsp/boards/cc2538em/osens_itf/crc16.o
+LOAD ./bsp/boards/cc2538em/osens_itf/buf_io.o
+LOAD ./bsp/boards/cc2538em/osens_itf/bsp_uart.o
+LOAD ./bsp/boards/cc2538em/source/watchdog.o
+LOAD ./bsp/boards/cc2538em/source/udma.o
+LOAD ./bsp/boards/cc2538em/source/uarthal.o
+LOAD ./bsp/boards/cc2538em/source/systick.o
+LOAD ./bsp/boards/cc2538em/source/sys_ctrl.o
+LOAD ./bsp/boards/cc2538em/source/ssi.o
+LOAD ./bsp/boards/cc2538em/source/sleepmode.o
+LOAD ./bsp/boards/cc2538em/source/sha256.o
+LOAD ./bsp/boards/cc2538em/source/pka.o
+LOAD ./bsp/boards/cc2538em/source/ioc.o
+LOAD ./bsp/boards/cc2538em/source/interrupt.o
+LOAD ./bsp/boards/cc2538em/source/i2c.o
+LOAD ./bsp/boards/cc2538em/source/gptimer.o
+LOAD ./bsp/boards/cc2538em/source/gpio.o
+LOAD ./bsp/boards/cc2538em/source/flash.o
+LOAD ./bsp/boards/cc2538em/source/debug.o
+LOAD ./bsp/boards/cc2538em/source/cpu.o
+LOAD ./bsp/boards/cc2538em/source/ccm.o
+LOAD ./bsp/boards/cc2538em/source/aes.o
+LOAD ./bsp/boards/cc2538em/source/adc.o
+LOAD ./bsp/boards/cc2538em/source/acc_bsp.o
+LOAD ./bsp/boards/cc2538em/uart.o
+LOAD ./bsp/boards/cc2538em/startup_gcc.o
+LOAD ./bsp/boards/cc2538em/radiotimer.o
+LOAD ./bsp/boards/cc2538em/radio.o
+LOAD ./bsp/boards/cc2538em/mac_csp_tx.o
+LOAD ./bsp/boards/cc2538em/leds.o
+LOAD ./bsp/boards/cc2538em/eui64.o
+LOAD ./bsp/boards/cc2538em/debugpins.o
+LOAD ./bsp/boards/cc2538em/bsp_timer.o
+LOAD ./bsp/boards/cc2538em/board.o
+LOAD ./bsp/boards/cc2538em/acc_srf06eb.o
+LOAD ./drivers/common/opentimers.o
+LOAD ./drivers/common/openserial.o
+LOAD ./drivers/common/openhdlc.o
+LOAD ./kernel/openos/scheduler.o
+LOAD ./openapps/c6t/c6t.o
+LOAD ./openapps/cexample/cexample.o
+LOAD ./openapps/cinfo/cinfo.o
+LOAD ./openapps/cleds/cleds.o
+LOAD ./openapps/cstorm/cstorm.o
+LOAD ./openapps/cwellknown/cwellknown.o
+LOAD ./openapps/openapps.o
+LOAD ./openapps/osens/osens_app.o
+LOAD ./openapps/rrt/rrt.o
+LOAD ./openapps/techo/techo.o
+LOAD ./openapps/tohlone/tohlone_webpages.o
+LOAD ./openapps/tohlone/tohlone.o
+LOAD ./openapps/uecho/uecho.o
+LOAD ./openstack/02a-MAClow/topology.o
+LOAD ./openstack/02a-MAClow/adaptive_sync.o
+LOAD ./openstack/02a-MAClow/IEEE802154RIT.o
+LOAD ./openstack/02a-MAClow/IEEE802154E.o
+LOAD ./openstack/02a-MAClow/IEEE802154.o
+LOAD ./openstack/02b-MAChigh/sixtop.o
+LOAD ./openstack/02b-MAChigh/schedule.o
+LOAD ./openstack/02b-MAChigh/processIE.o
+LOAD ./openstack/02b-MAChigh/otf.o
+LOAD ./openstack/02b-MAChigh/neighbors.o
+LOAD ./openstack/03a-IPHC/openbridge.o
+LOAD ./openstack/03a-IPHC/iphc.o
+LOAD ./openstack/03b-IPv6/icmpv6rpl.o
+LOAD ./openstack/03b-IPv6/icmpv6echo.o
+LOAD ./openstack/03b-IPv6/icmpv6.o
+LOAD ./openstack/03b-IPv6/forwarding.o
+LOAD ./openstack/04-TRAN/openudp.o
+LOAD ./openstack/04-TRAN/opentcp.o
+LOAD ./openstack/04-TRAN/opencoap.o
+LOAD ./openstack/cross-layers/packetfunctions.o
+LOAD ./openstack/cross-layers/openrandom.o
+LOAD ./openstack/cross-layers/openqueue.o
+LOAD ./openstack/cross-layers/idmanager.o
+LOAD ./openstack/openstack.o
+LOAD ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.text           0x00200000    0x1b224
+                0x00200000                _text = .
+ *(.vectors)
+ .vectors       0x00200000      0x28c ./bsp/boards/cc2538em/startup_gcc.o
+                0x00200000                gVectors
+ *(.text*)
+ .text          0x0020028c     0x1044 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+                0x00200d38                osens_mote_sm
+                0x00200e48                osens_init
+                0x00200e58                osens_mote_init
+                0x00200ea0                osens_set_pvalue
+                0x00200f98                osens_get_num_points
+                0x00200fc4                osens_get_brd_desc
+                0x00201004                osens_get_pdesc
+                0x00201064                osens_get_ptype
+                0x002010bc                osens_get_point
+                0x0020111c                osens_mote_send_frame
+                0x00201224                uart1_isr_private
+ .text          0x002012d0      0xa8c ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+                0x002012d0                osens_unpack_point_value
+                0x00201404                osens_pack_point_value
+                0x00201534                osens_unpack_cmd_req
+                0x002016c8                osens_pack_cmd_res
+                0x00201938                osens_unpack_cmd_res
+                0x00201bec                osens_pack_cmd_req
+ .text          0x00201d5c       0x88 ./bsp/boards/cc2538em/osens_itf/crc16.o
+                0x00201d5c                crc16_calc
+ .text          0x00201de4      0xd08 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+                0x00201de4                buf_io_swap16
+                0x00201e14                buf_io_swap32
+                0x00201e54                buf_io_swap16p
+                0x00201ea0                buf_io_swap32p
+                0x00201f24                buf_io_swap8b
+                0x00201fb4                buf_io_get8_fl
+                0x00201fcc                buf_io_get8_fb
+                0x00201fe4                buf_io_get8_fl_apr
+                0x00202014                buf_io_get8_fb_apr
+                0x00202044                buf_io_get16_fl
+                0x00202074                buf_io_get16_fb
+                0x002020a4                buf_io_get16_fl_apr
+                0x002020d4                buf_io_get16_fb_apr
+                0x00202104                buf_io_get32_fl
+                0x0020214c                buf_io_get32_fb
+                0x00202194                buf_io_get32_fl_apr
+                0x002021c0                buf_io_get32_fb_apr
+                0x002021ec                buf_io_get64_fl
+                0x002022a4                buf_io_get64_fb
+                0x0020235c                buf_io_get64_fl_apr
+                0x00202390                buf_io_get64_fb_apr
+                0x002023c4                buf_io_getf_fl
+                0x002023e8                buf_io_getf_fb
+                0x0020240c                buf_io_getf_fl_apr
+                0x00202438                buf_io_getf_fb_apr
+                0x00202464                buf_io_getd_fl
+                0x00202490                buf_io_getd_fb
+                0x002024bc                buf_io_getd_fl_apr
+                0x002024f0                buf_io_getd_fb_apr
+                0x00202524                buf_io_put8_tl
+                0x00202540                buf_io_put8_tb
+                0x0020255c                buf_io_put8_tl_apr
+                0x0020258c                buf_io_put8_tb_apr
+                0x002025bc                buf_io_put16_tl
+                0x002025ec                buf_io_put16_tb
+                0x0020261c                buf_io_put16_tl_apr
+                0x0020264c                buf_io_put16_tb_apr
+                0x0020267c                buf_io_put32_tl
+                0x002026c8                buf_io_put32_tb
+                0x00202714                buf_io_put32_tl_apr
+                0x00202740                buf_io_put32_tb_apr
+                0x0020276c                buf_io_put64_tl
+                0x00202858                buf_io_put64_tb
+                0x00202944                buf_io_put64_tl_apr
+                0x00202974                buf_io_put64_tb_apr
+                0x002029a4                buf_io_putf_tl
+                0x002029c4                buf_io_putf_tb
+                0x002029e4                buf_io_putf_tl_apr
+                0x00202a10                buf_io_putf_tb_apr
+                0x00202a3c                buf_io_putd_tl
+                0x00202a64                buf_io_putd_tb
+                0x00202a8c                buf_io_putd_tl_apr
+                0x00202abc                buf_io_putd_tb_apr
+ .text          0x00202aec      0x7b0 ./bsp/boards/cc2538em/source/uarthal.o
+                0x00202aec                UARTParityModeSet
+                0x00202b18                UARTParityModeGet
+                0x00202b38                UARTFIFOLevelSet
+                0x00202b5c                UARTFIFOLevelGet
+                0x00202b90                UARTConfigSetExpClk
+                0x00202c34                UARTConfigGetExpClk
+                0x00202ca4                UARTEnable
+                0x00202ce4                UARTDisable
+                0x00202d38                UARTFIFOEnable
+                0x00202d60                UARTFIFODisable
+                0x00202d88                UARTEnableSIR
+                0x00202dd0                UARTDisableSIR
+                0x00202df8                UARTTxIntModeSet
+                0x00202e24                UARTTxIntModeGet
+                0x00202e44                UARTCharsAvail
+                0x00202e70                UARTSpaceAvail
+                0x00202e9c                UARTCharGetNonBlocking
+                0x00202ecc                UARTCharGet
+                0x00202ef8                UARTCharPutNonBlocking
+                0x00202f30                UARTCharPut
+                0x00202f60                UARTBreakCtl
+                0x00202fa0                UARTBusy
+                0x00202fcc                UARTIntRegister
+                0x00203008                UARTIntUnregister
+                0x00203040                UARTIntEnable
+                0x00203068                UARTIntDisable
+                0x00203094                UARTIntStatus
+                0x002030c4                UARTIntClear
+                0x002030e4                UARTDMAEnable
+                0x0020310c                UARTDMADisable
+                0x00203138                UARTRxErrorGet
+                0x00203158                UARTRxErrorClear
+                0x00203178                UARTClockSourceSet
+                0x00203198                UARTClockSourceGet
+                0x002031b4                UART9BitEnable
+                0x002031dc                UART9BitDisable
+                0x00203204                UART9BitAddrSet
+                0x00203234                UART9BitAddrSend
+ .text          0x0020329c      0x794 ./bsp/boards/cc2538em/source/sys_ctrl.o
+                0x0020329c                SysCtrlClockSet
+                0x00203380                SysCtrlClockGet
+                0x0020343c                SysCtrlIOClockSet
+                0x0020347c                SysCtrlIOClockGet
+                0x0020353c                SysCtrlDelay
+                0x00203544                SysCtrlReset
+                0x00203558                SysCtrlSleep
+                0x00203564                SysCtrlDeepSleep
+                0x00203674                SysCtrlPeripheralPresent
+                0x00203704                SysCtrlPeripheralReset
+                0x002037b4                SysCtrlPeripheralEnable
+                0x00203808                SysCtrlPeripheralDisable
+                0x00203860                SysCtrlPeripheralSleepEnable
+                0x002038b4                SysCtrlPeripheralSleepDisable
+                0x0020390c                SysCtrlPeripheralDeepSleepEnable
+                0x00203960                SysCtrlPeripheralDeepSleepDisable
+                0x002039b8                SysCtrlPowerModeSet
+                0x002039d8                SysCtrlPowerModeGet
+                0x00203a00                SysCtrlClockLossDetectEnable
+ .text          0x00203a30      0x1f8 ./bsp/boards/cc2538em/source/sleepmode.o
+                0x00203a30                SleepModeIntRegister
+                0x00203a54                SleepModeIntUnregister
+                0x00203a6c                SleepModeTimerCountGet
+                0x00203ac8                SleepModeCaptureConfig
+                0x00203b08                SleepModeTimerCompareSet
+                0x00203b70                SleepModeCaptureGet
+                0x00203bcc                SleepModeCaptureIsValid
+                0x00203bf8                SleepModeCaptureNew
+ .text          0x00203c28      0x66c ./bsp/boards/cc2538em/source/ioc.o
+                0x00203c28                IOCPinConfigPeriphOutput
+                0x00203d10                IOCPinConfigPeriphInput
+                0x00203f18                IOCPadConfigSet
+                0x00204000                IOCPadConfigGet
+ .text          0x00204294      0x568 ./bsp/boards/cc2538em/source/interrupt.o
+                0x0020429c                IntMasterEnable
+                0x002042b4                IntMasterDisable
+                0x002042cc                IntRegister
+                0x00204358                IntUnregister
+                0x00204380                IntPriorityGroupingSet
+                0x002043b4                IntPriorityGroupingGet
+                0x00204408                IntPrioritySet
+                0x0020447c                IntPriorityGet
+                0x002044b4                IntEnable
+                0x00204578                IntDisable
+                0x0020463c                IntPendSet
+                0x002046e0                IntPendClear
+                0x00204764                IntPriorityMaskSet
+                0x0020477c                IntPriorityMaskGet
+                0x0020478c                IntAltMapEnable
+                0x002047b0                IntAltMapDisable
+                0x002047d4                IntAltMapIsEnabled
+ .text          0x002047fc      0x908 ./bsp/boards/cc2538em/source/gpio.o
+                0x002047fc                GPIOGetIntNumber
+                0x0020487c                GPIODirModeSet
+                0x002048f8                GPIODirModeGet
+                0x00204958                GPIOIntTypeSet
+                0x00204a08                GPIOIntTypeGet
+                0x00204a88                GPIOPinIntEnable
+                0x00204ab4                GPIOPinIntDisable
+                0x00204ae4                GPIOPinIntStatus
+                0x00204b14                GPIOPinIntClear
+                0x00204b34                GPIOPortIntRegister
+                0x00204b5c                GPIOPortIntUnregister
+                0x00204b80                GPIOPinRead
+                0x00204ba8                GPIOPinWrite
+                0x00204bd4                GPIOPinTypeGPIOInput
+                0x00204c04                GPIOPinTypeGPIOOutput
+                0x00204c34                GPIOPinTypeI2C
+                0x00204c64                GPIOPinTypeSSI
+                0x00204c94                GPIOPinTypeTimer
+                0x00204cc4                GPIOPinTypeUARTInput
+                0x00204cf4                GPIOPinTypeUARTOutput
+                0x00204d24                GPIOPowIntTypeSet
+                0x00204dd0                GPIOPowIntTypeGet
+                0x00204e68                GPIOPowIntEnable
+                0x00204ef4                GPIOPowIntDisable
+                0x00204f84                GPIOPowIntStatus
+                0x0020501c                GPIOPowIntClear
+                0x002050a8                GPIOIntWakeupEnable
+                0x002050d4                GPIOIntWakeupDisable
+ .text          0x00205104       0x44 ./bsp/boards/cc2538em/source/cpu.o
+                0x00205104                CPUcpsid
+                0x00205110                CPUprimask
+                0x0020511c                CPUcpsie
+                0x00205128                CPUwfi
+                0x0020512c                CPUwfe
+                0x00205130                CPUsev
+                0x00205134                CPUbasepriSet
+                0x0020513c                CPUbasepriGet
+ .text          0x00205148      0x420 ./bsp/boards/cc2538em/uart.o
+                0x00205148                uart_init
+                0x00205250                uart_setCallbacks
+                0x0020527c                uart_enableInterrupts
+                0x00205294                uart_disableInterrupts
+                0x002052ac                uart_clearRxInterrupts
+                0x002052c4                uart_clearTxInterrupts
+                0x002052dc                uart_writeByte
+                0x00205300                uart_readByte
+                0x00205370                uart_tx_isr
+                0x0020539c                uart_rx_isr
+                0x002053c8                uart1_init
+                0x00205494                uart1_setCallbacks
+                0x002054c0                uart1_enableInterrupts
+                0x002054d8                uart1_disableInterrupts
+                0x002054f0                uart1_clearRxInterrupts
+                0x00205508                uart1_clearTxInterrupts
+                0x00205520                uart1_writeByte
+                0x00205544                uart1_readByte
+ .text          0x00205568       0xa0 ./bsp/boards/cc2538em/startup_gcc.o
+                0x00205568                NmiSR
+                0x00205574                FaultISR
+                0x0020557c                IntDefaultHandler
+                0x00205584                ResetISR
+ .text          0x00205608      0x518 ./bsp/boards/cc2538em/radiotimer.o
+                0x00205608                radiotimer_init
+                0x00205624                radiotimer_setOverflowCb
+                0x00205644                radiotimer_setCompareCb
+                0x00205664                radiotimer_setStartFrameCb
+                0x00205670                radiotimer_setEndFrameCb
+                0x0020567c                radiotimer_start
+                0x002057b8                radiotimer_getValue
+                0x00205814                radiotimer_setPeriod
+                0x0020586c                radiotimer_getPeriod
+                0x002058c8                radiotimer_schedule
+                0x00205948                radiotimer_cancel
+                0x002059b0                radiotimer_getCapturedTime
+                0x00205a0c                get_real_counter
+                0x00205a58                radiotimer_isr_private
+                0x00205a6c                radiotimer_isr
+ .text          0x00205b20      0x95c ./bsp/boards/cc2538em/radio.o
+                0x00205b20                radio_init
+                0x00205d1c                radio_setOverflowCb
+                0x00205d34                radio_setCompareCb
+                0x00205d4c                radio_setStartFrameCb
+                0x00205d6c                radio_setEndFrameCb
+                0x00205d8c                radio_reset
+                0x00205e00                radio_startTimer
+                0x00205e18                radio_getTimerValue
+                0x00205e28                radio_setTimerPeriod
+                0x00205e40                radio_getTimerPeriod
+                0x00205e50                radio_setFrequency
+                0x00205ea8                radio_rfOn
+                0x00205eb4                radio_rfOff
+                0x00205ee4                radio_loadPacket
+                0x00205f84                radio_txEnable
+                0x00205fac                radio_txNow
+                0x00205fc8                radio_rxEnable
+                0x00205ff0                radio_rxNow
+                0x00206038                radio_getReceivedFrame
+                0x00206160                enable_radio_interrupts
+                0x0020619c                disable_radio_interrupts
+                0x002061c4                radio_on
+                0x002061dc                radio_off
+                0x00206224                radio_isr
+                0x00206234                radio_isr_internal
+                0x0020643c                radio_error_isr
+ .text          0x0020647c      0x594 ./bsp/boards/cc2538em/mac_csp_tx.o
+                0x0020647c                radio_csma_init
+                0x00206660                macCspTxPrepCsmaUnslotted
+                0x0020674c                macRadioRandomByte
+                0x00206780                txCsmaPrep
+                0x002069b0                macCspTxGoCsma
+ .text          0x00206a10      0x2f4 ./bsp/boards/cc2538em/leds.o
+                0x00206a10                leds_init
+                0x00206a3c                leds_error_on
+                0x00206a4c                leds_error_off
+                0x00206a5c                leds_error_toggle
+                0x00206a6c                leds_error_isOn
+                0x00206a98                leds_sync_on
+                0x00206aa8                leds_sync_off
+                0x00206ab8                leds_sync_toggle
+                0x00206ac8                leds_sync_isOn
+                0x00206af8                leds_radio_on
+                0x00206b08                leds_radio_off
+                0x00206b18                leds_radio_toggle
+                0x00206b28                leds_radio_isOn
+                0x00206b58                leds_debug_on
+                0x00206b68                leds_debug_off
+                0x00206b78                leds_debug_toggle
+                0x00206b88                leds_debug_isOn
+                0x00206bb8                leds_all_on
+                0x00206bc8                leds_all_off
+                0x00206bd8                leds_all_toggle
+                0x00206be8                leds_error_blink
+                0x00206c54                leds_circular_shift
+                0x00206c60                leds_increment
+                0x00206c6c                bspLedSet
+                0x00206c94                bspLedClear
+                0x00206cbc                bspLedToggle
+ .text          0x00206d04       0x78 ./bsp/boards/cc2538em/eui64.o
+                0x00206d04                eui64_get
+ .text          0x00206d7c      0x26c ./bsp/boards/cc2538em/debugpins.o
+                0x00206d7c                debugpins_init
+                0x00206dcc                debugpins_frame_toggle
+                0x00206de4                debugpins_frame_clr
+                0x00206e00                debugpins_frame_set
+                0x00206e1c                debugpins_slot_toggle
+                0x00206e34                debugpins_slot_clr
+                0x00206e50                debugpins_slot_set
+                0x00206e6c                debugpins_fsm_toggle
+                0x00206e84                debugpins_fsm_clr
+                0x00206ea0                debugpins_fsm_set
+                0x00206ebc                debugpins_task_toggle
+                0x00206ed4                debugpins_task_clr
+                0x00206ef0                debugpins_task_set
+                0x00206f0c                debugpins_isr_toggle
+                0x00206f24                debugpins_isr_clr
+                0x00206f40                debugpins_isr_set
+                0x00206f5c                debugpins_radio_toggle
+                0x00206f74                debugpins_radio_clr
+                0x00206f90                debugpins_radio_set
+                0x00206fac                bspDBpinToggle
+ .text          0x00206fe8      0x194 ./bsp/boards/cc2538em/bsp_timer.o
+                0x00206fe8                bsp_timer_init
+                0x00207014                bsp_timer_set_callback
+                0x00207034                bsp_timer_reset
+                0x0020705c                bsp_timer_scheduleIn
+                0x00207128                bsp_timer_cancel_schedule
+                0x00207138                bsp_timer_get_currentValue
+                0x00207148                bsp_timer_isr_private
+                0x00207164                bsp_timer_isr
+ .text          0x0020717c      0x424 ./bsp/boards/cc2538em/board.o
+                0x0020717c                main
+                0x0020718c                board_init
+                0x002071c4                button_init
+                0x00207224                GPIO_C_Isr_Handler
+                0x0020723c                antenna_init
+                0x0020728c                antenna_external
+                0x002072bc                antenna_internal
+                0x002072ec                board_sleep
+                0x00207300                board_reset
+ .text          0x002075a0      0xdec ./drivers/common/opentimers.o
+                0x002075a0                opentimers_init
+                0x002076a8                opentimers_start
+                0x002079a8                opentimers_setPeriod
+                0x00207b18                opentimers_stop
+                0x00207b50                opentimers_restart
+                0x00207b88                opentimers_timer_callback
+                0x00207fb8                opentimers_sleepTimeCompesation
+ .text          0x0020838c      0xf60 ./drivers/common/openserial.o
+                0x0020838c                openserial_init
+                0x002084d4                openserial_printStatus
+                0x0020856c                openserial_printInfoErrorCritical
+                0x00208618                openserial_printData
+                0x002086d8                openserial_printInfo
+                0x00208704                openserial_printError
+                0x00208734                openserial_printCritical
+                0x0020877c                openserial_getNumDataBytes
+                0x002087a8                openserial_getInputBuffer
+                0x0020881c                openserial_startInput
+                0x002088cc                openserial_startOutput
+                0x00208a84                openserial_stop
+                0x00208c04                debugPrint_outBufferIndexes
+                0x00208c50                outputHdlcOpen
+                0x00208c9c                outputHdlcWrite
+                0x00208d4c                outputHdlcClose
+                0x00208db8                inputHdlcOpen
+                0x00208de0                inputHdlcWrite
+                0x00208e84                inputHdlcClose
+                0x00208ecc                isr_openserial_tx
+                0x00208fc4                isr1_openserial_tx
+                0x00209048                isr_openserial_rx
+                0x00209180                isr1_openserial_rx
+                0x002092b8                openserial_echo
+ .text          0x002092ec       0x3c ./drivers/common/openhdlc.o
+                0x002092ec                crcIteration
+ .text          0x00209328      0x188 ./kernel/openos/scheduler.o
+                0x00209328                scheduler_init
+                0x00209358                scheduler_start
+                0x002093d0                scheduler_push_task
+ .text          0x002094b0      0x1a0 ./openapps/c6t/c6t.o
+                0x002094b0                c6t_init
+                0x00209540                c6t_receive
+                0x00209634                c6t_sendDone
+ .text          0x00209650      0x20c ./openapps/cinfo/cinfo.o
+                0x00209650                cinfo_init
+                0x002096e0                cinfo_receive
+                0x00209840                cinfo_sendDone
+ .text          0x0020985c      0x170 ./openapps/cleds/cleds.o
+                0x0020985c                cleds__init
+                0x002098dc                cleds_receive
+                0x002099b0                cleds_sendDone
+ .text          0x002099cc      0x360 ./openapps/cstorm/cstorm.o
+                0x002099cc                cstorm_init
+                0x00209a4c                cstorm_receive
+                0x00209b74                cstorm_timer_cb
+                0x00209b8c                cstorm_task_cb
+                0x00209d10                cstorm_sendDone
+ .text          0x00209d2c      0x138 ./openapps/cwellknown/cwellknown.o
+                0x00209d2c                cwellknown_init
+                0x00209dc0                cwellknown_receive
+                0x00209e48                cwellknown_sendDone
+ .text          0x00209e64       0x34 ./openapps/openapps.o
+                0x00209e64                openapps_init
+ .text          0x00209e98       0xd4 ./openapps/techo/techo.o
+                0x00209e98                techo_init
+                0x00209ea4                techo_shouldIlisten
+                0x00209eb4                techo_receive
+                0x00209f04                techo_sendDone
+                0x00209f48                techo_connectDone
+                0x00209f5c                techo_debugPrint
+ .text          0x00209f6c       0xf4 ./openapps/uecho/uecho.o
+                0x00209f6c                uecho_init
+                0x00209f78                uecho_receive
+                0x0020a034                uecho_sendDone
+                0x0020a050                uecho_debugPrint
+ .text          0x0020a060       0x18 ./openstack/02a-MAClow/topology.o
+                0x0020a060                topology_isAcceptablePacket
+ .text          0x0020a078      0x63c ./openstack/02a-MAClow/adaptive_sync.o
+                0x0020a078                adaptive_sync_init
+                0x0020a0cc                adaptive_sync_preprocess
+                0x0020a30c                adaptive_sync_calculateCompensatedSlots
+                0x0020a4a4                adaptive_sync_countCompensationTimeout
+                0x0020a574                adaptive_sync_countCompensationTimeout_compoundSlots
+                0x0020a698                adaptive_sync_driftChanged
+ .text          0x0020a6b4     0x48e0 ./openstack/02a-MAClow/IEEE802154RIT.o
+                0x0020a6b4                toogleTxRxSerial
+                0x0020a704                ieee154e_init
+                0x0020a834                clearritroute
+                0x0020a87c                incroute
+                0x0020a904                ieee154e_asnDiff
+                0x0020a9d0                teste2
+                0x0020a9dc                isr_ieee154e_newSlot
+                0x0020aa00                isr_ieee154e_timer
+                0x0020abe0                ieee154e_startOfFrame
+                0x0020ac0c                ieee154e_endOfFrame
+                0x0020acd8                debugPrint_asn
+                0x0020ad2c                debugPrint_isSync
+                0x0020ad64                debugPrint_macStats
+                0x0020ad84                RIT_checkpendingmsginsomeslot
+                0x0020ae04                activity_ti1ORri1
+                0x0020af44                getRitRequest
+                0x0020b048                StartRxRITProcedure
+                0x0020b230                SendTxDAODirectly
+                0x0020b308                checkmsgtype
+                0x0020bae0                StartTxRITProcedure
+                0x0020bb68                SendTxRITProcedure
+                0x0020bb98                activity_tie3
+                0x0020bbc4                activity_txsenddone
+                0x0020c2bc                activity_txsenderror
+                0x0020c584                activity_txwaitforack
+                0x0020c5f8                activity_tie5
+                0x0020c748                activity_txendackwindow
+                0x0020c840                activity_rxendackwindow
+                0x0020c938                activity_txandackendok
+                0x0020cb60                activity_rxdataprepare
+                0x0020cd00                activity_rxwindowopen
+                0x0020ce48                activity_ritwindowend
+                0x0020cf4c                activity_rie3
+                0x0020cf78                activity_rxnewframe
+                0x0020d4e8                prepare_tx_msg
+                0x0020d5fc                activity_ti2
+                0x0020d764                activity_rxsendack
+                0x0020da2c                activity_rie5
+                0x0020da74                activity_rxandackendok
+                0x0020dbc0                isValidRxFrame
+                0x0020dc3c                isValidAck
+                0x0020dcbc                incrementAsnOffset
+                0x0020dda4                ieee154e_getAsn
+                0x0020de30                joinPriorityStoreFromAdv
+                0x0020de68                asnStoreFromAdv
+                0x0020df2c                changeIsSync
+                0x0020df64                notif_sendDone
+                0x0020dfb0                notif_receive
+                0x0020dffc                resetStats
+                0x0020e06c                updateStats
+                0x0020e0c0                calculateFrequency
+                0x0020e0dc                changeState
+                0x0020e0fc                endSlot
+                0x0020e270                ieee154e_isSynch
+                0x0020e288                activity_rxwindowend
+                0x0020e3d8                RITQueue_IsEmpty
+                0x0020e3f8                RITQueue_IsFull
+                0x0020e424                RITQueue_AddrIsTheSame
+                0x0020e518                RITQueue_copyaddress
+                0x0020e5a4                RITQueue_Put
+                0x0020e794                RITQueue_Get_Element
+                0x0020e840                RITQueue_Get_Pos
+                0x0020e8c4                RITQueue_ClearAddress
+                0x0020e908                RITQueue_PutPending
+                0x0020e9ac                RITQueue_ExistFramePending
+                0x0020ea38                RITQueue_GetPending
+                0x0020eae8                RITQueue_Free
+                0x0020ec20                RITQueue_cleanupoldmsg
+                0x0020ee6c                RITQueue_AllocateResources
+ .text          0x0020ef94      0x540 ./openstack/02a-MAClow/IEEE802154.o
+                0x0020ef94                ieee802154_prependHeader
+                0x0020f11c                ieee802154_retrieveHeader
+ .text          0x0020f4d4     0x14b8 ./openstack/02b-MAChigh/sixtop.o
+                0x0020f4d4                sixtop_init
+                0x0020f590                sixtop_setKaPeriod
+                0x0020f5c8                sixtop_addCells
+                0x0020f72c                sixtop_removeCell
+                0x0020f870                sixtop_send
+                0x0020f8c8                task_sixtopNotifSendDone
+                0x0020f9e0                task_sixtopNotifReceive
+                0x0020fae0                debugPrint_myDAGrank
+                0x0020fb14                debugPrint_kaPeriod
+                0x0020fb48                sixtop_send_internal
+                0x0020fc04                sixtop_maintenance_timer_cb
+                0x0020fc1c                sixtop_timeout_timer_cb
+                0x0020fc34                timer_sixtop_management_fired
+                0x0020fc80                sixtop_sendEB
+                0x0020fd6c                sixtop_sendKA
+                0x0020fe40                timer_sixtop_six2six_timeout_fired
+                0x0020fe58                sixtop_six2six_sendDone
+                0x0021002c                sixtop_processIEs
+                0x0021026c                sixtop_notifyReceiveCommand
+                0x00210318                sixtop_notifyReceiveLinkRequest
+                0x002103b0                sixtop_linkResponse
+                0x002104c0                sixtop_notifyReceiveLinkResponse
+                0x00210564                sixtop_notifyReceiveRemoveLinkRequest
+                0x002105b4                sixtop_candidateAddCellList
+                0x00210674                sixtop_candidateRemoveCellList
+                0x0021072c                sixtop_addCellsByState
+                0x00210858                sixtop_removeCellsByState
+                0x002108b8                sixtop_areAvailableCellsToBeScheduled
+ .text          0x0021098c      0xae8 ./openstack/02b-MAChigh/schedule.o
+                0x0021098c                schedule_init
+                0x00210ac4                debugPrint_schedule
+                0x00210cd4                debugPrint_backoff
+                0x00210d18                schedule_setFrameLength
+                0x00210d40                schedule_getSlotInfo
+                0x00210dc8                schedule_addActiveSlot
+                0x00210ef8                schedule_removeActiveSlot
+                0x00210ff8                schedule_isSlotOffsetAvailable
+                0x00211050                schedule_syncSlotOffset
+                0x00211084                schedule_advanceSlot
+                0x002110ac                schedule_getNextActiveSlotOffset
+                0x002110d8                schedule_getFrameLength
+                0x00211100                schedule_getType
+                0x0021112c                schedule_getNeighbor
+                0x00211160                schedule_getChannelOffset
+                0x0021118c                schedule_getOkToSend
+                0x00211214                schedule_resetBackoff
+                0x00211244                schedule_indicateRx
+                0x00211290                schedule_indicateTx
+                0x002113f0                schedule_resetEntry
+ .text          0x00211474      0x8bc ./openstack/02b-MAChigh/processIE.o
+                0x00211474                processIE_prependMLMEIE
+                0x002114c8                processIE_prependSyncIE
+                0x0021153c                processIE_prependSlotframeLinkIE
+                0x002116c4                processIE_prependOpcodeIE
+                0x00211744                processIE_prependBandwidthIE
+                0x002117e0                processIE_prependSheduleIE
+                0x00211994                processIE_retrieveSlotframeLinkIE
+                0x00211ae8                processIE_retrieveOpcodeIE
+                0x00211b20                processIE_retrieveBandwidthIE
+                0x00211b70                processIE_retrieveSheduleIE
+ .text          0x00211d30       0xa8 ./openstack/02b-MAChigh/otf.o
+                0x00211d30                otf_init
+                0x00211d3c                otf_notif_addedCell
+                0x00211d54                otf_notif_removedCell
+                0x00211d6c                otf_addCell_task
+                0x00211da4                otf_removeCell_task
+ .text          0x00211dd8     0x1590 ./openstack/02b-MAChigh/neighbors.o
+                0x00211dd8                neighbors_init
+                0x00211e20                neighbors_getMyDAGrank
+                0x00211e38                neighbors_getNumNeighbors
+                0x00211e90                neighbors_getPreferredParentEui64
+                0x00212060                neighbors_getKANeighbor
+                0x0021213c                neighbors_isStableNeighbor
+                0x002121f0                neighbors_ChkMsgPendIsforThisProbe
+                0x0021221c                neighbors_isPreferredParent
+                0x0021228c                neighbors_isNeighborWithLowerDAGrank
+                0x002122fc                neighbors_isNeighborWithHigherDAGrank
+                0x0021236c                neighbors_indicateRx
+                0x0021268c                neighbors_indicateTx
+                0x00212894                neighbors_indicateRxDIO
+                0x00212a38                neighbors_getNeighbor
+                0x00212aa4                neighbors_updateMyDAGrankAndNeighborPreference
+                0x00212ca4                neighbors_removeOld
+                0x00212d24                debugPrint_neighbors
+                0x00212df0                registerNewNeighbor
+                0x002130c0                isNeighbor
+                0x00213108                removeNeighbor
+                0x002132d4                isThisRowMatching
+ .text          0x00213368      0x3d4 ./openstack/03a-IPHC/openbridge.o
+                0x00213368                openbridge_init
+                0x00213374                openbridge_triggerData
+                0x0021362c                openbridge_sendDone
+                0x0021366c                openbridge_receive
+ .text          0x0021373c      0xd88 ./openstack/03a-IPHC/iphc.o
+                0x0021373c                iphc_init
+                0x00213748                iphc_sendFromForwarding
+                0x002139bc                iphc_sendFromBridge
+                0x00213a08                iphc_sendDone
+                0x00213a44                iphc_receive
+                0x00213adc                iphc_prependIPv6Header
+                0x00213ef8                iphc_retrieveIPv6Header
+                0x00214490                iphc_prependIPv6HopByHopHeader
+                0x002144ac                iphc_retrieveIPv6HopByHopHeader
+ .text          0x002144c4      0xe28 ./openstack/03b-IPv6/icmpv6rpl.o
+                0x002144c4                icmpv6rpl_init
+                0x00214704                icmpv6rpl_getRPLIntanceID
+                0x0021471c                icmpv6rpl_sendDone
+                0x00214784                icmpv6rpl_receive
+                0x0021498c                icmpv6rpl_timer_DIO_cb
+                0x002149a4                icmpv6rpl_timer_DIO_task
+                0x00214a38                sendDIO
+                0x00214dc8                icmpv6rpl_timer_DAO_cb
+                0x00214de0                icmpv6rpl_timer_DAO_task
+                0x00214e7c                sendDAO
+ .text          0x002152ec      0x434 ./openstack/03b-IPv6/icmpv6echo.o
+                0x002152ec                icmpv6echo_init
+                0x00215314                icmpv6echo_trigger
+                0x00215488                icmpv6echo_sendDone
+                0x002154d4                icmpv6echo_receive
+ .text          0x00215720      0x1c8 ./openstack/03b-IPv6/icmpv6.o
+                0x00215720                icmpv6_init
+                0x0021572c                icmpv6_send
+                0x00215758                icmpv6_sendDone
+                0x002157bc                icmpv6_receive
+ .text          0x002158e8      0xb34 ./openstack/03b-IPv6/forwarding.o
+                0x002158e8                forwarding_init
+                0x002158f4                forwarding_send
+                0x002159b4                forwarding_sendDone
+                0x00215a38                forwarding_receive
+                0x00215e28                forwarding_getNextHop
+                0x00215e94                forwarding_send_internal_RoutingTable
+                0x00215ff0                forwarding_send_internal_SourceRouting
+                0x00216394                forwarding_createRplOption
+                0x002163d8                forwarding_createFlowLabel
+ .text          0x0021641c      0x2e4 ./openstack/04-TRAN/openudp.o
+                0x0021641c                openudp_init
+                0x00216428                openudp_send
+                0x002164b8                openudp_sendDone
+                0x00216518                openudp_receive
+                0x002166f0                openudp_debugPrint
+ .text          0x00216700     0x1574 ./openstack/04-TRAN/opentcp.o
+                0x00216700                opentcp_init
+                0x00216720                opentcp_connect
+                0x00216840                opentcp_send
+                0x0021697c                opentcp_sendDone
+                0x00216bd4                opentcp_receive
+                0x002177ac                opentcp_close
+                0x002178b0                tcp_debugPrint
+                0x002178c0                timers_tcp_fired
+                0x002178cc                prependTCPHeader
+                0x00217a2c                containsControlBits
+                0x00217b50                opentcp_reset
+                0x00217bbc                tcp_change_state
+                0x00217c5c                opentcp_timer_cb
+ .text          0x00217c74      0x940 ./openstack/04-TRAN/opencoap.o
+                0x00217c74                opencoap_init
+                0x00217c9c                opencoap_receive
+                0x00218330                opencoap_sendDone
+                0x002183b4                opencoap_writeLinks
+                0x00218490                opencoap_register
+                0x002184e8                opencoap_send
+ .text          0x002185b4      0xbcc ./openstack/cross-layers/packetfunctions.o
+                0x002185b4                packetfunctions_ip128bToMac64b
+                0x00218630                packetfunctions_mac64bToIp128b
+                0x002186ac                packetfunctions_mac64bToMac16b
+                0x00218700                packetfunctions_mac16bToMac64b
+                0x00218784                packetfunctions_isBroadcastMulticast
+                0x0021881c                packetfunctions_isAllRoutersMulticast
+                0x002188c4                packetfunctions_isAllHostsMulticast
+                0x0021896c                packetfunctions_sameAddress
+                0x00218a18                packetfunctions_sameAddress128_64
+                0x00218aa0                packetfunctions_readAddress
+                0x00218b5c                packetfunctions_writeAddress
+                0x00218c28                packetfunctions_reserveHeaderSize
+                0x00218c7c                packetfunctions_tossHeader
+                0x00218ccc                packetfunctions_reserveFooterSize
+                0x00218d10                packetfunctions_tossFooter
+                0x00218d50                packetfunctions_calculateCRC
+                0x00218e04                packetfunctions_checkCRC
+                0x00218ed0                packetfunctions_calculateChecksum
+                0x00218fd0                onesComplementSum
+                0x0021908c                packetfunctions_htons
+                0x002190bc                packetfunctions_ntohs
+                0x002190e8                packetfunctions_htonl
+                0x0021913c                packetfunctions_ntohl
+ .text          0x00219180       0xf8 ./openstack/cross-layers/openrandom.o
+                0x00219180                openrandom_init
+                0x002191e4                openrandom_get16b
+ .text          0x00219278      0x71c ./openstack/cross-layers/openqueue.o
+                0x00219278                openqueue_init
+                0x002192c8                debugPrint_queue
+                0x00219358                openqueue_getFreePacketBuffer
+                0x00219424                openqueue_freePacketBuffer
+                0x002194e4                openqueue_freePacketRITBuffer
+                0x00219508                openqueue_removeAllCreatedBy
+                0x00219578                openqueue_removeAllOwnedBy
+                0x002195e8                openqueue_sixtopGetSentPacket
+                0x00219674                openqueue_sixtopGetReceivedPacket
+                0x00219700                openqueue_macGetDataPacket
+                0x00219868                openqueue_macGetAdvPacket
+                0x0021991c                openqueue_reset_entry
+ .text          0x00219994      0x588 ./openstack/cross-layers/idmanager.o
+                0x00219994                idmanager_init
+                0x00219a30                idmanager_getIsDAGroot
+                0x00219a58                idmanager_setIsDAGroot
+                0x00219a84                idmanager_getIsBridge
+                0x00219aac                idmanager_setIsBridge
+                0x00219ad4                idmanager_getMyID
+                0x00219b60                idmanager_setMyID
+                0x00219c54                idmanager_isMyAddress
+                0x00219d5c                idmanager_triggerAboutRoot
+                0x00219ddc                idmanager_triggerAboutBridge
+                0x00219e5c                debugPrint_id
+ .text          0x00219f1c       0x6c ./openstack/openstack.o
+                0x00219f1c                openstack_init
+ .text          0x00219f88       0x1c ./projects/common/03oos_openwsn/03oos_openwsn.o
+                0x00219f88                mote_main
+ .text.memcmp   0x00219fa4       0xb8 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+                0x00219fa4                memcmp
+ .text.memcpy   0x0021a05c      0x15c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+                0x0021a05c                memcpy
+ .text.memset   0x0021a1b8      0x12c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+                0x0021a1b8                memset
+ .text          0x0021a2e4      0x21c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubsf3.o)
+                0x0021a2e4                __aeabi_frsub
+                0x0021a2ec                __subsf3
+                0x0021a2ec                __aeabi_fsub
+                0x0021a2f0                __aeabi_fadd
+                0x0021a2f0                __addsf3
+                0x0021a450                __aeabi_ui2f
+                0x0021a450                __floatunsisf
+                0x0021a458                __aeabi_i2f
+                0x0021a458                __floatsisf
+                0x0021a474                __aeabi_ul2f
+                0x0021a474                __floatundisf
+                0x0021a484                __aeabi_l2f
+                0x0021a484                __floatdisf
+ .text          0x0021a500      0x2a0 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivsf3.o)
+                0x0021a500                __mulsf3
+                0x0021a500                __aeabi_fmul
+                0x0021a668                __aeabi_fdiv
+                0x0021a668                __divsf3
+ .text          0x0021a7a0       0x40 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunssfsi.o)
+                0x0021a7a0                __fixunssfsi
+                0x0021a7a0                __aeabi_f2uiz
+ *(.rodata*)
+ .rodata        0x0021a7e0       0xcc ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+                0x0021a810                osens_mote_sm_table
+                0x0021a8a0                datatype_sizes
+ .rodata        0x0021a8ac      0x200 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .rodata        0x0021aaac       0x74 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .rodata        0x0021ab20      0x100 ./bsp/boards/cc2538em/source/ioc.o
+ .rodata        0x0021ac20      0x114 ./bsp/boards/cc2538em/source/interrupt.o
+ .rodata        0x0021ad34      0x230 ./drivers/common/openhdlc.o
+ .rodata        0x0021af64       0x84 ./openapps/c6t/c6t.o
+                0x0021afe4                c6t_path0
+ .rodata        0x0021afe8       0x74 ./openapps/cinfo/cinfo.o
+                0x0021b058                cinfo_path0
+ .rodata        0x0021b05c       0x74 ./openapps/cleds/cleds.o
+                0x0021b0cc                cleds_path0
+ .rodata        0x0021b0d0       0x90 ./openapps/cstorm/cstorm.o
+                0x0021b140                cstorm_path0
+                0x0021b148                cstorm_payload
+ .rodata        0x0021b160       0x84 ./openapps/cwellknown/cwellknown.o
+                0x0021b1d0                cwellknown_path0
+                0x0021b1dc                cwellknown_path1
+ .rodata        0x0021b1e4       0x40 ./openstack/03b-IPv6/icmpv6rpl.o
+                0x0021b224                _etext = .
+                0x0021b224                _text = .
+ *(.vectors)
+ *(.text*)
+ *(.rodata*)
+                0x0021b224                _etext = .
+
+.glue_7         0x0021b224        0x0
+ .glue_7        0x00000000        0x0 linker stubs
+
+.glue_7t        0x0021b224        0x0
+ .glue_7t       0x00000000        0x0 linker stubs
+
+.vfp11_veneer   0x0021b224        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x0021b224        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.iplt           0x0021b224        0x0
+ .iplt          0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+
+.data           0x20004000      0x400 load address 0x0021b224
+                0x20004000                _data = .
+ *(vtable)
+ vtable         0x20004000      0x400 ./bsp/boards/cc2538em/source/interrupt.o
+ *(.data*)
+                0x20004400                _edata = .
+                0x20004400                _data = .
+ *(vtable)
+ *(.data*)
+                0x20004400                _edata = .
+
+.igot.plt       0x20004400        0x0 load address 0x0021b624
+ .igot.plt      0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+
+.ARM.exidx
+ *(.ARM.exidx*)
+ *(.ARM.exidx*)
+
+.bss            0x20004400     0x20be
+                0x20004400                _bss = .
+ *(.bss*)
+ .bss           0x20004400      0x200 ./bsp/boards/cc2538em/startup_gcc.o
+ .bss           0x20004600       0x24 ./bsp/boards/cc2538em/mac_csp_tx.o
+                0x20004600                macChipVersion
+ .bss           0x20004624       0x4c ./openstack/02a-MAClow/IEEE802154RIT.o
+                0x20004624                rffflag
+                0x20004625                u8NrMsgQueue
+                0x20004669                rffcountdao
+                0x2000466a                rffcountdao_tx
+                0x2000466b                rffcountdao_txok
+                0x2000466c                rffcountdao_txack
+                0x2000466d                rffcountdao_rx
+                0x2000466e                u8rffcounterror
+                0x2000466f                rffcountdio
+ .bss           0x20004670        0xc ./openstack/03a-IPHC/openbridge.o
+ .bss           0x2000467c        0xc ./openstack/03b-IPv6/icmpv6rpl.o
+ .bss           0x20004688        0xc ./openstack/03b-IPv6/icmpv6echo.o
+ .bss           0x20004694        0xc ./openstack/03b-IPv6/icmpv6.o
+ .bss           0x200046a0        0xc ./openstack/03b-IPv6/forwarding.o
+                0x200046aa                ucFlagForwarding
+ .bss           0x200046ac        0xc ./openstack/04-TRAN/opencoap.o
+ *(COMMON)
+ COMMON         0x200046b8      0x6d8 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+                0x200046b8                num_rx_bytes
+                0x200046b9                tx_data_len
+                0x200046bc                board_info
+                0x200046d4                sm_state
+                0x200046dc                schedule
+                0x200048a4                flagErrorOccurred
+                0x200048a8                frame
+                0x20004928                ans
+                0x20004958                sensor_points
+                0x20004d60                cmd
+ COMMON         0x20004d90        0x8 ./bsp/boards/cc2538em/uart.o
+                0x20004d90                uart_vars
+ COMMON         0x20004d98        0x8 ./bsp/boards/cc2538em/radiotimer.o
+                0x20004d98                radiotimer_vars
+ COMMON         0x20004da0        0xc ./bsp/boards/cc2538em/radio.o
+                0x20004da0                radio_vars
+ COMMON         0x20004dac        0x9 ./bsp/boards/cc2538em/mac_csp_tx.o
+                0x20004dac                macTxGpInterframeDelay
+                0x20004dad                macTxType
+                0x20004dae                macTxActive
+                0x20004db0                radio_csma_vars
+ *fill*         0x20004db5        0x3 00
+ COMMON         0x20004db8       0x14 ./bsp/boards/cc2538em/bsp_timer.o
+                0x20004db8                bsp_timer_vars
+ COMMON         0x20004dcc       0xd0 ./drivers/common/opentimers.o
+                0x20004dcc                opentimers_vars
+ COMMON         0x20004e9c      0x2b1 ./drivers/common/openserial.o
+                0x20004e9c                bufrffrxlen
+                0x20004ea0                bufrffrx
+                0x20004f04                debugstatusRFF
+                0x20004f08                openserial_vars
+                0x200050e4                rffinputcount
+                0x200050e5                bufRffTxCount
+                0x200050e8                bufRffTx
+                0x2000514c                bufRffTxLen
+ *fill*         0x2000514d        0x3 00
+ COMMON         0x20005150       0x82 ./kernel/openos/scheduler.o
+                0x20005150                scheduler_vars
+                0x200051d0                scheduler_dbg
+ *fill*         0x200051d2        0x2 00
+ COMMON         0x200051d4       0x24 ./openapps/c6t/c6t.o
+                0x200051d4                c6t_vars
+ COMMON         0x200051f8       0x24 ./openapps/cinfo/cinfo.o
+                0x200051f8                cinfo_vars
+ COMMON         0x2000521c       0x24 ./openapps/cleds/cleds.o
+                0x2000521c                cleds_vars
+ COMMON         0x20005240       0x28 ./openapps/cstorm/cstorm.o
+                0x20005240                cstorm_vars
+ COMMON         0x20005268       0x24 ./openapps/cwellknown/cwellknown.o
+                0x20005268                cwellknown_vars
+ COMMON         0x2000528c       0x2c ./openstack/02a-MAClow/adaptive_sync.o
+                0x2000528c                adaptive_sync_vars
+ COMMON         0x200052b8      0x3fc ./openstack/02a-MAClow/IEEE802154RIT.o
+                0x200052b8                pvObjList
+                0x20005600                rffframelen
+                0x20005604                numOfQueueInsertionErrors
+                0x20005608                numAvailableElements
+                0x20005609                flagSerialTx
+                0x2000560a                maxElements
+                0x2000560c                dao_stat
+                0x20005610                dio_stat
+                0x20005613                rffnewsendmsg
+                0x20005614                macRITstate
+                0x20005615                MsgNeedAck
+                0x20005616                rffslotOffset
+                0x20005617                macRITActualPos
+                0x20005618                element
+                0x20005640                RITQueue_ElementPending
+                0x20005641                ucFlagTxReOpen
+                0x20005642                rffstate
+                0x20005644                ieee154e_vars
+                0x20005680                ieee154e_stats
+                0x20005690                address_1
+                0x200056a1                rffframetype
+                0x200056a4                ieee154e_dbg
+ COMMON         0x200056b4        0xc ./openstack/02b-MAChigh/sixtop.o
+                0x200056b4                sixtop_vars
+ COMMON         0x200056c0      0x150 ./openstack/02b-MAChigh/schedule.o
+                0x200056c0                schedule_vars
+ COMMON         0x20005810      0x15c ./openstack/02b-MAChigh/neighbors.o
+                0x20005810                neighbors_vars
+ COMMON         0x2000596c       0x6a ./openstack/03b-IPv6/icmpv6rpl.o
+                0x2000596c                dao_address
+                0x20005980                icmpv6rpl_vars
+ *fill*         0x200059d6        0x2 00
+ COMMON         0x200059d8       0x14 ./openstack/03b-IPv6/icmpv6echo.o
+                0x200059d8                icmpv6echo_vars
+ COMMON         0x200059ec       0x30 ./openstack/04-TRAN/opentcp.o
+                0x200059ec                tcp_vars
+ COMMON         0x20005a1c        0x8 ./openstack/04-TRAN/opencoap.o
+                0x20005a1c                opencoap_vars
+ COMMON         0x20005a24        0x2 ./openstack/cross-layers/openrandom.o
+                0x20005a24                random_vars
+ *fill*         0x20005a26        0x2 00
+ COMMON         0x20005a28      0xa50 ./openstack/cross-layers/openqueue.o
+                0x20005a28                openqueue_vars
+                0x20006388                advRIT
+ COMMON         0x20006478       0x46 ./openstack/cross-layers/idmanager.o
+                0x20006478                idmanager_vars
+                0x200064be                _ebss = .
+                0x200064be                _bss = .
+ *(.bss*)
+ *(COMMON)
+                0x200064be                _ebss = .
+
+.flashcca       0x0027ffd4        0xc
+ *(.flashcca)
+ .flashcca      0x0027ffd4        0xc ./bsp/boards/cc2538em/startup_gcc.o
+                0x0027ffd4                __cca
+ *(.flashcca)
+START GROUP
+LOAD c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a
+END GROUP
+LOAD ../projects/common/liboos_openwsn.a
+START GROUP
+LOAD c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a
+LOAD c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libg.a
+LOAD c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a
+END GROUP
+OUTPUT(openwsn.out elf32-littlearm)
+
+.rel.dyn        0x0027ffe0        0x0
+ .rel.iplt      0x00000000        0x0 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+
+.debug_info     0x00000000    0x1cf2b
+ .debug_info    0x00000000     0x151d ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_info    0x0000151d      0xc22 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_info    0x0000213f      0x133 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_info    0x00002272      0xcfb ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_info    0x00002f6d      0x8fa ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_info    0x00003867      0x508 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_info    0x00003d6f      0x1df ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_info    0x00003f4e      0x2d3 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_info    0x00004221      0x44d ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_info    0x0000466e      0x7dc ./bsp/boards/cc2538em/source/gpio.o
+ .debug_info    0x00004e4a      0x188 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_info    0x00004fd2      0x43d ./bsp/boards/cc2538em/uart.o
+ .debug_info    0x0000540f      0x1d2 ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_info    0x000055e1      0x3fb ./bsp/boards/cc2538em/radiotimer.o
+ .debug_info    0x000059dc      0x6b9 ./bsp/boards/cc2538em/radio.o
+ .debug_info    0x00006095      0x2f2 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_info    0x00006387      0x410 ./bsp/boards/cc2538em/leds.o
+ .debug_info    0x00006797       0xc5 ./bsp/boards/cc2538em/eui64.o
+ .debug_info    0x0000685c      0x2ef ./bsp/boards/cc2538em/debugpins.o
+ .debug_info    0x00006b4b      0x2c0 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_info    0x00006e0b      0x297 ./bsp/boards/cc2538em/board.o
+ .debug_info    0x000070a2      0x432 ./drivers/common/opentimers.o
+ .debug_info    0x000074d4      0xbf1 ./drivers/common/openserial.o
+ .debug_info    0x000080c5      0x1a9 ./drivers/common/openhdlc.o
+ .debug_info    0x0000826e      0x340 ./kernel/openos/scheduler.o
+ .debug_info    0x000085ae      0x9df ./openapps/c6t/c6t.o
+ .debug_info    0x00008f8d      0x99d ./openapps/cinfo/cinfo.o
+ .debug_info    0x0000992a      0x99d ./openapps/cleds/cleds.o
+ .debug_info    0x0000a2c7      0xc8c ./openapps/cstorm/cstorm.o
+ .debug_info    0x0000af53      0xa01 ./openapps/cwellknown/cwellknown.o
+ .debug_info    0x0000b954      0x1cf ./openapps/openapps.o
+ .debug_info    0x0000bb23      0x809 ./openapps/techo/techo.o
+ .debug_info    0x0000c32c      0x809 ./openapps/uecho/uecho.o
+ .debug_info    0x0000cb35      0x2dd ./openstack/02a-MAClow/topology.o
+ .debug_info    0x0000ce12      0x4f8 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_info    0x0000d30a     0x2249 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_info    0x0000f553      0x993 ./openstack/02a-MAClow/IEEE802154.o
+ .debug_info    0x0000fee6     0x1523 ./openstack/02b-MAChigh/sixtop.o
+ .debug_info    0x00011409      0xc00 ./openstack/02b-MAChigh/schedule.o
+ .debug_info    0x00012009      0xa75 ./openstack/02b-MAChigh/processIE.o
+ .debug_info    0x00012a7e      0x2f9 ./openstack/02b-MAChigh/otf.o
+ .debug_info    0x00012d77      0xf73 ./openstack/02b-MAChigh/neighbors.o
+ .debug_info    0x00013cea      0x892 ./openstack/03a-IPHC/openbridge.o
+ .debug_info    0x0001457c      0xf1e ./openstack/03a-IPHC/iphc.o
+ .debug_info    0x0001549a      0xf0c ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_info    0x000163a6      0x960 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_info    0x00016d06      0x89c ./openstack/03b-IPv6/icmpv6.o
+ .debug_info    0x000175a2      0xdd6 ./openstack/03b-IPv6/forwarding.o
+ .debug_info    0x00018378      0x8ed ./openstack/04-TRAN/openudp.o
+ .debug_info    0x00018c65      0xdab ./openstack/04-TRAN/opentcp.o
+ .debug_info    0x00019a10      0xddd ./openstack/04-TRAN/opencoap.o
+ .debug_info    0x0001a7ed      0xcef ./openstack/cross-layers/packetfunctions.o
+ .debug_info    0x0001b4dc      0x208 ./openstack/cross-layers/openrandom.o
+ .debug_info    0x0001b6e4      0xac3 ./openstack/cross-layers/openqueue.o
+ .debug_info    0x0001c1a7      0x7f9 ./openstack/cross-layers/idmanager.o
+ .debug_info    0x0001c9a0      0x434 ./openstack/openstack.o
+ .debug_info    0x0001cdd4      0x157 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_abbrev   0x00000000     0x4a81
+ .debug_abbrev  0x00000000      0x284 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_abbrev  0x00000284      0x1c9 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_abbrev  0x0000044d       0xa1 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_abbrev  0x000004ee      0x10a ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_abbrev  0x000005f8       0xfa ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_abbrev  0x000006f2      0x108 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_abbrev  0x000007fa       0xe9 ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_abbrev  0x000008e3       0xd5 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_abbrev  0x000009b8      0x13b ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_abbrev  0x00000af3       0xfa ./bsp/boards/cc2538em/source/gpio.o
+ .debug_abbrev  0x00000bed       0xc2 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_abbrev  0x00000caf      0x1a6 ./bsp/boards/cc2538em/uart.o
+ .debug_abbrev  0x00000e55       0xea ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_abbrev  0x00000f3f      0x12e ./bsp/boards/cc2538em/radiotimer.o
+ .debug_abbrev  0x0000106d      0x18c ./bsp/boards/cc2538em/radio.o
+ .debug_abbrev  0x000011f9      0x126 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_abbrev  0x0000131f       0xcb ./bsp/boards/cc2538em/leds.o
+ .debug_abbrev  0x000013ea       0x77 ./bsp/boards/cc2538em/eui64.o
+ .debug_abbrev  0x00001461       0x9c ./bsp/boards/cc2538em/debugpins.o
+ .debug_abbrev  0x000014fd      0x124 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_abbrev  0x00001621       0xc8 ./bsp/boards/cc2538em/board.o
+ .debug_abbrev  0x000016e9      0x155 ./drivers/common/opentimers.o
+ .debug_abbrev  0x0000183e      0x181 ./drivers/common/openserial.o
+ .debug_abbrev  0x000019bf       0x98 ./drivers/common/openhdlc.o
+ .debug_abbrev  0x00001a57      0x123 ./kernel/openos/scheduler.o
+ .debug_abbrev  0x00001b7a      0x195 ./openapps/c6t/c6t.o
+ .debug_abbrev  0x00001d0f      0x195 ./openapps/cinfo/cinfo.o
+ .debug_abbrev  0x00001ea4      0x195 ./openapps/cleds/cleds.o
+ .debug_abbrev  0x00002039      0x1a4 ./openapps/cstorm/cstorm.o
+ .debug_abbrev  0x000021dd      0x195 ./openapps/cwellknown/cwellknown.o
+ .debug_abbrev  0x00002372       0x8e ./openapps/openapps.o
+ .debug_abbrev  0x00002400      0x12d ./openapps/techo/techo.o
+ .debug_abbrev  0x0000252d      0x12d ./openapps/uecho/uecho.o
+ .debug_abbrev  0x0000265a      0x109 ./openstack/02a-MAClow/topology.o
+ .debug_abbrev  0x00002763      0x13a ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_abbrev  0x0000289d      0x239 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_abbrev  0x00002ad6      0x13b ./openstack/02a-MAClow/IEEE802154.o
+ .debug_abbrev  0x00002c11      0x1e2 ./openstack/02b-MAChigh/sixtop.o
+ .debug_abbrev  0x00002df3      0x1eb ./openstack/02b-MAChigh/schedule.o
+ .debug_abbrev  0x00002fde      0x1c0 ./openstack/02b-MAChigh/processIE.o
+ .debug_abbrev  0x0000319e       0xef ./openstack/02b-MAChigh/otf.o
+ .debug_abbrev  0x0000328d      0x1f1 ./openstack/02b-MAChigh/neighbors.o
+ .debug_abbrev  0x0000347e      0x160 ./openstack/03a-IPHC/openbridge.o
+ .debug_abbrev  0x000035de      0x1e4 ./openstack/03a-IPHC/iphc.o
+ .debug_abbrev  0x000037c2      0x1c3 ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_abbrev  0x00003985      0x175 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_abbrev  0x00003afa      0x163 ./openstack/03b-IPv6/icmpv6.o
+ .debug_abbrev  0x00003c5d      0x1fa ./openstack/03b-IPv6/forwarding.o
+ .debug_abbrev  0x00003e57      0x171 ./openstack/04-TRAN/openudp.o
+ .debug_abbrev  0x00003fc8      0x1f4 ./openstack/04-TRAN/opentcp.o
+ .debug_abbrev  0x000041bc      0x1fc ./openstack/04-TRAN/opencoap.o
+ .debug_abbrev  0x000043b8      0x195 ./openstack/cross-layers/packetfunctions.o
+ .debug_abbrev  0x0000454d       0xe1 ./openstack/cross-layers/openrandom.o
+ .debug_abbrev  0x0000462e      0x1a7 ./openstack/cross-layers/openqueue.o
+ .debug_abbrev  0x000047d5      0x19b ./openstack/cross-layers/idmanager.o
+ .debug_abbrev  0x00004970       0x99 ./openstack/openstack.o
+ .debug_abbrev  0x00004a09       0x78 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_loc      0x00000000     0x8d10
+ .debug_loc     0x00000000      0x628 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_loc     0x00000628      0x150 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_loc     0x00000778       0x38 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_loc     0x000007b0      0xb9c ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_loc     0x0000134c      0x850 ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_loc     0x00001b9c      0x3d8 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_loc     0x00001f74      0x1b4 ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_loc     0x00002128       0xe0 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_loc     0x00002208      0x39c ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_loc     0x000025a4      0x620 ./bsp/boards/cc2538em/source/gpio.o
+ .debug_loc     0x00002bc4      0x398 ./bsp/boards/cc2538em/uart.o
+ .debug_loc     0x00002f5c       0xbc ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_loc     0x00003018      0x324 ./bsp/boards/cc2538em/radiotimer.o
+ .debug_loc     0x0000333c      0x4fc ./bsp/boards/cc2538em/radio.o
+ .debug_loc     0x00003838      0x14c ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_loc     0x00003984      0x4d8 ./bsp/boards/cc2538em/leds.o
+ .debug_loc     0x00003e5c       0x38 ./bsp/boards/cc2538em/eui64.o
+ .debug_loc     0x00003e94      0x37c ./bsp/boards/cc2538em/debugpins.o
+ .debug_loc     0x00004210      0x178 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_loc     0x00004388      0x2a0 ./bsp/boards/cc2538em/board.o
+ .debug_loc     0x00004628      0x188 ./drivers/common/opentimers.o
+ .debug_loc     0x000047b0      0x4f8 ./drivers/common/openserial.o
+ .debug_loc     0x00004ca8       0x38 ./drivers/common/openhdlc.o
+ .debug_loc     0x00004ce0       0x9c ./kernel/openos/scheduler.o
+ .debug_loc     0x00004d7c       0x9c ./openapps/c6t/c6t.o
+ .debug_loc     0x00004e18       0x9c ./openapps/cinfo/cinfo.o
+ .debug_loc     0x00004eb4       0x9c ./openapps/cleds/cleds.o
+ .debug_loc     0x00004f50      0x100 ./openapps/cstorm/cstorm.o
+ .debug_loc     0x00005050       0x9c ./openapps/cwellknown/cwellknown.o
+ .debug_loc     0x000050ec       0x2c ./openapps/openapps.o
+ .debug_loc     0x00005118      0x12c ./openapps/techo/techo.o
+ .debug_loc     0x00005244       0xc8 ./openapps/uecho/uecho.o
+ .debug_loc     0x0000530c       0x38 ./openstack/02a-MAClow/topology.o
+ .debug_loc     0x00005344      0x144 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_loc     0x00005488      0xe5a ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_loc     0x000062e2       0x70 ./openstack/02a-MAClow/IEEE802154.o
+ .debug_loc     0x00006352      0x5e6 ./openstack/02b-MAChigh/sixtop.o
+ .debug_loc     0x00006938      0x448 ./openstack/02b-MAChigh/schedule.o
+ .debug_loc     0x00006d80      0x230 ./openstack/02b-MAChigh/processIE.o
+ .debug_loc     0x00006fb0       0xf4 ./openstack/02b-MAChigh/otf.o
+ .debug_loc     0x000070a4      0x482 ./openstack/02b-MAChigh/neighbors.o
+ .debug_loc     0x00007526       0xd6 ./openstack/03a-IPHC/openbridge.o
+ .debug_loc     0x000075fc      0x1f2 ./openstack/03a-IPHC/iphc.o
+ .debug_loc     0x000077ee      0x1e8 ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_loc     0x000079d6       0xd4 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_loc     0x00007aaa       0xd4 ./openstack/03b-IPv6/icmpv6.o
+ .debug_loc     0x00007b7e      0x1ee ./openstack/03b-IPv6/forwarding.o
+ .debug_loc     0x00007d6c      0x100 ./openstack/04-TRAN/openudp.o
+ .debug_loc     0x00007e6c      0x29c ./openstack/04-TRAN/opentcp.o
+ .debug_loc     0x00008108      0x146 ./openstack/04-TRAN/opencoap.o
+ .debug_loc     0x0000824e      0x508 ./openstack/cross-layers/packetfunctions.o
+ .debug_loc     0x00008756       0x64 ./openstack/cross-layers/openrandom.o
+ .debug_loc     0x000087ba      0x2a0 ./openstack/cross-layers/openqueue.o
+ .debug_loc     0x00008a5a      0x25e ./openstack/cross-layers/idmanager.o
+ .debug_loc     0x00008cb8       0x2c ./openstack/openstack.o
+ .debug_loc     0x00008ce4       0x2c ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_aranges  0x00000000      0x720
+ .debug_aranges
+                0x00000000       0x20 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_aranges
+                0x00000020       0x20 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_aranges
+                0x00000040       0x20 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_aranges
+                0x00000060       0x20 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_aranges
+                0x00000080       0x20 ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_aranges
+                0x000000a0       0x20 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_aranges
+                0x000000c0       0x20 ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_aranges
+                0x000000e0       0x20 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_aranges
+                0x00000100       0x20 ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_aranges
+                0x00000120       0x20 ./bsp/boards/cc2538em/source/gpio.o
+ .debug_aranges
+                0x00000140       0x20 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_aranges
+                0x00000160       0x20 ./bsp/boards/cc2538em/uart.o
+ .debug_aranges
+                0x00000180       0x20 ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_aranges
+                0x000001a0       0x20 ./bsp/boards/cc2538em/radiotimer.o
+ .debug_aranges
+                0x000001c0       0x20 ./bsp/boards/cc2538em/radio.o
+ .debug_aranges
+                0x000001e0       0x20 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_aranges
+                0x00000200       0x20 ./bsp/boards/cc2538em/leds.o
+ .debug_aranges
+                0x00000220       0x20 ./bsp/boards/cc2538em/eui64.o
+ .debug_aranges
+                0x00000240       0x20 ./bsp/boards/cc2538em/debugpins.o
+ .debug_aranges
+                0x00000260       0x20 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_aranges
+                0x00000280       0x20 ./bsp/boards/cc2538em/board.o
+ .debug_aranges
+                0x000002a0       0x20 ./drivers/common/opentimers.o
+ .debug_aranges
+                0x000002c0       0x20 ./drivers/common/openserial.o
+ .debug_aranges
+                0x000002e0       0x20 ./drivers/common/openhdlc.o
+ .debug_aranges
+                0x00000300       0x20 ./kernel/openos/scheduler.o
+ .debug_aranges
+                0x00000320       0x20 ./openapps/c6t/c6t.o
+ .debug_aranges
+                0x00000340       0x20 ./openapps/cinfo/cinfo.o
+ .debug_aranges
+                0x00000360       0x20 ./openapps/cleds/cleds.o
+ .debug_aranges
+                0x00000380       0x20 ./openapps/cstorm/cstorm.o
+ .debug_aranges
+                0x000003a0       0x20 ./openapps/cwellknown/cwellknown.o
+ .debug_aranges
+                0x000003c0       0x20 ./openapps/openapps.o
+ .debug_aranges
+                0x000003e0       0x20 ./openapps/techo/techo.o
+ .debug_aranges
+                0x00000400       0x20 ./openapps/uecho/uecho.o
+ .debug_aranges
+                0x00000420       0x20 ./openstack/02a-MAClow/topology.o
+ .debug_aranges
+                0x00000440       0x20 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_aranges
+                0x00000460       0x20 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_aranges
+                0x00000480       0x20 ./openstack/02a-MAClow/IEEE802154.o
+ .debug_aranges
+                0x000004a0       0x20 ./openstack/02b-MAChigh/sixtop.o
+ .debug_aranges
+                0x000004c0       0x20 ./openstack/02b-MAChigh/schedule.o
+ .debug_aranges
+                0x000004e0       0x20 ./openstack/02b-MAChigh/processIE.o
+ .debug_aranges
+                0x00000500       0x20 ./openstack/02b-MAChigh/otf.o
+ .debug_aranges
+                0x00000520       0x20 ./openstack/02b-MAChigh/neighbors.o
+ .debug_aranges
+                0x00000540       0x20 ./openstack/03a-IPHC/openbridge.o
+ .debug_aranges
+                0x00000560       0x20 ./openstack/03a-IPHC/iphc.o
+ .debug_aranges
+                0x00000580       0x20 ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_aranges
+                0x000005a0       0x20 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_aranges
+                0x000005c0       0x20 ./openstack/03b-IPv6/icmpv6.o
+ .debug_aranges
+                0x000005e0       0x20 ./openstack/03b-IPv6/forwarding.o
+ .debug_aranges
+                0x00000600       0x20 ./openstack/04-TRAN/openudp.o
+ .debug_aranges
+                0x00000620       0x20 ./openstack/04-TRAN/opentcp.o
+ .debug_aranges
+                0x00000640       0x20 ./openstack/04-TRAN/opencoap.o
+ .debug_aranges
+                0x00000660       0x20 ./openstack/cross-layers/packetfunctions.o
+ .debug_aranges
+                0x00000680       0x20 ./openstack/cross-layers/openrandom.o
+ .debug_aranges
+                0x000006a0       0x20 ./openstack/cross-layers/openqueue.o
+ .debug_aranges
+                0x000006c0       0x20 ./openstack/cross-layers/idmanager.o
+ .debug_aranges
+                0x000006e0       0x20 ./openstack/openstack.o
+ .debug_aranges
+                0x00000700       0x20 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_macinfo  0x00000000   0x1a175c
+ .debug_macinfo
+                0x00000000     0xd73d ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_macinfo
+                0x0000d73d     0x5bc1 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_macinfo
+                0x000132fe     0x3206 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_macinfo
+                0x00016504     0x37d2 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_macinfo
+                0x00019cd6     0x88d2 ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_macinfo
+                0x000225a8     0xf488 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_macinfo
+                0x00031a30     0x429b ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_macinfo
+                0x00035ccb     0xa338 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_macinfo
+                0x00040003     0xe132 ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_macinfo
+                0x0004e135     0xab1f ./bsp/boards/cc2538em/source/gpio.o
+ .debug_macinfo
+                0x00058c54     0x3453 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_macinfo
+                0x0005c0a7     0xa3b0 ./bsp/boards/cc2538em/uart.o
+ .debug_macinfo
+                0x00066457     0xb381 ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_macinfo
+                0x000717d8     0x82ba ./bsp/boards/cc2538em/radiotimer.o
+ .debug_macinfo
+                0x00079a92    0x14fdf ./bsp/boards/cc2538em/radio.o
+ .debug_macinfo
+                0x0008ea71     0xeeea ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_macinfo
+                0x0009d95b     0x5bb9 ./bsp/boards/cc2538em/leds.o
+ .debug_macinfo
+                0x000a3514     0x4b28 ./bsp/boards/cc2538em/eui64.o
+ .debug_macinfo
+                0x000a803c     0x5bfa ./bsp/boards/cc2538em/debugpins.o
+ .debug_macinfo
+                0x000adc36     0x62e2 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_macinfo
+                0x000b3f18     0xc7c5 ./bsp/boards/cc2538em/board.o
+ .debug_macinfo
+                0x000c06dd     0x57f7 ./drivers/common/opentimers.o
+ .debug_macinfo
+                0x000c5ed4     0x750d ./drivers/common/openserial.o
+ .debug_macinfo
+                0x000cd3e1     0x540b ./drivers/common/openhdlc.o
+ .debug_macinfo
+                0x000d27ec     0x57c2 ./kernel/openos/scheduler.o
+ .debug_macinfo
+                0x000d7fae     0x5e30 ./openapps/c6t/c6t.o
+ .debug_macinfo
+                0x000dddde     0x5b51 ./openapps/cinfo/cinfo.o
+ .debug_macinfo
+                0x000e392f     0x552f ./openapps/cleds/cleds.o
+ .debug_macinfo
+                0x000e8e5e     0x6df8 ./openapps/cstorm/cstorm.o
+ .debug_macinfo
+                0x000efc56     0x5b40 ./openapps/cwellknown/cwellknown.o
+ .debug_macinfo
+                0x000f5796     0x5a82 ./openapps/openapps.o
+ .debug_macinfo
+                0x000fb218     0x56da ./openapps/techo/techo.o
+ .debug_macinfo
+                0x001008f2     0x565b ./openapps/uecho/uecho.o
+ .debug_macinfo
+                0x00105f4d     0x5820 ./openstack/02a-MAClow/topology.o
+ .debug_macinfo
+                0x0010b76d     0x71b8 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_macinfo
+                0x00112925     0x72a1 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_macinfo
+                0x00119bc6     0x5a17 ./openstack/02a-MAClow/IEEE802154.o
+ .debug_macinfo
+                0x0011f5dd     0x7204 ./openstack/02b-MAChigh/sixtop.o
+ .debug_macinfo
+                0x001267e1     0x6cd8 ./openstack/02b-MAChigh/schedule.o
+ .debug_macinfo
+                0x0012d4b9     0x711e ./openstack/02b-MAChigh/processIE.o
+ .debug_macinfo
+                0x001345d7     0x5bb7 ./openstack/02b-MAChigh/otf.o
+ .debug_macinfo
+                0x0013a18e     0x70c0 ./openstack/02b-MAChigh/neighbors.o
+ .debug_macinfo
+                0x0014124e     0x6d2b ./openstack/03a-IPHC/openbridge.o
+ .debug_macinfo
+                0x00147f79     0x7120 ./openstack/03a-IPHC/iphc.o
+ .debug_macinfo
+                0x0014f099     0x7126 ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_macinfo
+                0x001561bf     0x6cd4 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_macinfo
+                0x0015ce93     0x7016 ./openstack/03b-IPv6/icmpv6.o
+ .debug_macinfo
+                0x00163ea9     0x71f4 ./openstack/03b-IPv6/forwarding.o
+ .debug_macinfo
+                0x0016b09d     0x57d9 ./openstack/04-TRAN/openudp.o
+ .debug_macinfo
+                0x00170876     0x5b5a ./openstack/04-TRAN/opentcp.o
+ .debug_macinfo
+                0x001763d0     0x6e0a ./openstack/04-TRAN/opencoap.o
+ .debug_macinfo
+                0x0017d1da     0x59c6 ./openstack/cross-layers/packetfunctions.o
+ .debug_macinfo
+                0x00182ba0     0x5797 ./openstack/cross-layers/openrandom.o
+ .debug_macinfo
+                0x00188337     0x6c5b ./openstack/cross-layers/openqueue.o
+ .debug_macinfo
+                0x0018ef92     0x5df2 ./openstack/cross-layers/idmanager.o
+ .debug_macinfo
+                0x00194d84     0x7271 ./openstack/openstack.o
+ .debug_macinfo
+                0x0019bff5     0x5767 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_line     0x00000000    0x13a77
+ .debug_line    0x00000000      0x71d ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_line    0x0000071d      0x567 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_line    0x00000c84      0x2a8 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_line    0x00000f2c      0x3b9 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_line    0x000012e5      0x490 ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_line    0x00001775      0x449 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_line    0x00001bbe      0x372 ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_line    0x00001f30      0x417 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_line    0x00002347      0x3d1 ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_line    0x00002718      0x494 ./bsp/boards/cc2538em/source/gpio.o
+ .debug_line    0x00002bac      0x310 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_line    0x00002ebc      0x5a8 ./bsp/boards/cc2538em/uart.o
+ .debug_line    0x00003464      0x2db ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_line    0x0000373f      0x4f1 ./bsp/boards/cc2538em/radiotimer.o
+ .debug_line    0x00003c30      0x684 ./bsp/boards/cc2538em/radio.o
+ .debug_line    0x000042b4      0x572 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_line    0x00004826      0x476 ./bsp/boards/cc2538em/leds.o
+ .debug_line    0x00004c9c      0x321 ./bsp/boards/cc2538em/eui64.o
+ .debug_line    0x00004fbd      0x45e ./bsp/boards/cc2538em/debugpins.o
+ .debug_line    0x0000541b      0x489 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_line    0x000058a4      0x584 ./bsp/boards/cc2538em/board.o
+ .debug_line    0x00005e28      0x549 ./drivers/common/opentimers.o
+ .debug_line    0x00006371      0x7b2 ./drivers/common/openserial.o
+ .debug_line    0x00006b23      0x41b ./drivers/common/openhdlc.o
+ .debug_line    0x00006f3e      0x490 ./kernel/openos/scheduler.o
+ .debug_line    0x000073ce      0x5ba ./openapps/c6t/c6t.o
+ .debug_line    0x00007988      0x56f ./openapps/cinfo/cinfo.o
+ .debug_line    0x00007ef7      0x534 ./openapps/cleds/cleds.o
+ .debug_line    0x0000842b      0x61a ./openapps/cstorm/cstorm.o
+ .debug_line    0x00008a45      0x55e ./openapps/cwellknown/cwellknown.o
+ .debug_line    0x00008fa3      0x63f ./openapps/openapps.o
+ .debug_line    0x000095e2      0x516 ./openapps/techo/techo.o
+ .debug_line    0x00009af8      0x51b ./openapps/uecho/uecho.o
+ .debug_line    0x0000a013      0x479 ./openstack/02a-MAClow/topology.o
+ .debug_line    0x0000a48c      0x6a3 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_line    0x0000ab2f      0xc33 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_line    0x0000b762      0x54e ./openstack/02a-MAClow/IEEE802154.o
+ .debug_line    0x0000bcb0      0x88f ./openstack/02b-MAChigh/sixtop.o
+ .debug_line    0x0000c53f      0x681 ./openstack/02b-MAChigh/schedule.o
+ .debug_line    0x0000cbc0      0x6de ./openstack/02b-MAChigh/processIE.o
+ .debug_line    0x0000d29e      0x4e0 ./openstack/02b-MAChigh/otf.o
+ .debug_line    0x0000d77e      0x769 ./openstack/02b-MAChigh/neighbors.o
+ .debug_line    0x0000dee7      0x5a4 ./openstack/03a-IPHC/openbridge.o
+ .debug_line    0x0000e48b      0x730 ./openstack/03a-IPHC/iphc.o
+ .debug_line    0x0000ebbb      0x70a ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_line    0x0000f2c5      0x5b3 ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_line    0x0000f878      0x5bc ./openstack/03b-IPv6/icmpv6.o
+ .debug_line    0x0000fe34      0x76a ./openstack/03b-IPv6/forwarding.o
+ .debug_line    0x0001059e      0x5cb ./openstack/04-TRAN/openudp.o
+ .debug_line    0x00010b69      0x796 ./openstack/04-TRAN/opentcp.o
+ .debug_line    0x000112ff      0x6a7 ./openstack/04-TRAN/opencoap.o
+ .debug_line    0x000119a6      0x5ea ./openstack/cross-layers/packetfunctions.o
+ .debug_line    0x00011f90      0x451 ./openstack/cross-layers/openrandom.o
+ .debug_line    0x000123e1      0x5cd ./openstack/cross-layers/openqueue.o
+ .debug_line    0x000129ae      0x594 ./openstack/cross-layers/idmanager.o
+ .debug_line    0x00012f42      0x6ae ./openstack/openstack.o
+ .debug_line    0x000135f0      0x487 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.debug_str      0x00000000     0x9d2f
+ .debug_str     0x00000000     0x1b0d ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+                               0x1bc1 (size before relaxing)
+ .debug_str     0x00001b0d      0x159 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+                               0x1451 (size before relaxing)
+ .debug_str     0x00001c66       0x65 ./bsp/boards/cc2538em/osens_itf/crc16.o
+                                0x16c (size before relaxing)
+ .debug_str     0x00001ccb      0x3c5 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+                                0x4eb (size before relaxing)
+ .debug_str     0x00002090      0x36c ./bsp/boards/cc2538em/source/uarthal.o
+                                0x49e (size before relaxing)
+ .debug_str     0x000023fc      0x2e9 ./bsp/boards/cc2538em/source/sys_ctrl.o
+                                0x3e8 (size before relaxing)
+ .debug_str     0x000026e5      0x109 ./bsp/boards/cc2538em/source/sleepmode.o
+                                0x20a (size before relaxing)
+ .debug_str     0x000027ee      0x1d5 ./bsp/boards/cc2538em/source/ioc.o
+                                0x2df (size before relaxing)
+ .debug_str     0x000029c3      0x1d5 ./bsp/boards/cc2538em/source/interrupt.o
+                                0x327 (size before relaxing)
+ .debug_str     0x00002b98      0x27b ./bsp/boards/cc2538em/source/gpio.o
+                                0x3b7 (size before relaxing)
+ .debug_str     0x00002e13       0x89 ./bsp/boards/cc2538em/source/cpu.o
+                                0x179 (size before relaxing)
+ .debug_str     0x00002e9c      0x1ea ./bsp/boards/cc2538em/uart.o
+                                0x35d (size before relaxing)
+ .debug_str     0x00003086       0xbe ./bsp/boards/cc2538em/startup_gcc.o
+                                0x1c9 (size before relaxing)
+ .debug_str     0x00003144      0x1dc ./bsp/boards/cc2538em/radiotimer.o
+                                0x363 (size before relaxing)
+ .debug_str     0x00003320      0x403 ./bsp/boards/cc2538em/radio.o
+                                0x5e3 (size before relaxing)
+ .debug_str     0x00003723      0x109 ./bsp/boards/cc2538em/mac_csp_tx.o
+                                0x2a3 (size before relaxing)
+ .debug_str     0x0000382c      0x1b9 ./bsp/boards/cc2538em/leds.o
+                                0x2fd (size before relaxing)
+ .debug_str     0x000039e5       0x44 ./bsp/boards/cc2538em/eui64.o
+                                0x141 (size before relaxing)
+ .debug_str     0x00003a29      0x1ae ./bsp/boards/cc2538em/debugpins.o
+                                0x2fb (size before relaxing)
+ .debug_str     0x00003bd7      0x148 ./bsp/boards/cc2538em/bsp_timer.o
+                                0x2d2 (size before relaxing)
+ .debug_str     0x00003d1f       0xf8 ./bsp/boards/cc2538em/board.o
+                                0x259 (size before relaxing)
+ .debug_str     0x00003e17      0x18f ./drivers/common/opentimers.o
+                                0x33b (size before relaxing)
+ .debug_str     0x00003fa6      0xd2b ./drivers/common/openserial.o
+                                0xec1 (size before relaxing)
+ .debug_str     0x00004cd1       0x2a ./drivers/common/openhdlc.o
+                                0x185 (size before relaxing)
+ .debug_str     0x00004cfb      0x112 ./kernel/openos/scheduler.o
+                                0x352 (size before relaxing)
+ .debug_str     0x00004e0d      0x796 ./openapps/c6t/c6t.o
+                                0xc75 (size before relaxing)
+ .debug_str     0x000055a3       0x66 ./openapps/cinfo/cinfo.o
+                                0xc58 (size before relaxing)
+ .debug_str     0x00005609       0x67 ./openapps/cleds/cleds.o
+                                0xc59 (size before relaxing)
+ .debug_str     0x00005670      0x18a ./openapps/cstorm/cstorm.o
+                               0x13e7 (size before relaxing)
+ .debug_str     0x000057fa       0x9f ./openapps/cwellknown/cwellknown.o
+                                0xd1c (size before relaxing)
+ .debug_str     0x00005899       0x25 ./openapps/openapps.o
+                                0x1b3 (size before relaxing)
+ .debug_str     0x000058be      0x190 ./openapps/techo/techo.o
+                                0xd48 (size before relaxing)
+ .debug_str     0x00005a4e       0x61 ./openapps/uecho/uecho.o
+                                0xd7a (size before relaxing)
+ .debug_str     0x00005aaf       0xd0 ./openstack/02a-MAClow/topology.o
+                                0x25f (size before relaxing)
+ .debug_str     0x00005b7f      0x315 ./openstack/02a-MAClow/adaptive_sync.o
+                                0x50a (size before relaxing)
+ .debug_str     0x00005e94      0xe61 ./openstack/02a-MAClow/IEEE802154RIT.o
+                               0x1f5e (size before relaxing)
+ .debug_str     0x00006cf5      0x2e4 ./openstack/02a-MAClow/IEEE802154.o
+                               0x1053 (size before relaxing)
+ .debug_str     0x00006fd9      0x6dc ./openstack/02b-MAChigh/sixtop.o
+                               0x16e5 (size before relaxing)
+ .debug_str     0x000076b5      0x347 ./openstack/02b-MAChigh/schedule.o
+                                0xf21 (size before relaxing)
+ .debug_str     0x000079fc      0x293 ./openstack/02b-MAChigh/processIE.o
+                                0x748 (size before relaxing)
+ .debug_str     0x00007c8f       0x77 ./openstack/02b-MAChigh/otf.o
+                                0x315 (size before relaxing)
+ .debug_str     0x00007d06      0x477 ./openstack/02b-MAChigh/neighbors.o
+                               0x11d8 (size before relaxing)
+ .debug_str     0x0000817d       0x7e ./openstack/03a-IPHC/openbridge.o
+                                0xd74 (size before relaxing)
+ .debug_str     0x000081fb      0x5cd ./openstack/03a-IPHC/iphc.o
+                               0x133e (size before relaxing)
+ .debug_str     0x000087c8      0x30d ./openstack/03b-IPv6/icmpv6rpl.o
+                               0x138a (size before relaxing)
+ .debug_str     0x00008ad5       0xb9 ./openstack/03b-IPv6/icmpv6echo.o
+                                0xeb4 (size before relaxing)
+ .debug_str     0x00008b8e       0x56 ./openstack/03b-IPv6/icmpv6.o
+                                0xded (size before relaxing)
+ .debug_str     0x00008be4      0x211 ./openstack/03b-IPv6/forwarding.o
+                               0x1148 (size before relaxing)
+ .debug_str     0x00008df5      0x11d ./openstack/04-TRAN/openudp.o
+                                0xe56 (size before relaxing)
+ .debug_str     0x00008f12      0x5b5 ./openstack/04-TRAN/opentcp.o
+                               0x1493 (size before relaxing)
+ .debug_str     0x000094c7       0xf3 ./openstack/04-TRAN/opencoap.o
+                               0x1497 (size before relaxing)
+ .debug_str     0x000095ba      0x36b ./openstack/cross-layers/packetfunctions.o
+                                0xfac (size before relaxing)
+ .debug_str     0x00009925       0x7a ./openstack/cross-layers/openrandom.o
+                                0x21b (size before relaxing)
+ .debug_str     0x0000999f      0x1a1 ./openstack/cross-layers/openqueue.o
+                                0xfeb (size before relaxing)
+ .debug_str     0x00009b40      0x18c ./openstack/cross-layers/idmanager.o
+                                0xc9d (size before relaxing)
+ .debug_str     0x00009ccc       0x28 ./openstack/openstack.o
+                                0x9d8 (size before relaxing)
+ .debug_str     0x00009cf4       0x3b ./projects/common/03oos_openwsn/03oos_openwsn.o
+                                0x181 (size before relaxing)
+
+.comment        0x00000000       0x70
+ .comment       0x00000000       0x70 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+                                 0x71 (size before relaxing)
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/uarthal.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/sleepmode.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/ioc.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/interrupt.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/gpio.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/source/cpu.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/uart.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/startup_gcc.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/radiotimer.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/radio.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/leds.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/eui64.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/debugpins.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/bsp_timer.o
+ .comment       0x00000000       0x71 ./bsp/boards/cc2538em/board.o
+ .comment       0x00000000       0x71 ./drivers/common/opentimers.o
+ .comment       0x00000000       0x71 ./drivers/common/openserial.o
+ .comment       0x00000000       0x71 ./drivers/common/openhdlc.o
+ .comment       0x00000000       0x71 ./kernel/openos/scheduler.o
+ .comment       0x00000000       0x71 ./openapps/c6t/c6t.o
+ .comment       0x00000000       0x71 ./openapps/cinfo/cinfo.o
+ .comment       0x00000000       0x71 ./openapps/cleds/cleds.o
+ .comment       0x00000000       0x71 ./openapps/cstorm/cstorm.o
+ .comment       0x00000000       0x71 ./openapps/cwellknown/cwellknown.o
+ .comment       0x00000000       0x71 ./openapps/openapps.o
+ .comment       0x00000000       0x71 ./openapps/techo/techo.o
+ .comment       0x00000000       0x71 ./openapps/uecho/uecho.o
+ .comment       0x00000000       0x71 ./openstack/02a-MAClow/topology.o
+ .comment       0x00000000       0x71 ./openstack/02a-MAClow/adaptive_sync.o
+ .comment       0x00000000       0x71 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .comment       0x00000000       0x71 ./openstack/02a-MAClow/IEEE802154.o
+ .comment       0x00000000       0x71 ./openstack/02b-MAChigh/sixtop.o
+ .comment       0x00000000       0x71 ./openstack/02b-MAChigh/schedule.o
+ .comment       0x00000000       0x71 ./openstack/02b-MAChigh/processIE.o
+ .comment       0x00000000       0x71 ./openstack/02b-MAChigh/otf.o
+ .comment       0x00000000       0x71 ./openstack/02b-MAChigh/neighbors.o
+ .comment       0x00000000       0x71 ./openstack/03a-IPHC/openbridge.o
+ .comment       0x00000000       0x71 ./openstack/03a-IPHC/iphc.o
+ .comment       0x00000000       0x71 ./openstack/03b-IPv6/icmpv6rpl.o
+ .comment       0x00000000       0x71 ./openstack/03b-IPv6/icmpv6echo.o
+ .comment       0x00000000       0x71 ./openstack/03b-IPv6/icmpv6.o
+ .comment       0x00000000       0x71 ./openstack/03b-IPv6/forwarding.o
+ .comment       0x00000000       0x71 ./openstack/04-TRAN/openudp.o
+ .comment       0x00000000       0x71 ./openstack/04-TRAN/opentcp.o
+ .comment       0x00000000       0x71 ./openstack/04-TRAN/opencoap.o
+ .comment       0x00000000       0x71 ./openstack/cross-layers/packetfunctions.o
+ .comment       0x00000000       0x71 ./openstack/cross-layers/openrandom.o
+ .comment       0x00000000       0x71 ./openstack/cross-layers/openqueue.o
+ .comment       0x00000000       0x71 ./openstack/cross-layers/idmanager.o
+ .comment       0x00000000       0x71 ./openstack/openstack.o
+ .comment       0x00000000       0x71 ./projects/common/03oos_openwsn/03oos_openwsn.o
+
+.ARM.attributes
+                0x00000000       0x33
+ .ARM.attributes
+                0x00000000       0x33 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .ARM.attributes
+                0x00000033       0x33 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .ARM.attributes
+                0x00000066       0x33 ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .ARM.attributes
+                0x00000099       0x33 ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .ARM.attributes
+                0x000000cc       0x33 ./bsp/boards/cc2538em/source/uarthal.o
+ .ARM.attributes
+                0x000000ff       0x33 ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .ARM.attributes
+                0x00000132       0x33 ./bsp/boards/cc2538em/source/sleepmode.o
+ .ARM.attributes
+                0x00000165       0x33 ./bsp/boards/cc2538em/source/ioc.o
+ .ARM.attributes
+                0x00000198       0x33 ./bsp/boards/cc2538em/source/interrupt.o
+ .ARM.attributes
+                0x000001cb       0x33 ./bsp/boards/cc2538em/source/gpio.o
+ .ARM.attributes
+                0x000001fe       0x33 ./bsp/boards/cc2538em/source/cpu.o
+ .ARM.attributes
+                0x00000231       0x33 ./bsp/boards/cc2538em/uart.o
+ .ARM.attributes
+                0x00000264       0x33 ./bsp/boards/cc2538em/startup_gcc.o
+ .ARM.attributes
+                0x00000297       0x33 ./bsp/boards/cc2538em/radiotimer.o
+ .ARM.attributes
+                0x000002ca       0x33 ./bsp/boards/cc2538em/radio.o
+ .ARM.attributes
+                0x000002fd       0x33 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .ARM.attributes
+                0x00000330       0x33 ./bsp/boards/cc2538em/leds.o
+ .ARM.attributes
+                0x00000363       0x33 ./bsp/boards/cc2538em/eui64.o
+ .ARM.attributes
+                0x00000396       0x33 ./bsp/boards/cc2538em/debugpins.o
+ .ARM.attributes
+                0x000003c9       0x33 ./bsp/boards/cc2538em/bsp_timer.o
+ .ARM.attributes
+                0x000003fc       0x33 ./bsp/boards/cc2538em/board.o
+ .ARM.attributes
+                0x0000042f       0x33 ./drivers/common/opentimers.o
+ .ARM.attributes
+                0x00000462       0x33 ./drivers/common/openserial.o
+ .ARM.attributes
+                0x00000495       0x33 ./drivers/common/openhdlc.o
+ .ARM.attributes
+                0x000004c8       0x33 ./kernel/openos/scheduler.o
+ .ARM.attributes
+                0x000004fb       0x33 ./openapps/c6t/c6t.o
+ .ARM.attributes
+                0x0000052e       0x33 ./openapps/cinfo/cinfo.o
+ .ARM.attributes
+                0x00000561       0x33 ./openapps/cleds/cleds.o
+ .ARM.attributes
+                0x00000594       0x33 ./openapps/cstorm/cstorm.o
+ .ARM.attributes
+                0x000005c7       0x33 ./openapps/cwellknown/cwellknown.o
+ .ARM.attributes
+                0x000005fa       0x33 ./openapps/openapps.o
+ .ARM.attributes
+                0x0000062d       0x33 ./openapps/techo/techo.o
+ .ARM.attributes
+                0x00000660       0x33 ./openapps/uecho/uecho.o
+ .ARM.attributes
+                0x00000693       0x33 ./openstack/02a-MAClow/topology.o
+ .ARM.attributes
+                0x000006c6       0x33 ./openstack/02a-MAClow/adaptive_sync.o
+ .ARM.attributes
+                0x000006f9       0x33 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .ARM.attributes
+                0x0000072c       0x33 ./openstack/02a-MAClow/IEEE802154.o
+ .ARM.attributes
+                0x0000075f       0x33 ./openstack/02b-MAChigh/sixtop.o
+ .ARM.attributes
+                0x00000792       0x33 ./openstack/02b-MAChigh/schedule.o
+ .ARM.attributes
+                0x000007c5       0x33 ./openstack/02b-MAChigh/processIE.o
+ .ARM.attributes
+                0x000007f8       0x33 ./openstack/02b-MAChigh/otf.o
+ .ARM.attributes
+                0x0000082b       0x33 ./openstack/02b-MAChigh/neighbors.o
+ .ARM.attributes
+                0x0000085e       0x33 ./openstack/03a-IPHC/openbridge.o
+ .ARM.attributes
+                0x00000891       0x33 ./openstack/03a-IPHC/iphc.o
+ .ARM.attributes
+                0x000008c4       0x33 ./openstack/03b-IPv6/icmpv6rpl.o
+ .ARM.attributes
+                0x000008f7       0x33 ./openstack/03b-IPv6/icmpv6echo.o
+ .ARM.attributes
+                0x0000092a       0x33 ./openstack/03b-IPv6/icmpv6.o
+ .ARM.attributes
+                0x0000095d       0x33 ./openstack/03b-IPv6/forwarding.o
+ .ARM.attributes
+                0x00000990       0x33 ./openstack/04-TRAN/openudp.o
+ .ARM.attributes
+                0x000009c3       0x33 ./openstack/04-TRAN/opentcp.o
+ .ARM.attributes
+                0x000009f6       0x33 ./openstack/04-TRAN/opencoap.o
+ .ARM.attributes
+                0x00000a29       0x33 ./openstack/cross-layers/packetfunctions.o
+ .ARM.attributes
+                0x00000a5c       0x33 ./openstack/cross-layers/openrandom.o
+ .ARM.attributes
+                0x00000a8f       0x33 ./openstack/cross-layers/openqueue.o
+ .ARM.attributes
+                0x00000ac2       0x33 ./openstack/cross-layers/idmanager.o
+ .ARM.attributes
+                0x00000af5       0x33 ./openstack/openstack.o
+ .ARM.attributes
+                0x00000b28       0x33 ./projects/common/03oos_openwsn/03oos_openwsn.o
+ .ARM.attributes
+                0x00000b5b       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+ .ARM.attributes
+                0x00000b88       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+ .ARM.attributes
+                0x00000bb5       0x2d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)
+ .ARM.attributes
+                0x00000be2       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_addsubsf3.o)
+ .ARM.attributes
+                0x00000bff       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_muldivsf3.o)
+ .ARM.attributes
+                0x00000c1c       0x1d c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/armv7-m\libgcc.a(_arm_fixunssfsi.o)
+
+.debug_frame    0x00000000     0x5464
+ .debug_frame   0x00000000      0x390 ./bsp/boards/cc2538em/osens_itf/osens_itf_mote.o
+ .debug_frame   0x00000390       0xd0 ./bsp/boards/cc2538em/osens_itf/osens_itf.o
+ .debug_frame   0x00000460       0x2c ./bsp/boards/cc2538em/osens_itf/crc16.o
+ .debug_frame   0x0000048c      0x67c ./bsp/boards/cc2538em/osens_itf/buf_io.o
+ .debug_frame   0x00000b08      0x444 ./bsp/boards/cc2538em/source/uarthal.o
+ .debug_frame   0x00000f4c      0x21c ./bsp/boards/cc2538em/source/sys_ctrl.o
+ .debug_frame   0x00001168       0xf4 ./bsp/boards/cc2538em/source/sleepmode.o
+ .debug_frame   0x0000125c       0x80 ./bsp/boards/cc2538em/source/ioc.o
+ .debug_frame   0x000012dc      0x1fc ./bsp/boards/cc2538em/source/interrupt.o
+ .debug_frame   0x000014d8      0x344 ./bsp/boards/cc2538em/source/gpio.o
+ .debug_frame   0x0000181c       0x90 ./bsp/boards/cc2538em/source/cpu.o
+ .debug_frame   0x000018ac      0x23c ./bsp/boards/cc2538em/uart.o
+ .debug_frame   0x00001ae8       0x7c ./bsp/boards/cc2538em/startup_gcc.o
+ .debug_frame   0x00001b64      0x1c0 ./bsp/boards/cc2538em/radiotimer.o
+ .debug_frame   0x00001d24      0x2e8 ./bsp/boards/cc2538em/radio.o
+ .debug_frame   0x0000200c       0xd4 ./bsp/boards/cc2538em/mac_csp_tx.o
+ .debug_frame   0x000020e0      0x300 ./bsp/boards/cc2538em/leds.o
+ .debug_frame   0x000023e0       0x2c ./bsp/boards/cc2538em/eui64.o
+ .debug_frame   0x0000240c      0x244 ./bsp/boards/cc2538em/debugpins.o
+ .debug_frame   0x00002650       0xf0 ./bsp/boards/cc2538em/bsp_timer.o
+ .debug_frame   0x00002740      0x1b8 ./bsp/boards/cc2538em/board.o
+ .debug_frame   0x000028f8       0xe8 ./drivers/common/opentimers.o
+ .debug_frame   0x000029e0      0x2ec ./drivers/common/openserial.o
+ .debug_frame   0x00002ccc       0x2c ./drivers/common/openhdlc.o
+ .debug_frame   0x00002cf8       0x6c ./kernel/openos/scheduler.o
+ .debug_frame   0x00002d64       0x6c ./openapps/c6t/c6t.o
+ .debug_frame   0x00002dd0       0x6c ./openapps/cinfo/cinfo.o
+ .debug_frame   0x00002e3c       0x6c ./openapps/cleds/cleds.o
+ .debug_frame   0x00002ea8       0xac ./openapps/cstorm/cstorm.o
+ .debug_frame   0x00002f54       0x6c ./openapps/cwellknown/cwellknown.o
+ .debug_frame   0x00002fc0       0x2c ./openapps/openapps.o
+ .debug_frame   0x00002fec       0xb4 ./openapps/techo/techo.o
+ .debug_frame   0x000030a0       0x80 ./openapps/uecho/uecho.o
+ .debug_frame   0x00003120       0x2c ./openstack/02a-MAClow/topology.o
+ .debug_frame   0x0000314c       0xc8 ./openstack/02a-MAClow/adaptive_sync.o
+ .debug_frame   0x00003214      0x848 ./openstack/02a-MAClow/IEEE802154RIT.o
+ .debug_frame   0x00003a5c       0x50 ./openstack/02a-MAClow/IEEE802154.o
+ .debug_frame   0x00003aac      0x37c ./openstack/02b-MAChigh/sixtop.o
+ .debug_frame   0x00003e28      0x28c ./openstack/02b-MAChigh/schedule.o
+ .debug_frame   0x000040b4      0x140 ./openstack/02b-MAChigh/processIE.o
+ .debug_frame   0x000041f4       0xa0 ./openstack/02b-MAChigh/otf.o
+ .debug_frame   0x00004294      0x2a4 ./openstack/02b-MAChigh/neighbors.o
+ .debug_frame   0x00004538       0x88 ./openstack/03a-IPHC/openbridge.o
+ .debug_frame   0x000045c0      0x124 ./openstack/03a-IPHC/iphc.o
+ .debug_frame   0x000046e4      0x140 ./openstack/03b-IPv6/icmpv6rpl.o
+ .debug_frame   0x00004824       0x8c ./openstack/03b-IPv6/icmpv6echo.o
+ .debug_frame   0x000048b0       0x88 ./openstack/03b-IPv6/icmpv6.o
+ .debug_frame   0x00004938      0x128 ./openstack/03b-IPv6/forwarding.o
+ .debug_frame   0x00004a60       0xa0 ./openstack/04-TRAN/openudp.o
+ .debug_frame   0x00004b00      0x1a8 ./openstack/04-TRAN/opentcp.o
+ .debug_frame   0x00004ca8       0xc8 ./openstack/04-TRAN/opencoap.o
+ .debug_frame   0x00004d70      0x2c8 ./openstack/cross-layers/packetfunctions.o
+ .debug_frame   0x00005038       0x4c ./openstack/cross-layers/openrandom.o
+ .debug_frame   0x00005084      0x18c ./openstack/cross-layers/openqueue.o
+ .debug_frame   0x00005210      0x174 ./openstack/cross-layers/idmanager.o
+ .debug_frame   0x00005384       0x2c ./openstack/openstack.o
+ .debug_frame   0x000053b0       0x2c ./projects/common/03oos_openwsn/03oos_openwsn.o
+ .debug_frame   0x000053dc       0x2c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcmp.o)
+ .debug_frame   0x00005408       0x30 c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memcpy.o)
+ .debug_frame   0x00005438       0x2c c:/ti/ccsv6/tools/compiler/gcc-arm-none-eabi-4_7-2013q3/bin/../lib/gcc/arm-none-eabi/4.7.4/../../../../arm-none-eabi/lib/armv7-m\libc.a(lib_a-memset.o)

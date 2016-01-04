@@ -1,0 +1,1 @@
+scons board=python toolchain=gcc plugfest=0 oos_openwsn

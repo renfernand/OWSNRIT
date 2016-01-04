@@ -1,0 +1,107 @@
+﻿Build started 02/11/2015 18:07:09.
+     1>Project "C:\OWSNRIT8\openwsn\projects\python_vs13\oos_openwsn\oos_openwsn.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D OOS_OPENWSN_EXPORTS /D _WINDLL /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TC /analyze- /errorReport:prompt ..\..\build\python_gcc\bsp\boards\python\board_obj.c ..\..\build\python_gcc\bsp\boards\python\bsp_timer_obj.c ..\..\build\python_gcc\bsp\boards\python\debugpins_obj.c ..\..\build\python_gcc\bsp\boards\python\eui64_obj.c ..\..\build\python_gcc\bsp\boards\python\leds_obj.c ..\..\build\python_gcc\bsp\boards\python\radiotimer_obj.c ..\..\build\python_gcc\bsp\boards\python\radio_obj.c ..\..\build\python_gcc\bsp\boards\python\supply_obj.c ..\..\build\python_gcc\bsp\boards\python\uart_obj.c ..\..\build\python_gcc\drivers\common\openhdlc_obj.c ..\..\build\python_gcc\drivers\common\openserial_obj.c ..\..\build\python_gcc\drivers\common\opentimers_obj.c ..\..\build\python_gcc\kernel\openos\scheduler_obj.c "..\..\build\python_gcc\openstack\02a-MAClow\adaptive_sync_obj.c" "..\..\build\python_gcc\openstack\02a-MAClow\IEEE802154E_obj.c" "..\..\build\python_gcc\openstack\02a-MAClow\IEEE802154_obj.c" "..\..\build\python_gcc\openstack\02a-MAClow\topology_obj.c" "..\..\build\python_gcc\openstack\02b-MAChigh\neighbors_obj.c" "..\..\build\python_gcc\openstack\02b-MAChigh\res_obj.c" "..\..\build\python_gcc\openstack\02b-MAChigh\schedule_obj.c" "..\..\build\python_gcc\openstack\03a-IPHC\iphc_obj.c" "..\..\build\python_gcc\openstack\03a-IPHC\openbridge_obj.c" "..\..\build\python_gcc\openstack\03b-IPv6\forwarding_obj.c" "..\..\build\python_gcc\openstack\03b-IPv6\icmpv6echo_obj.c" "..\..\build\python_gcc\openstack\03b-IPv6\icmpv6rpl_obj.c" "..\..\build\python_gcc\openstack\03b-IPv6\icmpv6_obj.c" "..\..\build\python_gcc\openstack\04-TRAN\opencoap_obj.c" "..\..\build\python_gcc\openstack\04-TRAN\opentcp_obj.c" "..\..\build\python_gcc\openstack\04-TRAN\openudp_obj.c" ..\..\build\python_gcc\openapps\layerdebug\layerdebug_obj.c ..\..\build\python_gcc\openapps\ohlone\ohlone_obj.c ..\..\build\python_gcc\openapps\ohlone\ohlone_webpages_obj.c ..\..\build\python_gcc\openapps\c6t\r6t_obj.c ..\..\build\python_gcc\openapps\cinfo\cinfo_obj.c ..\..\build\python_gcc\openapps\cleds\cleds_obj.c ..\..\build\python_gcc\openapps\cwellknown\cwellknown_obj.c ..\..\build\python_gcc\openapps\techo\techo_obj.c ..\..\build\python_gcc\openapps\uecho\uecho_obj.c ..\..\build\python_gcc\openapps\cstorm\cstorm_obj.c "..\..\..\build\python_gcc\openstack\cross-layers\idmanager_obj.c" "..\..\..\build\python_gcc\openstack\cross-layers\openqueue_obj.c" "..\..\..\build\python_gcc\openstack\cross-layers\openrandom_obj.c" "..\..\..\build\python_gcc\openstack\cross-layers\packetfunctions_obj.c" ..\..\..\bsp\boards\python\openwsnmodule_obj.c ..\..\common\03oos_openwsn\03oos_openwsn_obj.c
+         03oos_openwsn_obj.c
+         openwsnmodule_obj.c
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(212): warning C4013: 'bsp_timer_isr' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(232): warning C4013: 'radio_intr_startOfFrame' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(255): warning C4013: 'radio_intr_endOfFrame' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(269): warning C4013: 'radiotimer_intr_compare' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(280): warning C4013: 'radiotimer_intr_overflow' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(291): warning C4013: 'uart_intr_tx' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(302): warning C4013: 'uart_intr_rx' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(313): warning C4013: 'supply_on' undefined; assuming extern returning int
+     1>c:\owsnrit8\openwsn\bsp\boards\python\openwsnmodule_obj.c(324): warning C4013: 'supply_off' undefined; assuming extern returning int
+         packetfunctions_obj.c
+         openrandom_obj.c
+         openqueue_obj.c
+         idmanager_obj.c
+         cstorm_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\cstorm\cstorm_obj.c': No such file or directory
+         uecho_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\uecho\uecho_obj.c': No such file or directory
+         techo_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\techo\techo_obj.c': No such file or directory
+         cwellknown_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\cwellknown\cwellknown_obj.c': No such file or directory
+         cleds_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\cleds\cleds_obj.c': No such file or directory
+         cinfo_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\cinfo\cinfo_obj.c': No such file or directory
+         r6t_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\c6t\r6t_obj.c': No such file or directory
+         ohlone_webpages_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\ohlone\ohlone_webpages_obj.c': No such file or directory
+         ohlone_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\ohlone\ohlone_obj.c': No such file or directory
+         layerdebug_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openapps\layerdebug\layerdebug_obj.c': No such file or directory
+         openudp_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\04-TRAN\openudp_obj.c': No such file or directory
+         opentcp_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\04-TRAN\opentcp_obj.c': No such file or directory
+         opencoap_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\04-TRAN\opencoap_obj.c': No such file or directory
+         icmpv6_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03b-IPv6\icmpv6_obj.c': No such file or directory
+         Generating Code...
+         Compiling...
+         icmpv6rpl_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03b-IPv6\icmpv6rpl_obj.c': No such file or directory
+         icmpv6echo_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03b-IPv6\icmpv6echo_obj.c': No such file or directory
+         forwarding_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03b-IPv6\forwarding_obj.c': No such file or directory
+         openbridge_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03a-IPHC\openbridge_obj.c': No such file or directory
+         iphc_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\03a-IPHC\iphc_obj.c': No such file or directory
+         schedule_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02b-MAChigh\schedule_obj.c': No such file or directory
+         res_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02b-MAChigh\res_obj.c': No such file or directory
+         neighbors_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02b-MAChigh\neighbors_obj.c': No such file or directory
+         topology_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02a-MAClow\topology_obj.c': No such file or directory
+         IEEE802154_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02a-MAClow\IEEE802154_obj.c': No such file or directory
+         IEEE802154E_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02a-MAClow\IEEE802154E_obj.c': No such file or directory
+         adaptive_sync_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\openstack\02a-MAClow\adaptive_sync_obj.c': No such file or directory
+         scheduler_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\kernel\openos\scheduler_obj.c': No such file or directory
+         opentimers_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\drivers\common\opentimers_obj.c': No such file or directory
+         openserial_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\drivers\common\openserial_obj.c': No such file or directory
+         openhdlc_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\drivers\common\openhdlc_obj.c': No such file or directory
+         uart_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\uart_obj.c': No such file or directory
+         supply_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\supply_obj.c': No such file or directory
+         radio_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\radio_obj.c': No such file or directory
+         radiotimer_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\radiotimer_obj.c': No such file or directory
+         Generating Code...
+         Compiling...
+         leds_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\leds_obj.c': No such file or directory
+         eui64_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\eui64_obj.c': No such file or directory
+         debugpins_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\debugpins_obj.c': No such file or directory
+         bsp_timer_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\bsp_timer_obj.c': No such file or directory
+         board_obj.c
+     1>c1 : fatal error C1083: Cannot open source file: '..\..\build\python_gcc\bsp\boards\python\board_obj.c': No such file or directory
+         Generating Code...
+     1>Done Building Project "C:\OWSNRIT8\openwsn\projects\python_vs13\oos_openwsn\oos_openwsn.vcxproj" (Rebuild target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:01.16

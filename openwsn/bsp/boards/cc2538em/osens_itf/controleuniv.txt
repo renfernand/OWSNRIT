@@ -1,0 +1,7 @@
+comandos
+TV Phillips
+onoff - 
+ch+ - 0x820
+ch- - 0x821
+vol+ - 0x810
+vol- - 0x811
