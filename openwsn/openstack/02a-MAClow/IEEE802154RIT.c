@@ -24,17 +24,17 @@
 #define MAX_RIT_LIST_ELEM 5
 #define MAX_RIT_MSG_LEN   130
 
+uint8_t     coappending;
 
 typedef struct RIT_Queue {
-	uint64_t timestamp;
+	uint8_t     frameType;
+	uint32_t    msglength;
+	bool        isBroadcastMulticast;
+	uint8_t     pending;
+	uint8_t     countretry;
+	uint64_t    timestamp;
 	open_addr_t destaddr;
-	uint8_t frameType;
-	uint8_t msg[MAX_RIT_MSG_LEN];
-	uint32_t msglength;
-	uint8_t pending;
-	uint8_t countretry;
-	bool isBroadcastMulticast;
-
+	uint8_t     msg[MAX_RIT_MSG_LEN];
 } sRITqueue;
 
 typedef struct RIT_Queue_element {
@@ -63,7 +63,6 @@ sRITstat dao_stat;
 
 //=========================== variables =======================================
 uint8_t flagSerialTx;
-uint8_t rffflag=0;
 
 #define TRATA_ACK 1
 
@@ -148,13 +147,13 @@ uint8_t RITQueue_cleanupoldmsg(void);
 bool RITQueue_Free(uint8_t elementpos);
 uint8_t RITQueue_Get_Pos(open_addr_t *paddr);
 sRITqueue RITQueue_Get_Element(uint8_t elementpos);
-uint8_t RITQueue_Put(sRITelement *psEle);
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending);
 port_INLINE void prepare_tx_msg(uint8_t elementpos);
 
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
 port_INLINE void SendTxRITProcedure(uint8_t direction);
 sRITqueue RITQueue_Dequeue_byaddr(open_addr_t addr);
-void RITQueue_AllocateResources(void);
+void RITQueue_Init(void);
 
 bool RITQueue_Enqueue(sRITqueue *pmsg);
 // SYNCHRONIZING
@@ -292,7 +291,7 @@ void ieee154e_init() {
 	macRITsleepPeriod = (uint16_t) ((uint16_t)macRITPeriod-(uint16_t)macRITDataWaitDuration);
 
 	//initiate RIT Queue
-	RITQueue_AllocateResources();
+	RITQueue_Init();
 
    // set callback functions for the radio
    radio_setOverflowCb(isr_ieee154e_newSlot);  //timer indicando o inicio do slot
@@ -411,6 +410,76 @@ void isr_ieee154e_newSlot() {
 
    ieee154e_dbg.num_newSlot++;
 }
+
+
+port_INLINE void activity_txsenderror(PORT_RADIOTIMER_WIDTH capturedTime) {
+
+	//open_addr_t address;
+	//uint8_t elementpos=0;
+	//uint8_t ret=0;
+	sRITqueue elequeue;
+	//uint8_t endslot=false;
+
+   // cancel tt4
+   radiotimer_cancel();
+   incroute(0x72);
+
+   // turn off the radio
+   radio_rfOff();
+
+    if (RITQueue_ElementPending < maxElements) {
+    	elequeue = RITQueue_Get_Element(RITQueue_ElementPending);
+
+    	if (elequeue.frameType == IANA_ICMPv6_RPL_DIO)
+    	{
+			dio_stat.countsenderror++;
+    	}
+    	else if (elequeue.frameType == IANA_ICMPv6_RPL_DAO)
+    	{
+			dao_stat.countsenderror++;
+    	}
+
+    	RITQueue_Free(RITQueue_ElementPending);
+	}
+
+
+#if ((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+  {
+	uint8_t   pos=0;
+
+	rffbuf[pos++]= RFF_IEEE802_TX;
+	rffbuf[pos++]= 0x54;
+	rffbuf[pos++]= RITQueue_ElementPending;
+	rffbuf[pos++]= elequeue.frameType;
+	rffbuf[pos++]= elequeue.msglength;
+	rffbuf[pos++]= elequeue.isBroadcastMulticast;
+	rffbuf[pos++]= elequeue.destaddr.type;
+    if (element.destaddr.type == 0x01)	{
+		rffbuf[pos++]= elequeue.destaddr.addr_16b[0];
+		rffbuf[pos++]= elequeue.destaddr.addr_16b[1];
+    }
+    if (element.destaddr.type == 0x02)	{
+		rffbuf[pos++]= elequeue.destaddr.addr_64b[6];
+		rffbuf[pos++]= elequeue.destaddr.addr_64b[7];
+    }
+	else if (element.destaddr.type == 0x03) {
+		rffbuf[pos++]= elequeue.destaddr.addr_128b[14];
+		rffbuf[pos++]= elequeue.destaddr.addr_128b[15];
+	}
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+  }
+#endif
+	   // indicate succesful Tx to schedule to keep statistics
+	  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+	  // indicate to upper later the packet was sent successfully
+	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+	  // reset local variable
+	  ieee154e_vars.dataToSend = NULL;
+	  // abort
+	  endSlot();
+}
+
 
 /**
 \brief Indicates the FSM timer has fired.
@@ -1248,6 +1317,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 	uint8_t ret=0,i;
 	uint8_t testerff=0;
 	uint8_t macRIT_Pending_TX_frameType=0;
+	uint8_t flagpending=false;
 
 	if (ieee154e_vars.dataToSend->l4_protocol == IANA_ICMPv6) {
 		testerff = 0x01;
@@ -1337,6 +1407,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		pmsgout->frameType = macRIT_Pending_TX_frameType;
 		pmsgout->destaddr = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
 		pmsgout->msg = (uint8_t *) ieee154e_vars.dataToSend->payload;
+		flagpending = true;
 	}
 	else if (ieee154e_vars.dataToSend->l4_protocol == IANA_UNDEFINED) {
 		testerff = 0x06;
@@ -1374,7 +1445,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 	{
 		pmsgout->isBroadcastMulticast = packetfunctions_isBroadcastMulticast(&ieee154e_vars.dataToSend->l2_nextORpreviousHop);
 		//coloco elemento na fila do RIT_Tx
-		macRITActualPos = RITQueue_Put(pmsgout);
+		macRITActualPos = RITQueue_Put(pmsgout,flagpending);
 	}
 
 #if ((ENABLE_DEBUG_RFF) && (DBG_IEEE802_TX == 1))
@@ -1384,12 +1455,11 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 
 	incroute(0x01);
 
-
 	rffbuf[pos++]= RFF_IEEE802_TX;
     rffbuf[pos++]= 0x01;
 	rffbuf[pos++]= macRIT_Pending_TX_frameType;
 	rffbuf[pos++]= testerff;
-	rffbuf[pos++]= txpending;
+	rffbuf[pos++]= flagpending;
 	rffbuf[pos++]= newtxframe;
 	rffbuf[pos++]= ieee154e_vars.dataToSend->l4_protocol;
 	rffbuf[pos++]= pmsgout->isBroadcastMulticast;
@@ -1684,74 +1754,6 @@ port_INLINE void activity_txsenddone(PORT_RADIOTIMER_WIDTH capturedTime) {
 
 
 
-
-port_INLINE void activity_txsenderror(PORT_RADIOTIMER_WIDTH capturedTime) {
-
-	open_addr_t address;
-	uint8_t elementpos=0;
-	uint8_t ret=0;
-	sRITqueue elequeue;
-	uint8_t endslot=false;
-
-   // cancel tt4
-   radiotimer_cancel();
-   incroute(0x72);
-
-   // turn off the radio
-   radio_rfOff();
-
-    if (RITQueue_ElementPending < maxElements) {
-    	elequeue = RITQueue_Get_Element(RITQueue_ElementPending);
-
-    	if (elequeue.frameType == IANA_ICMPv6_RPL_DIO)
-    	{
-			dio_stat.countsenderror++;
-    	}
-    	else if (elequeue.frameType == IANA_ICMPv6_RPL_DAO)
-    	{
-			dao_stat.countsenderror++;
-    	}
-
-    	ret = RITQueue_Free(RITQueue_ElementPending);
-	}
-
-
-#if ((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-  {
-	uint8_t   pos=0;
-
-	rffbuf[pos++]= RFF_IEEE802_TX;
-	rffbuf[pos++]= 0x54;
-	rffbuf[pos++]= RITQueue_ElementPending;
-	rffbuf[pos++]= elequeue.frameType;
-	rffbuf[pos++]= elequeue.msglength;
-	rffbuf[pos++]= elequeue.isBroadcastMulticast;
-	rffbuf[pos++]= elequeue.destaddr.type;
-    if (element.destaddr.type == 0x01)	{
-		rffbuf[pos++]= elequeue.destaddr.addr_16b[0];
-		rffbuf[pos++]= elequeue.destaddr.addr_16b[1];
-    }
-    if (element.destaddr.type == 0x02)	{
-		rffbuf[pos++]= elequeue.destaddr.addr_64b[6];
-		rffbuf[pos++]= elequeue.destaddr.addr_64b[7];
-    }
-	else if (element.destaddr.type == 0x03) {
-		rffbuf[pos++]= elequeue.destaddr.addr_128b[14];
-		rffbuf[pos++]= elequeue.destaddr.addr_128b[15];
-	}
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
-#endif
-	   // indicate succesful Tx to schedule to keep statistics
-	  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-	  // indicate to upper later the packet was sent successfully
-	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-	  // reset local variable
-	  ieee154e_vars.dataToSend = NULL;
-	  // abort
-	  endSlot();
-}
 
 /*
  * Aqui quando eh Tx e eu preciso de um ack...abro o radio como RX esperando o ack.
@@ -2082,7 +2084,7 @@ port_INLINE void activity_txandackendok(PORT_RADIOTIMER_WIDTH capturedTime) {
       packetfunctions_tossHeader(ieee154e_vars.ackReceived,lenIE);
 #endif
 
-#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+#if ((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
   {
 		uint8_t   pos=0;
 		uint8_t *pucAux;
@@ -2094,11 +2096,7 @@ port_INLINE void activity_txandackendok(PORT_RADIOTIMER_WIDTH capturedTime) {
 			rffbuf[pos++]= RFF_IEEE802_TX;
 			rffbuf[pos++]= 0x07;
 			rffbuf[pos++]= RITQueue_ElementPending;
-
-			if (elequeue.frameType == 0x11)
-			{
-				rffbuf[pos]= elequeue.frameType;
-			}
+			rffbuf[pos++]= coappending;
 			rffbuf[pos++]= elequeue.frameType;
 			rffbuf[pos++]= elequeue.msglength;
 			pucAux = (uint8_t *) &ieee154e_vars.dataToSend;
@@ -2108,7 +2106,7 @@ port_INLINE void activity_txandackendok(PORT_RADIOTIMER_WIDTH capturedTime) {
 			rffbuf[pos++]= *pucAux++;
 			rffbuf[pos++]= elequeue.isBroadcastMulticast;
 			rffbuf[pos++]= elequeue.destaddr.type;
-
+/*
 			if (element.destaddr.type == 0x01)	{
 				rffbuf[pos++]= elequeue.destaddr.addr_16b[0];
 				rffbuf[pos++]= elequeue.destaddr.addr_16b[1];
@@ -2121,11 +2119,19 @@ port_INLINE void activity_txandackendok(PORT_RADIOTIMER_WIDTH capturedTime) {
 				rffbuf[pos++]= elequeue.destaddr.addr_128b[14];
 				rffbuf[pos++]= elequeue.destaddr.addr_128b[15];
 			}
-
+*/
 			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 		}
   }
 #endif
+
+
+       //RFF - se o frame eh COAP eu removo o flag de coap pending para liberar novos RPLs
+	   elequeue = RITQueue_Get_Element(RITQueue_ElementPending);
+       if (elequeue.frameType == IANA_UDP) {
+    	   incroute(0x0A);
+   		   coappending = 0;
+       }
 
        ret = RITQueue_Free(RITQueue_ElementPending);
 
@@ -3695,7 +3701,7 @@ bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2){
 	return false;
 }
 
-uint8_t RITQueue_Put(sRITelement *psEle)
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending)
 {
 	uint8_t  i;
 
@@ -3720,9 +3726,12 @@ uint8_t RITQueue_Put(sRITelement *psEle)
 				pvObjList[i].frameType = psEle->frameType;
 				pvObjList[i].isBroadcastMulticast = psEle->isBroadcastMulticast;
 				memcpy(pvObjList[i].msg, psEle->msg, psEle->msglength);
+				pvObjList[i].pending = pending;
+
+				if (psEle->frameType == IANA_UDP)
+					coappending = true;
 
 				if (psEle->frameType != IANA_ICMPv6_RPL_DIO) {
-					pvObjList[i].pending = 1;
 					pvObjList[i].countretry++;
 				}
 
@@ -3871,6 +3880,9 @@ bool RITQueue_ExistFramePending(void)
 		}
 	}
 
+   if (coappending)
+	   ret = true;
+
 
 	//LeaveCriticalSection
 	ENABLE_INTERRUPTS();
@@ -3933,11 +3945,11 @@ bool RITQueue_Free(uint8_t elementpos)
 	if (elementpos < maxElements)
 	{
 		RITQueue_ClearAddress(&pvObjList[elementpos].destaddr);
-		pvObjList[elementpos].timestamp = 0;
-		pvObjList[elementpos].msglength = 0;
-		pvObjList[elementpos].frameType = 0;
-		pvObjList[elementpos].pending    = 0;
-		pvObjList[elementpos].countretry = 0;
+		pvObjList[elementpos].timestamp   = 0;
+		pvObjList[elementpos].msglength   = 0;
+		pvObjList[elementpos].frameType   = 0;
+		pvObjList[elementpos].pending     = 0;
+		pvObjList[elementpos].countretry  = 0;
 		pvObjList[elementpos].isBroadcastMulticast = 0;
 
 		if (numAvailableElements > 0)
@@ -4040,7 +4052,7 @@ uint8_t RITQueue_cleanupoldmsg(void){
 	return count;
 }
 
-void RITQueue_AllocateResources(void){
+void RITQueue_Init(void){
 
 	uint32_t i;
 
@@ -4056,13 +4068,11 @@ void RITQueue_AllocateResources(void){
 	dao_stat.countsenderror = 0;
 	dao_stat.countsendok = 0;
 
+	coappending = 0;
 
 	for (i = 0; i < maxElements; i++)
 	{
-		RITQueue_ClearAddress(&pvObjList[i].destaddr);
-		pvObjList[i].timestamp = 0;
-		pvObjList[i].msglength = 0;
-		pvObjList[i].frameType = 0;
+		RITQueue_Free(i);
 	}
 }
 

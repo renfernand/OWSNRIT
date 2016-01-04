@@ -36,9 +36,7 @@
 //lembrando que o novo (1) esta com problemas no ping e coap
 #define NEW_DAG_BRIDGE 0
 
-/* define a UART0 para o DAG ROOT e tambem ja habilita o
- * ponto como dagroot (arquivo openserial flag rffflag)
- * Neste caso a UART1 nao esta disponivel
+/* define a UART0 para o DAG ROOT
  * DBG_USING_UART1
  * Define se usará a UART1 pinos P1.18(Rx) P1.20(Tx) para debug.
  * Esta porta eh utilizada por padrao pelo MOTE para comunicacao com SENS_ITF

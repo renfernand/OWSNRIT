@@ -26,7 +26,25 @@ Documentation
 - overview: https://openwsn.atlassian.net/wiki/
 - source code: http://openwsn-berkeley.github.io/firmware/
 
-RENATO Fernandes 06/02/15
-  
-Esta versao eh a ultima versao do site de berkley
+
+---------------------------------------------------------------
+V8_0_0
+
+data: 03/01/16
+Remarks:
+Esta versao ja funciona sem problemas com o COAP somente para 1 sink e 1 mote. (nao testei para mais)
+Foi implementado um mecanismo de tentar otimizar o COAP onde nao publica RPL.DIO enquanto tem um 
+comando coap pendente (request-->response) (flag coappending)
+
+Esta versao tem integrado a placa de medicao de consumo configurado no arquivo board.h
+funcionando no stack sem RIT.
+Defines IEEE802154E_RIT 0 --> usando o OpenWSN padrao.
+MYLINKXS_SENSORS 1 -> habilita os sensores implementados ate agora.
+SENSOR_ACCEL = 1 --> foi testado nesta versao...leitura do acelerometro da placa RF06 (Texas)
+SONOMA14 = 1 --> foi testado nesta versao...habilita a leitura da placa de medicao de consumo
+MYLINKXS_REMOTE_CONTROL - NAO TESTADO NESTA VERSAO. Versao do controle remoto com arduino
+MYLINKXS_LIGHT_CONTROL - NAO TESTADO NESTA VERSAO. Controle da lampada em um GPIO direto na CC2538.
+MYLINKXS_SENSORS 0 seria a validacao da placa vermelha do marcelo barros. Mas nao foi testada nesta versao.
+
+
 

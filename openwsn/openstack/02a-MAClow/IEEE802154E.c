@@ -18,8 +18,6 @@
 #include "processIE.h"
 
 //=========================== variables =======================================
-uint8_t rffflag=0;
-
 ieee154e_vars_t    ieee154e_vars;
 ieee154e_stats_t   ieee154e_stats;
 ieee154e_dbg_t     ieee154e_dbg;
@@ -861,11 +859,6 @@ port_INLINE void activity_ti1ORri1() {
             ieee154e_vars.dataToSend = NULL;
          }
          if (ieee154e_vars.dataToSend!=NULL) {   // I have a packet to send
-
-        	 if (rffflag)
-        	 {
-        		 rffflag = 0;
-        	 }
 
             // change state
             changeState(S_TXDATAOFFSET);

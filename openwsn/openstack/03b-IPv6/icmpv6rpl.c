@@ -503,16 +503,22 @@ void icmpv6rpl_timer_DIO_cb() {
 \note This function is executed in task context, called by the scheduler.
 */
 void icmpv6rpl_timer_DIO_task() {
-   
+   uint8_t           isFramePending=0;
+
    // update the delayDIO
    icmpv6rpl_vars.delayDIO = (icmpv6rpl_vars.delayDIO+1)%5;
 
    // check whether we need to send DIO
    if (icmpv6rpl_vars.delayDIO==0) {
       
-	  //leds_debug_toggle();
-      // send DIO
-      sendDIO();
+	  isFramePending = RITQueue_ExistFramePending();
+
+	  if (isFramePending == 0)
+	  {
+		  //leds_debug_toggle();
+	      // send DIO
+	      sendDIO();
+	  }
       
       // pick a new pseudo-random periodDIO
       icmpv6rpl_vars.periodDIO = TIMER_DIO_TIMEOUT+(openrandom_get16b()&0xff);

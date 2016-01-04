@@ -8,7 +8,6 @@
 #include "leds.h"
 #include "IEEE802154E.h"
 
-extern uint8_t rffflag;
 //=========================== variables =======================================
 #if (DEBUG_LOG_RIT  == 1)
 extern openserial_vars_t openserial_vars;
@@ -20,7 +19,9 @@ static uint8_t rffbuf[10];
 
 #endif
 //=========================== prototypes ======================================
+bool RITQueue_ExistFramePending(void);
 //=========================== public ==========================================
+extern uint8_t  coappending;
 
 void openbridge_init() {
 }
@@ -98,7 +99,8 @@ void openbridge_triggerData() {
    uint8_t           input_buffer[136];//worst case: 8B of next hop + 128B of data
    OpenQueueEntry_t* pkt;
    uint8_t           numDataBytes;
-  
+   uint8_t           isFramePending=0;
+
    numDataBytes = openserial_getNumDataBytes();
   
    //poipoi xv
@@ -143,47 +145,70 @@ void openbridge_triggerData() {
       
       //this is to catch the too short packet. remove it after fw-103 is solved.
       if (numDataBytes<16){
-              openserial_printError(COMPONENT_OPENBRIDGE,ERR_INVALIDSERIALFRAME,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
+		  openserial_printError(COMPONENT_OPENBRIDGE,ERR_INVALIDSERIALFRAME,
+						(errorparameter_t)0,
+						(errorparameter_t)0);
       }
-
-#if ENABLE_DEBUG_RFF
-	   {
- 			uint8_t pos=0;
-
-			 rffbuf[pos++]= RFF_OPENBRIDGE_TX;
-			 rffbuf[pos++]= 0x01;
-			 rffbuf[pos++]= numDataBytes;
-			 rffbuf[pos++]= input_buffer[8];
-			 rffbuf[pos++]= input_buffer[9];
-			 rffbuf[pos++]= input_buffer[10];
-			 rffbuf[pos++]= input_buffer[11];
-			 rffbuf[pos++]= input_buffer[12];
-			 rffbuf[pos++]= input_buffer[13];
-			 rffbuf[pos++]= input_buffer[14];
-			 rffbuf[pos++]= input_buffer[15];
-
-			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	   }
-#endif
 
 #if (IEEE802154E_RIT == 1)
-	   rffflag=0;
-	   if (numDataBytes == 40)  // indica que eh um frame RPL.DIO
-	   {
-		   //leds_sync_toggle();
-		   //se existir um frame de dados pendente..eu ignoro o RPL.DIO
-		   if (RITQueue_ExistFramePending()){
-			   rffflag=1;
-		   }
-	   }
+		isFramePending = 0;
+		/* indica que eh um frame RPL.DIO
+		* se existir um frame de dados pendente..eu ignoro o RPL.DIO
+		* TODO!!!! usar um metodo melhor (ao inves do tamanho do frame) para descobrir se o frame eh RPL...
+		*/
+		if (numDataBytes == 40) {
+ 		   isFramePending = RITQueue_ExistFramePending();
+		}
 #endif
-
 	   //send
-      if ((iphc_sendFromBridge(pkt))==E_FAIL) {
-         openqueue_freePacketBuffer(pkt);
-      }
+	  if (isFramePending == 0) {
+			#if ENABLE_DEBUG_RFF
+				   {
+						uint8_t pos=0;
+
+						 rffbuf[pos++]= RFF_OPENBRIDGE_TX;
+						 rffbuf[pos++]= 0x01;
+						 rffbuf[pos++]= numDataBytes;
+						 rffbuf[pos++]= input_buffer[8];
+						 rffbuf[pos++]= input_buffer[9];
+						 rffbuf[pos++]= input_buffer[10];
+						 rffbuf[pos++]= input_buffer[11];
+						 rffbuf[pos++]= input_buffer[12];
+						 rffbuf[pos++]= input_buffer[13];
+						 rffbuf[pos++]= input_buffer[14];
+						 rffbuf[pos++]= input_buffer[15];
+
+						openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+				   }
+			#endif
+
+		  if ((iphc_sendFromBridge(pkt))==E_FAIL) {
+	         openqueue_freePacketBuffer(pkt);
+	      }
+	  }
+	  else
+	  {
+		#if ENABLE_DEBUG_RFF
+		   {
+				uint8_t pos=0;
+
+				 rffbuf[pos++]= 0xFF;
+				 rffbuf[pos++]= 0xFF;
+				 rffbuf[pos++]= numDataBytes;
+				 rffbuf[pos++]= input_buffer[8];
+				 rffbuf[pos++]= input_buffer[9];
+				 rffbuf[pos++]= input_buffer[10];
+				 rffbuf[pos++]= input_buffer[11];
+				 rffbuf[pos++]= input_buffer[12];
+				 rffbuf[pos++]= input_buffer[13];
+				 rffbuf[pos++]= input_buffer[14];
+				 rffbuf[pos++]= input_buffer[15];
+
+				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   }
+		#endif
+
+	  }
    }
 }
 
@@ -218,6 +243,9 @@ void openbridge_receive(OpenQueueEntry_t* msg) {
 	 rffbuf[pos++]= RFF_OPENBRIDGE_RX;
 	 rffbuf[pos++]= 0x01;
 	 rffbuf[pos++]= msg->length;
+
+	 if (msg->length > 69)
+		 coappending = 0;
 
 	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 }
