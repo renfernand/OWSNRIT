@@ -40,6 +40,7 @@ static const uint8_t infoStackName[] = "OpenWSN ";
 #define RFF_IEEE802_TX               0x10
 #define RFF_IEEE802_OLA              0x11
 #define RFF_IEEE802_RX               0x15
+#define RFF_IEEE802_RADIO            0x17
 #define RFF_SIXTOP_RX                0x25
 #define RFF_SIXTOP_TX                0x20
 #define RFF_COMPONENT_FORWARDING_TX  0x30

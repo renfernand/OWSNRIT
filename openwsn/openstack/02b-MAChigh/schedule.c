@@ -491,7 +491,7 @@ cellType_t schedule_getType() {
 
 \returns The neighbor associated wit the current schedule entry.
 */
-#if (IEEE802154E_RIT == 0)
+#if (IEEE802154E_TSCH == 1)
 
 void schedule_getNeighbor(open_addr_t* addrToWrite) {
    

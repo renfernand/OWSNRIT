@@ -123,7 +123,7 @@ bit after the start of the packet.
 #define FIRST_FRAME_BYTE             1
 
 
-#if (IEEE802154E_RIT == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1)
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
    S_SLEEP                   = 0x00,   // ready for next slot
@@ -163,6 +163,14 @@ typedef enum {
    S_RIT_RX_FOR_TX_BEGIN     = 0x49,   // Start the treatment from TX waiting a RX message
    S_RIT_FINISH_TX           = 0x4a,   // Finish the tx Message
    S_RIT_SLEEP_WINDOW        = 0x4b,   // Finish the tx Message
+   S_TXPROBEACK              = 0x4e,
+   S_RIT_RXOLAREADY2         = 0x4f,   // Open the window to receive data !!!!!
+   S_RIT_RXDELAYACKTX        = 0x50,   // atraso entre RX e TX no ack do receptor
+   S_RIT_RXOLAECHO           = 0x51,   // Open the window to receive data !!!!!
+   S_RIT_RXOLANOECHO         = 0x52,   // Open the window to receive data !!!!!
+   S_NOECHOTXACK             = 0x53,    // Atividade do Rx (receptor) - quando enviou o ack o receptor nao ouviu o echo
+   S_RIT_TXNOECHO            = 0x54,    // nao houve echo para um tx
+   S_NORXACK                 = 0x55    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
 
 } ieee154e_state_t;
 

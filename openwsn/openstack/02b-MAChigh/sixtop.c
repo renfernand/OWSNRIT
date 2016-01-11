@@ -669,7 +669,7 @@ The body of this function executes one of the MAC management task.
 void timer_sixtop_management_fired(void) {
    sixtop_vars.mgtTaskCounter = (sixtop_vars.mgtTaskCounter+1)%ADVTIMEOUT;
    
-#if (IEEE802154E_RIT == 0)
+#if (IEEE802154E_TSCH == 1)
    switch (sixtop_vars.mgtTaskCounter) {
       case 0:
          // called every ADVTIMEOUT seconds

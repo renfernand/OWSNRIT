@@ -32,13 +32,15 @@
 extern radio_vars_t radio_vars;
 radio_csma_vars_t radio_csma_vars;
 
+//uint8_t    macTxCsmaBackoffDelay;
+//uint8_t    macTxBe;
 uint8_t    macTxActive;
 uint8_t    macTxType;
 
 uint8_t    macTxGpInterframeDelay;
 
 uint32_t   macChipVersion = 0;
-
+uint8_t  errorcount;
 
 
 /* Function pointer for the 16 byte random seed callback */
@@ -69,8 +71,12 @@ void radio_csma_init(void) {
 
 	  macChipVersion = CHIPID >> 16;
 	  radio_csma_vars.maxCsmaBackoffs = 3;
-	  radio_csma_vars.maxBe = 3;
+	  radio_csma_vars.maxBe = 5;
+	  radio_csma_vars.minBe = 3;
 	  radio_csma_vars.macTxCsmaBackoffDelay = 3;
+
+	  errorcount =0;
+	  //macTxBe = radio_csma_vars.minBe;
 
 #if 0
 	  // JA ESTA SENDO HABILITADO O timer (DE FORMA DIFERENTE) NO RADIOTIMER.C
@@ -393,46 +399,43 @@ uint8_t macRadioRandomByte(void)
  */
 void txCsmaPrep(void)
 {
-#if 0
-  macTxCsmaBackoffDelay = macRadioRandomByte() & ((1 << macTxBe) - 1);
 
-  macCspTxPrepCsmaUnslotted();
-#else
+  //macCspTxPrepCsmaUnslotted(); ESTA ROTINA ESTA AQUI...
 
   radio_csma_vars.nb = 0;
   radio_csma_vars.macTxBe = 3;
+
+  //macTxCsmaBackoffDelay = macRadioRandomByte() & ((1 << macTxBe) - 1);
   radio_csma_vars.macTxCsmaBackoffDelay = macRadioRandomByte() & ((1 << radio_csma_vars.macTxBe) - 1);
+
+  //cspPrepForTxProgram(); ESTA ROTINA ESTA AQUI...
 
   //MAC_ASSERT(!(RFIRQM1 & IM_CSP_STOP)); /* already an active CSP program */
 
   /* set CSP EVENT1 to T2 CMP1 -   MAC Timer event configuration  */
-  //MAC_MCU_CONFIG_CSP_EVENT1();
+  //MAC_MCU_CONFIG_CSP_EVENT1()           st( T2CSPCFG = 1UL; )
   HWREG(RFCORE_SFR_MTCSPCFG) = 1UL;
 
   /* set up parameters for CSP transmit program */
   HWREG(RFCORE_XREG_CSPZ) = CSPZ_CODE_CHANNEL_BUSY;
 
-  /* clear the currently loaded CSP, this generates a stop interrupt which must be cleared */
+   /* clear the currently loaded CSP, this generates a stop interrupt which must be cleared */
   //CSP_STOP_AND_CLEAR_PROGRAM();
   HWREG(RFCORE_SFR_RFST) = ISSTOP;
   HWREG(RFCORE_SFR_RFST) = ISCLEAR;
-
   //MAC_MCU_CSP_STOP_CLEAR_INTERRUPT();
-  //MAC_MCU_WRITE_RFIRQF1(~IRQ_CSP_STOP);
-  //HAL_CRITICAL_STATEMENT(
-  IntPendClear(INT_RFCORERTX);
-  HWREG(RFCORE_SFR_RFIRQF1) = ~IRQ_CSP_STOP;
-
+     //MAC_MCU_WRITE_RFIRQF1(~IRQ_CSP_STOP);
+     //HAL_CRITICAL_STATEMENT(
+   IntPendClear(INT_RFCORERTX);
+   HWREG(RFCORE_SFR_RFIRQF1) = ~IRQ_CSP_STOP;
   //MAC_MCU_CSP_INT_CLEAR_INTERRUPT();
-  //MAC_MCU_WRITE_RFIRQF1(~IRQ_CSP_MANINT);
-  //HAL_CRITICAL_STATEMENT(
-  IntPendClear(INT_RFCORERTX);
-  HWREG(RFCORE_SFR_RFIRQF1) =~IRQ_CSP_MANINT;
+     //MAC_MCU_WRITE_RFIRQF1(~IRQ_CSP_MANINT);
+     //HAL_CRITICAL_STATEMENT(
+   IntPendClear(INT_RFCORERTX);
+   HWREG(RFCORE_SFR_RFIRQF1) =~IRQ_CSP_MANINT;
 
   /*----------------------------------------------------------------------
    *  Load CSP program :  Unslotted CSMA transmit
-   */
-  /*
    *  Wait for X number of backoffs, then wait for intra-backoff count
    *  to reach value set for WEVENT1.
    */
@@ -485,8 +488,6 @@ void txCsmaPrep(void)
    * CC2530 requires SSTOP to generate CSP_STOP interrupt.
    */
   HWREG(RFCORE_SFR_RFST) = (uint32_t) SSTOP;
-
-#endif
 
 }
 

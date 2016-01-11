@@ -1,6 +1,6 @@
 #include "opendefs.h"
 #include "IEEE802154E.h"
-#if (IEEE802154E_RIT == 0)
+#if (IEEE802154E_TSCH == 1)
 #include "radio.h"
 #include "radiotimer.h"
 #include "IEEE802154.h"

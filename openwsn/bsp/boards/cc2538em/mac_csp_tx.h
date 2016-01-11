@@ -6,6 +6,7 @@ typedef struct {
 	uint8_t maxCsmaBackoffs;
 	uint8_t macTxCsmaBackoffDelay;
 	uint8_t maxBe;
+	uint8_t minBe;
 	uint8_t macTxBe ;
 	uint8_t nb;
 } radio_csma_vars_t;

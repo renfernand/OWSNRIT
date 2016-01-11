@@ -406,7 +406,7 @@ void radio_txEnable() {
 
 #if (ENABLE_CSMA_CA == 1)
 /*
- * quando usando CSMA_CA tenho que esperar a linha esta desocupada...
+ * quando usando CSMA_CA tenho que esperar a linha estar desocupada...
  * aqui ja considero que carreguei o frame e ja liguei o mecanismo do csma em load_packet
  */
 void radio_txNow() {
@@ -537,7 +537,7 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
 //=========================== private =========================================
 
 port_INLINE  void enable_radio_interrupts(void){
-#if (IEEE802154E_RIT == 0)
+#if (IEEE802154E_TSCH == 1)
    /* Enable RF interrupts 0, RXPKTDONE,SFD,FIFOP only -- see page 751  */
    HWREG(RFCORE_XREG_RFIRQM0) |= ((0x06|0x02|0x01) << RFCORE_XREG_RFIRQM0_RFIRQM_S) & RFCORE_XREG_RFIRQM0_RFIRQM_M;
 #else
@@ -620,7 +620,7 @@ void radio_isr_internal(void) {
    //STATUS0 Register
    // start of frame event
    if ((irq_status0 & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
-#if (IEEE802154E_RIT == 0)
+#if (IEEE802154E_TSCH == 1)
 	   // change state
       radio_vars.state = RADIOSTATE_RECEIVING;
       if (radio_vars.startFrame_cb!=NULL) {
