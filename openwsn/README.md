@@ -28,13 +28,41 @@ Documentation
 
 
 ------------------------------------------------------------------
-HISTORIO DE ALTERACOES
+Update history
+-----------------------------------------------------------------
+Version: V8_0_2
+Date: 16_01_16
+Remarks:
+Versao com a medicao de consumo tanto para RIT quanto para o AMAC.
+Esta versao eh que foi feito o artigo do I2MTC.
+
+Bugs Resolvidos:
+
+Bugs Atuais:
+#01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
+      Porem para o MOTE nao eh assim.
+#02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas
+
 -----------------------------------------------------------------
 Version: V8_0_1
 Date: 11_01_15
 Remarks:
 Esta versao esta com o rit mais estavel...com log de consumo...
 ja esta com o codigo do AMAC porem ainda nao testado
+
+#01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
+      Porem para o MOTE nao eh assim.
+#02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas
+
+-----------------------------------------------------------------
+Version: V8_0_1
+Date: 11_01_15
+Remarks:
+Esta versao esta com o rit mais estavel...com log de consumo...
+ja esta com o codigo do AMAC porem ainda nao testado
+
+#01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
+      Porem para o MOTE nao eh assim.
 
 
 -----------------------------------------------------------------

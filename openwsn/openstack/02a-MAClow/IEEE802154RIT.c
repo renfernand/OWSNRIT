@@ -303,6 +303,7 @@ void ieee154e_init() {
 	RITQueue_Init();
 	rffcountolatx = 0;
 	rffcountolarx = 0;
+	leds_all_off();
 
    // set callback functions for the radio
    radio_setOverflowCb(isr_ieee154e_newSlot);  //timer indicando o inicio do slot
@@ -429,7 +430,7 @@ port_INLINE void activity_txsenderror(PORT_RADIOTIMER_WIDTH capturedTime) {
 	//uint8_t ret=0;
 	sRITqueue elequeue;
 	//uint8_t endslot=false;
-	changeState(S_RIT_TXNOECHO);
+	changeState(S_RIT_TXDATANOECHO);
 
 	// cancel tt4
 	radiotimer_cancel();
@@ -1357,7 +1358,6 @@ port_INLINE void StartTxRITProcedure(uint8_t txpending,uint8_t newtxframe) {
 
     leds_debug_on();
 
-    incroute(0x01);
 /*
  * TODO!!!! EXISTE OUTRO TIPO DE DADO SEM SER DO TIPO DATA OU BEACON ?
  */
@@ -1365,8 +1365,9 @@ port_INLINE void StartTxRITProcedure(uint8_t txpending,uint8_t newtxframe) {
 		macRIT_Pending_TX_frameType = checkmsgtype(&element,txpending,newtxframe);
 	}
 
+    incroute(macRIT_Pending_TX_frameType);
 
-	if ((macRIT_Pending_TX_frameType > 0) || (txpending))
+    if ((macRIT_Pending_TX_frameType > 0) || (txpending))
 	{
 		//radiotimer_schedule(DURATION_rt2);
 		dur_rt1 = 22;
@@ -1645,8 +1646,8 @@ port_INLINE void activity_txwaitforack(PORT_RADIOTIMER_WIDTH capturedTime) {
    radio_rxEnable();
 
    //caputre init of radio for duty cycle calculation
-   ieee154e_vars.radioOnInit=radio_getTimerValue();
-   ieee154e_vars.radioOnThisSlot=TRUE;
+   //ieee154e_vars.radioOnInit=radio_getTimerValue();
+   //ieee154e_vars.radioOnThisSlot=TRUE;
    //ieee154e_vars.lastCapturedTime=ieee154e_vars.radioOnInit;
 
    radio_rxNow();
@@ -1747,7 +1748,7 @@ port_INLINE void activityrx_noacktx() {
 
    incroute(0x88);
    // change state
-   changeState(S_NOECHOTXACK);
+   changeState(S_RIT_NOECHOTXACK);
 
    // turn off the radio
    radio_rfOff();
@@ -1774,8 +1775,8 @@ port_INLINE void activityrx_noacktx() {
 	}
 #endif
    //clear vars for duty cycle on this slot
-   ieee154e_vars.radioOnTics=0;
-   ieee154e_vars.radioOnThisSlot=FALSE;
+   //ieee154e_vars.radioOnTics=0;
+   //ieee154e_vars.radioOnThisSlot=FALSE;
 
 	// SINALIZO ERRO E GUARDO A MENSAGEM PARA TENTAR NO PROXIMO CICLO...activity_tie5(); (copie aqui embaixo)
 #if 0
@@ -1806,7 +1807,7 @@ port_INLINE void activitytx_noackrx() {
 	incroute(0x89);
 
    // change state
-   changeState(S_NORXACK);
+   changeState(S_RIT_RXNOACK);
 
    // turn off the radio
    radio_rfOff();
@@ -2469,9 +2470,6 @@ port_INLINE void activity_ritwindowend() {
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	}
 #endif
-   //clear vars for duty cycle on this slot
-   ieee154e_vars.radioOnTics=0;
-   ieee154e_vars.radioOnThisSlot=FALSE;
 
     if (macRITstate == S_RIT_TX_state)
     {
@@ -2662,7 +2660,7 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 
       // record the captured time
       //ieee154e_vars.lastCapturedTime = capturedTime;
-      ieee154e_vars.lastCapturedTime = 0;
+      // ieee154e_vars.lastCapturedTime = 0;
 
       // if I just received an invalid frame, stop
       if (isValidRxFrame(&ieee802514_header)==FALSE) {
@@ -2738,9 +2736,10 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 	   }
 	   else if (macRITstate == S_RIT_RX_window_state) {
 
-          if (ieee802514_header.frameType != IEEE154_TYPE_OLA) {
+           incroute(ieee802514_header.frameType);
 
-           incroute(0x64);
+           if (ieee802514_header.frameType != IEEE154_TYPE_OLA) {
+
 			//TODO!!!! AQUI FALTA AINDA TRATAR SOMENTE FRAME QUE TEM A VER COMIGO...MEU ENDERECO...
 			//         OU BROADCAST...MAS NO CASO DO DAO...ELE VAI ESTAR NO FINAL DO FRAME...
 			// check if ack requested
@@ -2775,6 +2774,10 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 			else
 			{
 			   incroute(0x66);
+
+			   radio_rfOff();
+			   ieee154e_vars.radioOnTics+=radio_getTimerValue()-ieee154e_vars.radioOnInit;
+
 			   // indicate reception to upper layer (no ACK asked)
 			   if (ieee154e_vars.dataReceived!=NULL) {
 				   notif_receive(ieee154e_vars.dataReceived);
@@ -2790,7 +2793,7 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 		   //TODO!!! AQUI TENHO DUVIDAS SE DEVO OU NAO DESPREZAR O FRAME DO RIT...
 		   //Do jeito que esta a tabela de vizinhos nao esta sendo incrementada pelo nr de anuncios do RIT
 		   //Porem se eu nunca comunicar com ele ele nao vai incrementar...mesmo se ele for um bom vizinho...
-			incroute(0x67);
+				incroute(0x67);
 			discardframe = TRUE;
 		}
 
@@ -2826,10 +2829,6 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	}
 #endif
-		   //clear vars for duty cycle on this slot
-		   ieee154e_vars.radioOnTics=0;
-		   ieee154e_vars.radioOnThisSlot=FALSE;
-
 			//descarto o frame recebido pois nao preciso mais dele
 			endSlot();
 	  }
@@ -3199,8 +3198,8 @@ port_INLINE void activityrx_txackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 	}
 #endif
    //clear vars for duty cycle on this slot
-   ieee154e_vars.radioOnTics=0;
-   ieee154e_vars.radioOnThisSlot=FALSE;
+   //ieee154e_vars.radioOnTics=0;
+   //ieee154e_vars.radioOnThisSlot=FALSE;
 
    // free the ack we just sent so corresponding RAM memory can be recycled
    openqueue_freePacketBuffer(ieee154e_vars.ackToSend);
@@ -3500,9 +3499,9 @@ void endSlot() {
 
 	//TODO!!! PARA QUE ELE USA ISSO
 	// compute the duty cycle if radio has been turned on
-	if (ieee154e_vars.radioOnThisSlot==TRUE){
-	   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-	}
+	//if (ieee154e_vars.radioOnThisSlot==TRUE){
+	//   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+	//}
 
 	//Limpo a fila de mensagens pendentes
 	RITQueue_cleanupoldmsg();
@@ -3598,8 +3597,8 @@ port_INLINE void activity_rxwindowend(void) {
    }
 
    //clear vars for duty cycle on this slot
-   ieee154e_vars.radioOnTics=0;
-   ieee154e_vars.radioOnThisSlot=FALSE;
+   //ieee154e_vars.radioOnTics=0;
+   //ieee154e_vars.radioOnThisSlot=FALSE;
 
    // clean up dataToSend
    if (ieee154e_vars.dataToSend!=NULL) {
@@ -4046,30 +4045,28 @@ uint8_t RITQueue_cleanupoldmsg(void){
 	//get actualtime
 	actualtime = radio_getTimerValue();
 
-#if ((ENABLE_DEBUG_RFF) && ((DBG_IEEE802_TX == 1) || (DBG_IEEE802_RX == 1)))
+#if (ENABLE_DEBUG_RFF == 1)
   {
-	uint8_t   *pucAux = (uint8_t *) &actualtime;
+	//uint8_t   *pucAux = (uint8_t *) &actualtime;
 	uint8_t    lastpos;
+	uint8_t  *pucAux = (uint8_t *) &ieee154e_vars.radioOnTics;
 
 	lastpos = incroute(0xCC);
 
-    if (lastpos > 0)
-    	imprimir = true;
+    //if (lastpos > 0)
+    	//imprimir = true;
 
-	if (imprimir)
+	//if (imprimir)
 	{
 		if (macRITstate == S_RIT_RX_window_state)
 			rffbuf[pos++]= 0x95;
 		else
-		        rffbuf[pos++]= 0x99;
+		    rffbuf[pos++]= 0x99;
 
-		rffbuf[pos++] = lastpos;
-		if (lastpos < 12)
+		//rffbuf[pos++] = lastpos;
+		for(i=0;i<14;i++)
 		{
-			for(i=0;i<lastpos;i++)
-			{
-				rffbuf[pos++]=ritroute[i];
-			}
+			rffbuf[pos++]=ritroute[i];
 		}
 
 		/*
@@ -4080,18 +4077,20 @@ uint8_t RITQueue_cleanupoldmsg(void){
 		}*/
 
 		//imprime as estatisticas
-		if (lastpos < 14){
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countprod;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countsendok;
-	        rffbuf[pos++]= 0xa0;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countprod;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendok;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendackok;
-		}
+		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countprod;
+		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countsendok;
+		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countprod;
+		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendok;
+		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendackok;
+
+		//imprime tempo radio on
+		rffbuf[pos++]= 0xdd;
+		rffbuf[pos++]= *pucAux++;
+		rffbuf[pos++]= *pucAux++;
+		rffbuf[pos++]= *pucAux++;
+		rffbuf[pos++]= *pucAux;
 
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-
-
 	}
   }
 #endif

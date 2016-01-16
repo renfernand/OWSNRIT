@@ -269,7 +269,7 @@ void icmpv6rpl_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
    icmpv6rpl_vars.CountSendingDAO = 0;
 #endif
 
-#if 0 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if ((DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1))
    {
 	   uint8_t ucPos=0;
 

@@ -163,14 +163,23 @@ typedef enum {
    S_RIT_RX_FOR_TX_BEGIN     = 0x49,   // Start the treatment from TX waiting a RX message
    S_RIT_FINISH_TX           = 0x4a,   // Finish the tx Message
    S_RIT_SLEEP_WINDOW        = 0x4b,   // Finish the tx Message
-   S_TXPROBEACK              = 0x4e,
-   S_RIT_RXOLAREADY2         = 0x4f,   // Open the window to receive data !!!!!
-   S_RIT_RXDELAYACKTX        = 0x50,   // atraso entre RX e TX no ack do receptor
-   S_RIT_RXOLAECHO           = 0x51,   // Open the window to receive data !!!!!
-   S_RIT_RXOLANOECHO         = 0x52,   // Open the window to receive data !!!!!
-   S_NOECHOTXACK             = 0x53,    // Atividade do Rx (receptor) - quando enviou o ack o receptor nao ouviu o echo
-   S_RIT_TXNOECHO            = 0x54,    // nao houve echo para um tx
-   S_NORXACK                 = 0x55    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
+   S_RIT_RXOLAREADY2         = 0x4c,   // Open the window to receive data !!!!!
+   S_RIT_RXDELAYACKTX        = 0x4d,   // atraso entre RX e TX no ack do receptor
+   S_RIT_RXOLAPREPARE        = 0x4e,   // Open the window to receive data !!!!!
+   S_RIT_RXOLA               = 0x4f,   // Open the window to receive data !!!!!
+   S_RIT_RXOLAECHO           = 0x50,   // Open the window to receive data !!!!!
+   S_RIT_RXOLANOECHO         = 0x51,   // Open the window to receive data !!!!!
+   S_RIT_NOECHOTXACK         = 0x52,    // Atividade do Rx (receptor) - quando enviou o ack o receptor nao ouviu o echo
+   S_RIT_TXDATANOECHO        = 0x53,    // nao houve echo para um tx
+   S_RIT_RXNOACK             = 0x54,    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
+   S_RIT_OLAACKPREPARE       = 0x55,
+   S_RIT_OLAACK              = 0x56,
+   S_RIT_OLAACKECHO          = 0x57,
+   S_RIT_NOOLAACKECHO        = 0x58,
+   S_RIT_TXOLA               = 0x59,
+   S_RIT_TXOLAPREPARE        = 0x60,
+   S_RIT_RXOLAACK            = 0x61,
+   S_RIT_RXOLAACKPREPARE     = 0x62,
 
 } ieee154e_state_t;
 

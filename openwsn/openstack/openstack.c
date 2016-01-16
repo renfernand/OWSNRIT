@@ -46,6 +46,8 @@
 
 void openstack_init(void) {
    
+   //teste rff - pisca todos os leds
+   leds_all_on();
    //===== drivers
    openserial_init();
    
@@ -83,4 +85,7 @@ void openstack_init(void) {
       (errorparameter_t)0,
       (errorparameter_t)0
    );
+
+   //teste rff - pisca todos os leds
+   leds_all_off();
 }

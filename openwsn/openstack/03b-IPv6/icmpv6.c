@@ -69,7 +69,7 @@ void icmpv6_receive(OpenQueueEntry_t* msg) {
    msg->owner = COMPONENT_ICMPv6;
    msg->l4_sourcePortORicmpv6Type = ((ICMPv6_ht*)(msg->payload))->type;
 
-#if (DEBUG_LOG_RIT  == 1)
+#if (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
    	 uint8_t   pos=0;
 
