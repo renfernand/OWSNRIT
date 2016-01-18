@@ -30,6 +30,29 @@ Documentation
 ------------------------------------------------------------------
 Update history
 -----------------------------------------------------------------
+Version: V8_0_3
+Date: 18_01_16
+Remarks:
+AMAC.C - Foi corrigido alguns problemas de erro para o plocotolo AMAC
+         movido as rotinas de RITQUEUE para o arquivo OpenQueue pois AMAC esta com mais de 5000 linhas e estava 
+         mostrando msg de erros.
+
+Bugs Resolvidos:
+
+Bugs Atuais:
+#01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
+      Porem para o MOTE nao eh assim.
+#02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas
+
+#03 - Hoje nao esta ocorrendo o travamento da comunicacao quando tem TX pendente. por que ?
+      e como resolver o caso onde transmissor tem um Tx.dio pendente...porem o receptor esta enviando um Tx.Dao..
+      Neste caso o transmissor nao vai aceitar nada alem do Ola...entao ele fica aguardando o ola...
+      porem o receptor esta aguardando um ack...ou um ola tambem...
+      Eho o caso abaixo..veja que o transmissor perdeu o dio...e acabou recebendo o DAO com sucesso...
+      
+      
+ 
+-----------------------------------------------------------------
 Version: V8_0_2
 Date: 16_01_16
 Remarks:
@@ -42,6 +65,15 @@ Bugs Atuais:
 #01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
       Porem para o MOTE nao eh assim.
 #02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas
+
+#03 - Hoje nao esta ocorrendo o travamento da comunicacao quando tem TX pendente. por que ?
+      e como resolver o caso onde transmissor tem um Tx.dio pendente...porem o receptor esta enviando um Tx.Dao..
+      Neste caso o transmissor nao vai aceitar nada alem do Ola...entao ele fica aguardando o ola...
+      porem o receptor esta aguardando um ack...ou um ola tambem...
+      Eho o caso abaixo..veja que o transmissor perdeu o dio...e acabou recebendo o DAO com sucesso...
+      
+      
+ 
 
 -----------------------------------------------------------------
 Version: V8_0_1

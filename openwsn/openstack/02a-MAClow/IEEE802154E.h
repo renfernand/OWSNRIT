@@ -26,28 +26,30 @@
 //#define START_MAC_RIT_RX_TO_TX_PERIOD 500
 //#define RIT_ACK_WAIT_PERIOD           START_MAC_RIT_PERIOD/2
 
-#define TICK_MAC_RIT_RX_TO_TX_PERIOD  36045 //16384 =  500 ms        START_MAC_RIT_RX_TO_TX_PERIOD*RIT_CLOCK
-#define TICK_MAC_RIT_RX_WIND_PERIOD   16384 //16384 =  500 ms        START_MAC_RIT_RX_WIND_PERIOD*RIT_CLOCK
-#define TICK_MAC_RIT_PERIOD           22938 //32768 = 1000 ms        START_MAC_RIT_PERIOD*RIT_CLOCK
-#define TICK_MAC_RIT_TX_PERIOD        49152 //32768 = 1000 ms        START_MAC_RIT_PERIOD*RIT_CLOCK
-#define TICK_RIT_ACK_WAIT_PERIOD      8192  //8192  =  250 ms        RIT_ACK_WAIT_PERIOD*RIT_CLOCK
+#define TICK_MAC_RIT_PERIOD           16384 //16384 =  500 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
+//#define TICK_MAC_RIT_PERIOD           32768 //32768 = 1000 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
+#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
+//#define TICK_MAC_RIT_RX_WIND_PERIOD   16384 //16384 =  500 ms       O Rx_wind pode ser pequeno...tamanho da msg
+#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
 
 #else
+#define TICK_MAC_RIT_PERIOD           16384 //16384 =  500 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
+//#define TICK_MAC_RIT_PERIOD           32768 //32768 = 1000 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
+#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
+//#define TICK_MAC_RIT_RX_WIND_PERIOD   16384 //16384 =  500 ms       O Rx_wind pode ser pequeno...tamanho da msg
+#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+
 /*
-#define START_MAC_RIT_RX_TO_TX_PERIOD 1500
-#define START_MAC_RIT_RX_WIND_PERIOD  500
-#define START_MAC_RIT_PERIOD          1900
-#define RIT_ACK_WAIT_PERIOD           100
- */
-//#define START_MAC_RIT_PERIOD          1000
-//#define START_MAC_RIT_RX_WIND_PERIOD  START_MAC_RIT_PERIOD/2
-//#define START_MAC_RIT_RX_TO_TX_PERIOD START_MAC_RIT_PERIOD/2
-//#define RIT_ACK_WAIT_PERIOD           START_MAC_RIT_PERIOD/4
 #define TICK_MAC_RIT_RX_TO_TX_PERIOD  36045 //16384 =  500 ms        START_MAC_RIT_RX_TO_TX_PERIOD*RIT_CLOCK
 #define TICK_MAC_RIT_RX_WIND_PERIOD   16384 //16384 =  500 ms        START_MAC_RIT_RX_WIND_PERIOD*RIT_CLOCK
 #define TICK_MAC_RIT_PERIOD           22938 //32768 = 1000 ms        START_MAC_RIT_PERIOD*RIT_CLOCK
 #define TICK_MAC_RIT_TX_PERIOD        49152 //32768 = 1000 ms        START_MAC_RIT_PERIOD*RIT_CLOCK
 #define TICK_RIT_ACK_WAIT_PERIOD      8192  //8192  =  250 ms        RIT_ACK_WAIT_PERIOD*RIT_CLOCK
+*/
 
 #endif
 
@@ -180,6 +182,7 @@ typedef enum {
    S_RIT_TXOLAPREPARE        = 0x60,
    S_RIT_RXOLAACK            = 0x61,
    S_RIT_RXOLAACKPREPARE     = 0x62,
+   S_RIT_TXDATAECHO          = 0x63
 
 } ieee154e_state_t;
 

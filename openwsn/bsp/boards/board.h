@@ -21,8 +21,8 @@
 //somente um ou nenhum pode ser escolhido.
 
 #define IEEE802154E_TSCH   0
-#define IEEE802154E_RIT   1
-#define IEEE802154E_AMAC   0
+#define IEEE802154E_RIT    0
+#define IEEE802154E_AMAC   1
 
 
 
@@ -71,11 +71,12 @@
 #define DEBUG_LOG_RIT   1
 #define DBG_IEEE802_TX  1
 #define DBG_IEEE802_RX  1
-#define DBG_RPL               0
+#define DBG_RPL               1
 #define DBG_FORWARDING        0
 #define DBG_CSMACA            0
 #define DBG_IEEE802_TIMER     0
-#define DBG_RADIO_POWER_CONS  1
+#define DBG_RADIO_POWER_CONS  0
+#define DBG_OPENQUEUE         0
 #define DBG_APP_1       0     //debug aplicacao - arquivo bsp\osens_itf_mote
 
 #else

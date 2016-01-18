@@ -15,6 +15,31 @@
 
 #define QUEUELENGTH  10
 
+#define MAX_RIT_LIST_ELEM 5
+#define MAX_RIT_MSG_LEN   130
+
+
+typedef struct RIT_Queue {
+	uint8_t     frameType;
+	uint32_t    msglength;
+	bool        isBroadcastMulticast;
+	uint8_t     pending;
+	uint8_t     countretry;
+	uint64_t    timestamp;
+	uint32_t    lasttxduration;
+	open_addr_t destaddr;
+	uint8_t     msg[MAX_RIT_MSG_LEN];
+} sRITqueue;
+
+typedef struct RIT_Queue_element {
+	uint64_t timestamp;
+	open_addr_t destaddr;
+	uint8_t frameType;
+	uint8_t *msg;
+	uint32_t msglength;
+	uint32_t lasttxduration;
+	bool isBroadcastMulticast;
+} sRITelement;
 //=========================== typedef =========================================
 
 typedef struct {
@@ -44,6 +69,19 @@ OpenQueueEntry_t*  openqueue_sixtopGetReceivedPacket(void);
 // called by IEEE80215E
 OpenQueueEntry_t*  openqueue_macGetDataPacket(open_addr_t* toNeighbor);
 OpenQueueEntry_t*  openqueue_macGetAdvPacket(void);
+
+
+bool  RITQueue_ClearAddress(open_addr_t* addr);
+bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2);
+uint8_t RITQueue_cleanupoldmsg(void);
+bool RITQueue_Free(uint8_t elementpos);
+uint8_t RITQueue_Get_Pos(open_addr_t *paddr);
+sRITqueue RITQueue_Get_Element(uint8_t elementpos);
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending);
+
+sRITqueue RITQueue_Dequeue_byaddr(open_addr_t addr);
+void RITQueue_Init(void);
+bool RITQueue_Enqueue(sRITqueue *pmsg);
 
 /**
 \}

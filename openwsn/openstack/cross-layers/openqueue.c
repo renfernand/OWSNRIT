@@ -3,7 +3,7 @@
 #include "openserial.h"
 #include "packetfunctions.h"
 #include "IEEE802154E.h"
-
+#include "radio.h"
 //=========================== variables =======================================
 
 openqueue_vars_t openqueue_vars;
@@ -11,8 +11,23 @@ openqueue_vars_t openqueue_vars;
 #if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1)
 OpenQueueEntry_t advRIT;
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
+sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
 
 #endif
+#if ENABLE_DEBUG_RFF
+static uint8_t rffbuf[30];
+#endif
+
+//support variable for RIT procedure
+extern uint8_t     coappending;
+
+
+uint8_t u8NrMsgQueue;          // numero de posicoes utilizadas na queue de RIT Pending Msg to TX
+uint8_t numAvailableElements;  // numero de lugares ocupados no pool de mensagem
+uint8_t maxElements;
+uint8_t macRITActualPos;           //tem a informacao da posicao do atual Tx Msg Pending (antes do ola)
+uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
+uint32_t numOfQueueInsertionErrors;
 
 //=========================== prototypes ======================================
 
@@ -91,10 +106,30 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
          openqueue_vars.queue[i].creator=creator;
          openqueue_vars.queue[i].owner=COMPONENT_OPENQUEUE;
          ENABLE_INTERRUPTS(); 
+
+#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_OPENQUEUE == 1))
+	{
+		uint8_t *pucAux = (uint8_t *) &openqueue_vars.queue[i];
+		uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_OPENQUEUE_ALLOC;
+		rffbuf[pos++]= 0x01;
+		rffbuf[pos++]= creator;
+		rffbuf[pos++]= i;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+#endif
          return &openqueue_vars.queue[i];
       }
    }
    ENABLE_INTERRUPTS();
+
+
    return NULL;
 }
 
@@ -109,6 +144,9 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
 */
 owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
    uint8_t i;
+   uint8_t *pucAux = (uint8_t *) pkt;
+   uint8_t  creator;
+
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    for (i=0;i<QUEUELENGTH;i++) {
@@ -119,8 +157,27 @@ owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
                                   (errorparameter_t)0,
                                   (errorparameter_t)0);
          }
+         creator = openqueue_vars.queue[i].creator;
+
          openqueue_reset_entry(&(openqueue_vars.queue[i]));
          ENABLE_INTERRUPTS();
+
+#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_OPENQUEUE == 1))
+	{
+		uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_OPENQUEUE_FREE;
+		rffbuf[pos++]= 0x01;
+		rffbuf[pos++]= creator;
+		rffbuf[pos++]= i;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux++;
+		rffbuf[pos++]= pucAux;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+#endif
          return E_SUCCESS;
       }
    }
@@ -157,14 +214,29 @@ owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt) {
 */
 void openqueue_removeAllCreatedBy(uint8_t creator) {
    uint8_t i;
+   uint8_t count=0;
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    for (i=0;i<QUEUELENGTH;i++){
       if (openqueue_vars.queue[i].creator==creator) {
-         openqueue_reset_entry(&(openqueue_vars.queue[i]));
+    	  count++;
+    	  openqueue_reset_entry(&(openqueue_vars.queue[i]));
       }
    }
    ENABLE_INTERRUPTS();
+
+#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_OPENQUEUE == 1))
+	{
+		uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_OPENQUEUE_FREE;
+		rffbuf[pos++]= 0x02;
+		rffbuf[pos++]= creator;
+		rffbuf[pos++]= count;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+#endif
 }
 
 /**
@@ -174,14 +246,29 @@ void openqueue_removeAllCreatedBy(uint8_t creator) {
 */
 void openqueue_removeAllOwnedBy(uint8_t owner) {
    uint8_t i;
+   uint8_t count=0;
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    for (i=0;i<QUEUELENGTH;i++){
       if (openqueue_vars.queue[i].owner==owner) {
+    	  count++;
          openqueue_reset_entry(&(openqueue_vars.queue[i]));
       }
    }
    ENABLE_INTERRUPTS();
+
+#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_OPENQUEUE == 1))
+	{
+		uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_OPENQUEUE_FREE;
+		rffbuf[pos++]= 0x03;
+		rffbuf[pos++]= owner;
+		rffbuf[pos++]= count;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+#endif
 }
 
 //======= called by RES
@@ -266,6 +353,444 @@ OpenQueueEntry_t* openqueue_macGetAdvPacket() {
    }
    ENABLE_INTERRUPTS();
    return NULL;
+}
+
+inline bool RITQueue_IsEmpty(void) {	return (numAvailableElements == 0) ? true : false; }
+
+inline bool RITQueue_IsFull(void) { 	return (numAvailableElements == maxElements) ? true : false; }
+
+/**
+\brief Write the 64-bit address of some neighbor to some location.
+   address_1 - Endereco da mensagem que chegou
+   adrress_2 - endereco da mensagem que esta pendente
+    se endereco da mensagem pendente eh do SINK entao envio mesmo assim.
+    TODO!!! MELHORAR
+*/
+
+bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
+
+	uint8_t i, nroctets = 0;
+
+    if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
+    { //if address is broadcast then send for anyone.
+        return true;
+    }
+    else if (addr1->type == addr2->type)
+	{
+		switch (addr1->type)
+		{
+		case 0x01:
+			nroctets = 2;
+			break;
+		case 0x02:
+			nroctets = 8;
+			break;
+		case 0x03:
+			nroctets = 16;
+			break;
+		default:
+			nroctets = 0;
+			break;
+		}
+
+		if (nroctets > 0) {
+			for (i = 0; i < nroctets; i++) {
+				if (addr1->addr_16b[i] != addr2->addr_16b[i])
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+			return false;
+
+	}
+    else {
+    	// AQUI EU TENHO QUE CHECAR SE O ADDRESS 1 eh do SINK... (FF 02 ...00 02)
+        if ((addr1->type == 0x03) &&  (addr2->type == 0x02))  {
+        	if ((addr1->addr_64b[0] == 0xFF) &&
+                (addr1->addr_64b[1] == 0x02) &&
+        	    (addr1->addr_64b[14] == 0x00) &&
+        	    (addr1->addr_64b[15] == 0x02)) {
+    	        return true;
+        	}
+    	}
+
+    }
+
+	return false;
+}
+
+bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2){
+
+	uint8_t i, nroctets = 0;
+
+	addr1->type = addr2->type;
+
+	switch (addr2->type)
+	{
+		case 0x01:
+			nroctets = 2;
+			break;
+		case 0x02:
+			nroctets = 8;
+			break;
+		case 0x03:
+			nroctets = 16;
+			break;
+		default:
+			nroctets = 0;
+			break;
+	}
+
+	if (nroctets > 0) {
+		for (i = 0; i < nroctets; i++) {
+			addr1->addr_128b[i] = addr2->addr_128b[i];
+		}
+		return true;
+	}
+
+	return false;
+}
+
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending)
+{
+	uint8_t  i;
+
+	if (psEle == NULL)
+		return maxElements; //msg invalida
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (RITQueue_IsFull() == false)
+	{
+		//procuro o primeiro elemento da fila disponivel
+		for (i = 0; i < maxElements; i++)
+		{
+			if ((pvObjList[i].frameType == 0) && (pvObjList[i].msglength == 0))
+			{
+				/* Insert msg into the queue. */
+				pvObjList[i].destaddr = psEle->destaddr;
+				pvObjList[i].timestamp = psEle->timestamp;
+				pvObjList[i].msglength = psEle->msglength;
+				pvObjList[i].frameType = psEle->frameType;
+				pvObjList[i].isBroadcastMulticast = psEle->isBroadcastMulticast;
+				memcpy(pvObjList[i].msg, psEle->msg, psEle->msglength);
+				pvObjList[i].pending = pending;
+
+				if (psEle->frameType == IANA_UDP)
+					coappending = true;
+
+				if (psEle->frameType != IANA_ICMPv6_RPL_DIO) {
+					pvObjList[i].countretry++;
+				}
+
+				numAvailableElements++;
+				break;
+			}
+		}
+
+	}
+
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return i;
+}
+
+/* RITQueue_updateactualtxtime
+ * salvo a ultima programacao da janela do RIT tx window para se
+ * precisar reprogramar a janela de timer quando uma outra msg chegar
+ *
+ */
+
+void RITQueue_updateactualtxtime(uint32_t actualtime)
+{
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+    if (macRITActualPos < maxElements)
+	  pvObjList[macRITActualPos].lasttxduration = actualtime ;
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+}
+
+sRITqueue RITQueue_Get_Element(uint8_t pos)
+{
+	sRITqueue  elem;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		if ( pos < maxElements)
+		{
+			elem = pvObjList[pos];
+		}
+		else
+		{
+			elem.frameType = 0;
+			RITQueue_ClearAddress(&elem.destaddr);
+ 		}
+	}
+	else
+	{
+		elem.frameType = 0;
+		RITQueue_ClearAddress(&elem.destaddr);
+	}
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return elem;
+}
+
+uint8_t RITQueue_Get_Pos(open_addr_t *paddr)
+{
+	uint8_t i=maxElements;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		for (i = 0; i < maxElements; i++)
+		{
+			if (RITQueue_AddrIsTheSame(&pvObjList[i].destaddr, paddr) == true)
+			{
+				break;
+			}
+		}
+	}
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return i;
+}
+
+
+bool  RITQueue_ClearAddress(open_addr_t* addr){
+
+	uint8_t i;
+
+	addr->type = 0;
+	for (i=0;i<16;i++)
+	{
+	  addr->addr_128b[i] = 0;
+	}
+
+	return (true);
+}
+
+bool RITQueue_PutPending(uint8_t elementpos)
+{
+	bool ret = false;
+	uint8_t  i;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		if (elementpos < maxElements)
+		{
+			pvObjList[elementpos].pending = 1;
+			pvObjList[elementpos].countretry++;
+			ret = true;
+		}
+	}
+	else
+	{
+		//printf("LISTA VAZIA!!!!! \n");
+	}
+
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return ret;
+}
+
+/*
+ * Verifica se existe algum frame pendente
+ */
+bool RITQueue_ExistFramePending(void)
+{
+	bool ret = false;
+	uint8_t  i;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	for (i = 0; i < maxElements; i++)
+	{
+		if (pvObjList[i].pending)
+		{
+			if (pvObjList[i].countretry < 3)
+			{
+				ret = true;
+				break;
+			}
+			else  //REMOVO O ELEMENTO QUE JA ESTA A TEMPOS AQUI
+			{
+				RITQueue_Free(i);
+			}
+		}
+	}
+
+   if (coappending)
+	   ret = true;
+
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return ret;
+}
+/*
+ * Retorna a posicao do 1o frame pendente
+ * se ja existir um frame pendente e ja ultrapassou o nro de retry entao
+ * eh removido ele da fila...
+ */
+uint8_t RITQueue_GetPending(void)
+{
+	bool pos = maxElements;
+	uint8_t  i;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		for (i = 0; i < maxElements; i++)
+		{
+			if (pvObjList[i].pending)
+			{
+				if (pvObjList[i].countretry < 3)
+				{
+					pos = i;
+					break;
+				}
+				else  //REMOVO O ELEMENTO QUE JA ESTA A TEMPOS AQUI
+				{
+					RITQueue_Free(i);
+				}
+			}
+		}
+	}
+	else
+	{
+		//printf("LISTA VAZIA!!!!! \n");
+	}
+
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return pos;
+}
+
+bool RITQueue_Free(uint8_t elementpos)
+{
+	bool ret = false;
+	uint8_t  i;
+
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+	if (elementpos < maxElements)
+	{
+		RITQueue_ClearAddress(&pvObjList[elementpos].destaddr);
+		pvObjList[elementpos].timestamp   = 0;
+		pvObjList[elementpos].msglength   = 0;
+		pvObjList[elementpos].frameType   = 0;
+		pvObjList[elementpos].pending     = 0;
+		pvObjList[elementpos].countretry  = 0;
+		pvObjList[elementpos].lasttxduration  = 0;
+		pvObjList[elementpos].isBroadcastMulticast = 0;
+
+		if (numAvailableElements > 0)
+			numAvailableElements--;
+
+		ret = true;
+	}
+
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+	return ret;
+}
+
+
+/*
+  Deleto todas as mensagens que estao na fila que nao tem prioridades
+  criterios:
+      - msg com a mais de 2000 segundos
+      - msg DIO que nao foram enviadas
+  retorno o numero de elementos deletados
+*/
+#define TIMEOUT_2SEC 65530
+uint8_t RITQueue_cleanupoldmsg(void){
+	uint32_t actualtime;
+	uint32_t timeout;
+	uint8_t i;
+	uint8_t count = 0;
+	uint8_t pos=0;
+	bool imprimir = false;
+
+	//get actualtime
+	actualtime = radio_getTimerValue();
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		for (i = 0; i < maxElements; i++)
+		{
+			if ((pvObjList[i].msglength > 0))
+			{
+				if ((pvObjList[i].frameType == 1) || (pvObjList[i].frameType == 2) ||
+				    ((pvObjList[i].timestamp + TIMEOUT_2SEC) < actualtime))
+				{
+					if (RITQueue_Free(i)) {
+						count++;
+					}
+				}
+			}
+		}
+
+	}
+
+
+	return count;
+}
+
+void RITQueue_Init(void){
+
+	uint32_t i;
+
+	numOfQueueInsertionErrors = 0;
+	numAvailableElements = 0;
+	maxElements = MAX_RIT_LIST_ELEM;
+
+	for (i = 0; i < maxElements; i++)
+	{
+		RITQueue_Free(i);
+	}
 }
 
 //=========================== private =========================================
