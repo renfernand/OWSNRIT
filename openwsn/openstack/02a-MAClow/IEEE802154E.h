@@ -20,22 +20,58 @@
 #define RIT_CLOCK 32768/1000
 
 //time in milisecond
-#if SINK
-//#define START_MAC_RIT_PERIOD          1500
-//#define START_MAC_RIT_RX_WIND_PERIOD  500
-//#define START_MAC_RIT_RX_TO_TX_PERIOD 500
-//#define RIT_ACK_WAIT_PERIOD           START_MAC_RIT_PERIOD/2
+#define RIT100ms   0
+#define RIT200ms   1
+#define RIT400ms   0
+#define RIT500ms   0
+#define RIT1000ms  0
 
-#define TICK_MAC_RIT_PERIOD           16384 //16384 =  500 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
-//#define TICK_MAC_RIT_PERIOD           32768 //32768 = 1000 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
-#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
-#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
-#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
-//#define TICK_MAC_RIT_RX_WIND_PERIOD   16384 //16384 =  500 ms       O Rx_wind pode ser pequeno...tamanho da msg
-#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
 
-#else
-#define TICK_MAC_RIT_PERIOD           16384 //16384 =  500 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
+//valores dos ticks
+//   12 ms -   393 ticks
+//   25 ms -   819 ticks
+//   50 ms -  1638 ticks
+//  100 ms -  3277 ticks
+//  200 ms -  6554 ticks
+//  300 ms -  9830 ticks
+//  400 ms - 13107 ticks
+//  500 ms - 16384 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
+// 1000 ms - 32768 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
+#if (RIT100ms == 1)
+	#define TICK_MAC_RIT_PERIOD           3277
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 819 //RIT + 25 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 // 50 ms -  O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+#elif (RIT200ms == 1)
+	#define TICK_MAC_RIT_PERIOD           6554
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 22 //RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_PERIOD + 3277
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 // 50 ms -  O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+#elif (RIT400ms == 1)
+	#define TICK_MAC_RIT_PERIOD           13107
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+#elif (RIT500ms == 1)
+	#define TICK_MAC_RIT_PERIOD           16384
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+#elif (RIT1000ms == 1)
+	#define TICK_MAC_RIT_PERIOD           32768
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 //1638 =  50 ms       O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
+#endif
+
+
+#if 0
+#define TICK_MAC_RIT_PERIOD           6554 //16384 =  500 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
 //#define TICK_MAC_RIT_PERIOD           32768 //32768 = 1000 ms       START_MAC_RIT_PERIOD*RIT_CLOCK
 #define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD +1638 //1638 =  50 ms   RIT + 50 ms - tenho que garantir ao menos um ola por periodo
 #define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_RX_TO_TX_PERIOD
@@ -125,7 +161,7 @@ bit after the start of the packet.
 #define FIRST_FRAME_BYTE             1
 
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
    S_SLEEP                   = 0x00,   // ready for next slot
@@ -182,7 +218,8 @@ typedef enum {
    S_RIT_TXOLAPREPARE        = 0x60,
    S_RIT_RXOLAACK            = 0x61,
    S_RIT_RXOLAACKPREPARE     = 0x62,
-   S_RIT_TXDATAECHO          = 0x63
+   S_RIT_TXDATAECHO          = 0x63,
+   S_RIT_RXOLA1              = 0x64
 
 } ieee154e_state_t;
 

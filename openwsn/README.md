@@ -31,26 +31,30 @@ Documentation
 Update history
 -----------------------------------------------------------------
 Version: V8_0_3
-Date: 18_01_16
+Date: 20_01_16
 Remarks:
 AMAC.C - Foi corrigido alguns problemas de erro para o plocotolo AMAC
          movido as rotinas de RITQUEUE para o arquivo OpenQueue pois AMAC esta com mais de 5000 linhas e estava 
          mostrando msg de erros.
+         Foi testado para 2 nos com o protocolo AMAC e esta com valores mais estaveis de Comandos Aciclicos.
+		 Foi incluido o arquivo RITMC mas ainda eh somente para testes (nao esta funcionando).
 
 Bugs Resolvidos:
+#R01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. Porem para o MOTE nao eh assim.
+       R.: Isto esta relacionado com a rotina inicial IT0 onde quando eh sink ele tem de abrir a janela de inputserial 
+	   para o openvisualizer. Nesta hora o RIT nao executa...ou seja, perde um ciclo sem comunicacao. 
+#R02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas.
+       R.: estou me baseando nos mesmos timer do TSCH. Mas o Schedule_timer eh um timer de 15 bits que vai de 0 a 16500.
+	   Entao para valores de RITWindows acima de 400ms ele vai apresentar problemas...
 
-Bugs Atuais:
-#01 - AMAC SINK - O RITPeriod as vezes eh de 1000 as vezes eh de 2000. 
-      Porem para o MOTE nao eh assim.
-#02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas
-
-#03 - Hoje nao esta ocorrendo o travamento da comunicacao quando tem TX pendente. por que ?
+#R03 - Hoje nao esta ocorrendo o travamento da comunicacao quando tem TX pendente. por que ?
       e como resolver o caso onde transmissor tem um Tx.dio pendente...porem o receptor esta enviando um Tx.Dao..
       Neste caso o transmissor nao vai aceitar nada alem do Ola...entao ele fica aguardando o ola...
       porem o receptor esta aguardando um ack...ou um ola tambem...
-      Eho o caso abaixo..veja que o transmissor perdeu o dio...e acabou recebendo o DAO com sucesso...
+      R.: Quando ocorre o timer principal entao comeca um novo slot...e entao ele fica ciclando entre Tx e Rx ou seja,
+	  se no ultimo ciclo foi Tx entao no proximo eh RX... Nao tem o inverso..
       
-      
+Bugs Atuais:
  
 -----------------------------------------------------------------
 Version: V8_0_2

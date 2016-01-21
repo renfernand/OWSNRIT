@@ -23,10 +23,10 @@
 #define IEEE802154E_TSCH   0
 #define IEEE802154E_RIT    0
 #define IEEE802154E_AMAC   1
+#define IEEE802154E_RITMC   0
 
 
-
-#if (IEEE802154E_RIT == 1)
+#if ((IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1))
 /* enable the CSMA_CA in the transmission */
 #define ENABLE_CSMA_CA  1
 #else

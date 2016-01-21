@@ -8,7 +8,7 @@
 
 openqueue_vars_t openqueue_vars;
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
 OpenQueueEntry_t advRIT;
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
 sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
@@ -189,7 +189,7 @@ owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
    return E_FAIL;
 }
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
 // Inicializa a area de memoria do frame do RIT
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt) {
 
