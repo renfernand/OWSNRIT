@@ -28,9 +28,9 @@ typedef struct {
 
 
 typedef struct {
-	sRITstat ritstatrpldio;
-	sRITstat ritstatrpldao;
-    sRITstat ritstatcoap;
+	sRITstat txdio;
+	sRITstat txdao;
+    sRITstat txcoap;
 } RIT_stats_t;
 
 
@@ -280,15 +280,15 @@ void ieee154e_init() {
 void clearstatistics(void)
 {
     //rit statistics - zera as variaveis
-	ritstat.ritstatrpldio.countprod=0;
-	ritstat.ritstatrpldao.countprod=0;
-	ritstat.ritstatcoap.countprod=0;
-	ritstat.ritstatrpldio.countsendok=0;
-	ritstat.ritstatrpldao.countsendok=0;
-	ritstat.ritstatcoap.countsendok=0;
-	ritstat.ritstatrpldio.countsendackok=0;
-	ritstat.ritstatrpldao.countsendackok=0;
-	ritstat.ritstatcoap.countsendackok=0;
+	ritstat.txdio.countprod=0;
+	ritstat.txdao.countprod=0;
+	ritstat.txcoap.countprod=0;
+	ritstat.txdio.countsendok=0;
+	ritstat.txdao.countsendok=0;
+	ritstat.txcoap.countsendok=0;
+	ritstat.txdio.countsendackok=0;
+	ritstat.txdao.countsendackok=0;
+	ritstat.txcoap.countsendackok=0;
 
 	coappending = 0;
 
@@ -1070,7 +1070,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 				pmsgout->destaddr  = ieee154e_vars.dataToSend->l3_destinationAdd;
 				testerff = 0x12;
                 //rit statistics - conta novo produtor
-				ritstat.ritstatrpldio.countprod++;
+				ritstat.txdio.countprod++;
 			}
 			else
 			{
@@ -1086,7 +1086,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			macRIT_Pending_TX_frameType = IANA_ICMPv6_RPL_DAO;
 
             //rit statistics - conta novo produtor
-			ritstat.ritstatrpldao.countprod++;
+			ritstat.txdao.countprod++;
 
 			if (ieee154e_vars.dataToSend->creator == COMPONENT_FORWARDING)
 			{
@@ -1142,7 +1142,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		flagpending = true;
 
         //rit statistics - conta novo produtor
-		ritstat.ritstatcoap.countprod++;
+		ritstat.txcoap.countprod++;
 	}
 	else if (ieee154e_vars.dataToSend->l4_protocol == IANA_UNDEFINED) {
 		testerff = 0x06;
@@ -1160,7 +1160,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			testerff = 0x07;
 
             //rit statistics - conta novo produtor
-			ritstat.ritstatrpldio.countprod++;
+			ritstat.txdio.countprod++;
 
 			//AQUI EH O CASO DA BRIDGE ANTIGA!!!!
 			macRIT_Pending_TX_frameType = IANA_ICMPv6_RPL_DIO;
@@ -1177,7 +1177,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			pmsgout->destaddr  = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
 
             //rit statistics - conta novo produtor
-			ritstat.ritstatcoap.countprod++;
+			ritstat.txcoap.countprod++;
 		}
 	}
 
@@ -1394,13 +1394,13 @@ port_INLINE void activitytx_senddone(PORT_RADIOTIMER_WIDTH capturedTime) {
     	switch (elequeue.frameType)
     	{
     		case  IANA_ICMPv6_RPL_DIO:
-    			ritstat.ritstatrpldio.countsendok++;
+    			ritstat.txdio.countsendok++;
     			break;
     		case  IANA_ICMPv6_RPL_DAO:
-    			ritstat.ritstatrpldao.countsendok++;
+    			ritstat.txdao.countsendok++;
     			break;
     		case  IANA_UDP:
-    			ritstat.ritstatcoap.countsendok++;
+    			ritstat.txcoap.countsendok++;
     			break;
 
     	}
@@ -2300,12 +2300,12 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 	   switch (elequeue.frameType)
 	   {
 	   	   case IANA_UDP:
-			   ritstat.ritstatcoap.countsendackok++;
+			   ritstat.txcoap.countsendackok++;
 			   incroute(0x0A);
 			   coappending = 0;
 			   break;
 	   	   case IANA_ICMPv6_RPL_DAO:
-			   ritstat.ritstatrpldao.countsendackok++;
+			   ritstat.txdao.countsendackok++;
 			   coappending = 0;
 			   break;
    	   }
@@ -2698,12 +2698,12 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 	   switch (elequeue.frameType)
 	   {
 	   	   case IANA_UDP:
-			   ritstat.ritstatcoap.countsendackok++;
+			   ritstat.txcoap.countsendackok++;
 			   incroute(0x0A);
 			   coappending = 0;
 			   break;
 	   	   case IANA_ICMPv6_RPL_DAO:
-			   ritstat.ritstatrpldao.countsendackok++;
+			   ritstat.txdao.countsendackok++;
 			   coappending = 0;
 			   break;
    	   }
@@ -4546,11 +4546,11 @@ void endSlot() {
 			if (macRITstate == S_RIT_TX_state)
 			{
 				//imprime as estatisticas
-				rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countprod;
-				rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countsendok;
-				rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countprod;
-				rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendok;
-				rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendackok;
+				rffbuf[pos++]= (uint8_t) ritstat.txdio.countprod;
+				rffbuf[pos++]= (uint8_t) ritstat.txdio.countsendok;
+				rffbuf[pos++]= (uint8_t) ritstat.txdao.countprod;
+				rffbuf[pos++]= (uint8_t) ritstat.txdao.countsendok;
+				rffbuf[pos++]= (uint8_t) ritstat.txdao.countsendackok;
 			}
 
 			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
@@ -4590,11 +4590,11 @@ void endSlot() {
 		}*/
 
 		//imprime as estatisticas
-		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countprod;
-		rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldio.countsendok;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countprod;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendok;
-	        rffbuf[pos++]= (uint8_t) ritstat.ritstatrpldao.countsendackok;
+		rffbuf[pos++]= (uint8_t) ritstat.txdio.countprod;
+		rffbuf[pos++]= (uint8_t) ritstat.txdio.countsendok;
+	        rffbuf[pos++]= (uint8_t) ritstat.txdao.countprod;
+	        rffbuf[pos++]= (uint8_t) ritstat.txdao.countsendok;
+	        rffbuf[pos++]= (uint8_t) ritstat.txdao.countsendackok;
 
 		//imprime tempo radio on
 		rffbuf[pos++]= 0xdd;

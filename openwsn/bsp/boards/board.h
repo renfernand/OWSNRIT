@@ -15,7 +15,7 @@
 #include "board_info.h"
 #include "toolchain_defs.h"
 
-#define SINK 1
+#define SINK 0
 
 //permite escolher entre os protocolos da camada MAC a serem utilizados:
 //somente um ou nenhum pode ser escolhido.
@@ -26,7 +26,7 @@
 #define IEEE802154E_RITMC   0
 
 
-#if ((IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1))
+#if ((IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1))
 /* enable the CSMA_CA in the transmission */
 #define ENABLE_CSMA_CA  1
 #else
@@ -68,6 +68,7 @@
 #endif
 
 #if ENABLE_DEBUG_RFF
+
 #define DEBUG_LOG_RIT   1
 #define DBG_IEEE802_TX  1
 #define DBG_IEEE802_RX  1

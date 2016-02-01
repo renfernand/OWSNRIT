@@ -164,62 +164,52 @@ bit after the start of the packet.
 #if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
-   S_SLEEP                   = 0x00,   // ready for next slot
-   // synchronizing
-   S_SYNCLISTEN              = 0x01,   // listened for packet to synchronize to network  ?????
-   S_SYNCRX                  = 0x02,   // receiving packet to synchronize to network     ?????
-   S_SYNCPROC                = 0x03,   // processing packet just received                ?????
+   S_RIT_SLEEP                   = 0x00,   // ready for next slot
+   S_RIT_SLEEP_WINDOW            = 0x01,   // Finish the tx Message
    // TX
-   S_TXDATAOFFSET            = 0x04,   // waiting to prepare for Tx data
-   S_TXDATAPREPARE           = 0x05,   // preparing for Tx data
-   S_TXDATAREADY             = 0x06,   // ready to Tx data, waiting for 'go'
-   S_TXDATADELAY             = 0x07,   // 'go' signal given, waiting for SFD Tx data
-   S_TXDATA                  = 0x08,   // Tx data SFD received, sending bytes
+   S_RIT_TXDATAOFFSET            = 0x02,   // waiting to prepare for Tx data
+   //S_RIT_TXDATAPREPARE           = 0x05,   // preparing for Tx data
+   S_RIT_TXDATAREADY             = 0x03,   // ready to Tx data, waiting for 'go'
+   //S_RIT_TXDATADELAY             = 0x07,   // 'go' signal given, waiting for SFD Tx data
+   S_RIT_TXDATA                  = 0x04,   // Tx data SFD received, sending bytes
 
-   S_RXACKOFFSET             = 0x09,   // Tx data done, waiting to prepare for Rx ACK
-   S_RXACKPREPARE            = 0x0a,   // preparing for Rx ACK
+   S_RIT_RXACKOFFSET             = 0x05,   // Tx data done, waiting to prepare for Rx ACK
+   //S_RIT_RXACKPREPARE            = 0x0a,   // preparing for Rx ACK
 
-   S_RXACKREADY              = 0x0b,   // ready to Rx ACK, waiting for 'go'
-   S_RXACKLISTEN             = 0x0c,   // idle listening for ACK
-   S_RXACK                   = 0x0d,   // Rx ACK SFD received, receiving bytes
-   S_TXPROC                  = 0x0e,   // processing sent data
+   //S_RIT_RXACKREADY              = 0x0b,   // ready to Rx ACK, waiting for 'go'
+   //S_RIT_RXACKLISTEN             = 0x0c,   // idle listening for ACK
+   S_RIT_RXACK                   = 0x06,   // Rx ACK SFD received, receiving bytes
+   S_RIT_TXPROC                  = 0x07,   // processing sent data
    // RX
-   S_RXDATAOFFSET            = 0x0f,   // waiting to prepare for Rx data
-   S_RXDATAPREPARE           = 0x10,   // preparing for Rx data
-   S_RXDATAREADY             = 0x11,   // ready to Rx data, waiting for 'go'
-   S_RXDATALISTEN            = 0x12,   // idle listening for data
-   S_RXDATA                  = 0x13,   // data SFD received, receiving more bytes
-   S_TXACKOFFSET             = 0x14,   // waiting to prepare for Tx ACK
-   S_TXACKPREPARE            = 0x15,   // preparing for Tx ACK
-   S_TXACKREADY              = 0x16,   // Tx ACK ready, waiting for 'go'
-   S_TXACKDELAY              = 0x17,   // 'go' signal given, waiting for SFD Tx ACK
-   S_TXACK                   = 0x18,   // Tx ACK SFD received, sending bytes
-   S_RXPROC                  = 0x19,   // processing received data
+   S_RIT_RXDATAOFFSET            = 0x08,   // waiting to prepare for Rx data
+   S_RIT_RXDATAPREPARE           = 0x09,   // preparing for Rx data
+   S_RIT_RXDATAREADY             = 0x10,   // ready to Rx data, waiting for 'go'
+   S_RIT_RXDATALISTEN            = 0x11,   // idle listening for data
+   S_RIT_RXDATA                  = 0x12,   // data SFD received, receiving more bytes
+   S_RIT_TXACKOFFSET             = 0x13,   // waiting to prepare for Tx ACK
+   S_RIT_TXACKPREPARE            = 0x14,   // preparing for Tx ACK
+   S_RIT_TXACKREADY              = 0x15,   // Tx ACK ready, waiting for 'go'
+   S_RIT_TXACKDELAY              = 0x16,   // 'go' signal given, waiting for SFD Tx ACK
+   S_RIT_TXACK                   = 0x17,   // Tx ACK SFD received, sending bytes
+   S_RIT_RXPROC                  = 0x18,   // processing received data
 
-   S_RIT_RXOLAREADY          = 0x47,   // Open the window to receive data !!!!!
-   S_RIT_RX_OPEN             = 0x48,   // Open the radio to receive data
-   S_RIT_RX_FOR_TX_BEGIN     = 0x49,   // Start the treatment from TX waiting a RX message
-   S_RIT_FINISH_TX           = 0x4a,   // Finish the tx Message
-   S_RIT_SLEEP_WINDOW        = 0x4b,   // Finish the tx Message
-   S_RIT_RXOLAREADY2         = 0x4c,   // Open the window to receive data !!!!!
-   S_RIT_RXDELAYACKTX        = 0x4d,   // atraso entre RX e TX no ack do receptor
-   S_RIT_RXOLAPREPARE        = 0x4e,   // Open the window to receive data !!!!!
-   S_RIT_RXOLA               = 0x4f,   // Open the window to receive data !!!!!
-   S_RIT_RXOLAECHO           = 0x50,   // Open the window to receive data !!!!!
-   S_RIT_RXOLANOECHO         = 0x51,   // Open the window to receive data !!!!!
-   S_RIT_NOECHOTXACK         = 0x52,    // Atividade do Rx (receptor) - quando enviou o ack o receptor nao ouviu o echo
-   S_RIT_TXDATANOECHO        = 0x53,    // nao houve echo para um tx
-   S_RIT_RXNOACK             = 0x54,    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
-   S_RIT_OLAACKPREPARE       = 0x55,
-   S_RIT_OLAACK              = 0x56,
-   S_RIT_OLAACKECHO          = 0x57,
-   S_RIT_NOOLAACKECHO        = 0x58,
-   S_RIT_TXOLA               = 0x59,
-   S_RIT_TXOLAPREPARE        = 0x60,
-   S_RIT_RXOLAACK            = 0x61,
-   S_RIT_RXOLAACKPREPARE     = 0x62,
-   S_RIT_TXDATAECHO          = 0x63,
-   S_RIT_RXOLA1              = 0x64
+   S_RIT_RXOLAPREPARE        = 0x20,   // Open the window to receive data !!!!!
+   S_RIT_RXOLA               = 0x21,   // Open the window to receive data !!!!!
+   S_RIT_RXOLANOECHO         = 0x22,   // Open the window to receive data !!!!!
+   S_RIT_TXDATANOECHO        = 0x23,    // nao houve echo para um tx
+   S_RIT_RXNOACK             = 0x24,    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
+   S_RIT_OLAACKPREPARE       = 0x25,
+   S_RIT_OLAACK              = 0x26,
+   S_RIT_OLAACKECHO          = 0x27,
+   S_RIT_NOOLAACKECHO        = 0x28,
+   S_RIT_TXOLA               = 0x29,
+   S_RIT_TXOLAPREPARE        = 0x30,
+   S_RIT_RXOLAACK            = 0x31,
+   S_RIT_RXOLAACKPREPARE     = 0x32,
+   S_RIT_TXDATAECHO          = 0x33,
+   S_RIT_NOECHOTXACK         = 0x34,
+   S_RIT_TXDATAPREPARE       = 0x35,
+   S_RIT_RXOLA1              = 0x36
 
 } ieee154e_state_t;
 
