@@ -510,7 +510,7 @@ void icmpv6rpl_timer_DIO_task() {
 
    // check whether we need to send DIO
    if (icmpv6rpl_vars.delayDIO==0) {
-      
+#if (IEEE802154E_TSCH == 0)
 	  isFramePending = RITQueue_ExistFramePending();
 
 	  if (isFramePending == 0)
@@ -519,6 +519,9 @@ void icmpv6rpl_timer_DIO_task() {
 	      // send DIO
 	      sendDIO();
 	  }
+#else
+      sendDIO();
+#endif
       
       // pick a new pseudo-random periodDIO
       icmpv6rpl_vars.periodDIO = TIMER_DIO_TIMEOUT+(openrandom_get16b()&0xff);

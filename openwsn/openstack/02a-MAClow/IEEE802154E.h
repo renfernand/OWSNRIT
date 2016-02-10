@@ -45,9 +45,9 @@
 	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
 #elif (RIT200ms == 1)
 	#define TICK_MAC_RIT_PERIOD           6554
-	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 22 //RIT + 50 ms - tenho que garantir ao menos um ola por periodo
+	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD*2  //400ms - tenho que garantir ao menos um ola por periodo
 	#define TICK_MAC_RIT_TX_PERIOD        TICK_MAC_RIT_PERIOD + 3277
-	#define TICK_MAC_RIT_RX_WIND_PERIOD   1638 // 50 ms -  O Rx_wind pode ser pequeno...tamanho da msg
+	#define TICK_MAC_RIT_RX_WIND_PERIOD   3277 // 100 ms
 	#define TICK_RIT_ACK_WAIT_PERIOD      (TICK_MAC_RIT_RX_WIND_PERIOD / 2)
 #elif (RIT400ms == 1)
 	#define TICK_MAC_RIT_PERIOD           13107

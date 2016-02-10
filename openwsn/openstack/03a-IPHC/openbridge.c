@@ -244,8 +244,10 @@ void openbridge_receive(OpenQueueEntry_t* msg) {
 	 rffbuf[pos++]= 0x01;
 	 rffbuf[pos++]= msg->length;
 
+#if (IEEE802154E_TSCH == 0)
 	 if (msg->length > 69)
 		 coappending = 0;
+#endif
 
 	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 }

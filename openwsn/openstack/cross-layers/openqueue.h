@@ -24,6 +24,7 @@ typedef struct RIT_Queue {
 	uint32_t    msglength;
 	bool        isBroadcastMulticast;
 	uint8_t     pending;
+	uint8_t     numTargetParents;
 	uint8_t     countretry;
 	uint64_t    timestamp;
 	uint32_t    lasttxduration;
@@ -77,8 +78,7 @@ uint8_t RITQueue_cleanupoldmsg(void);
 bool RITQueue_Free(uint8_t elementpos);
 uint8_t RITQueue_Get_Pos(open_addr_t *paddr);
 sRITqueue RITQueue_Get_Element(uint8_t elementpos);
-uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending);
-
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParents);
 sRITqueue RITQueue_Dequeue_byaddr(open_addr_t addr);
 void RITQueue_Init(void);
 bool RITQueue_Enqueue(sRITqueue *pmsg);

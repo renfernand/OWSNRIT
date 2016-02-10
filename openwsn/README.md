@@ -30,6 +30,19 @@ Documentation
 ------------------------------------------------------------------
 Update history
 -----------------------------------------------------------------
+Version: V8_0_4
+Date: 10_02_16
+Remarks:
+ Nesta versao foi feito testes somente com o RIT para suportar até 2 saltos. 3 saltos nao conseguiu enviar o comando de DAO...
+ tambem foi feito a tentativa de enviar o DIO para mais de um vizinho mas nao tive sucesso pois esta ocorrendo muitas colisoes...
+ Sera necessario primeiro resolver os problemas das colisoes para depois prosseguir...
+
+Bugs Resolvidos:
+      
+Bugs Atuais:
+#B04 - muitas colisoes quando se coloca 3 ou 4 nós da rede. Parece que o CSMA-CA nao esta corretamente implementado.
+
+-----------------------------------------------------------------
 Version: V8_0_3
 Date: 20_01_16
 Remarks:

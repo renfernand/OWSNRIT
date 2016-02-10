@@ -355,6 +355,9 @@ OpenQueueEntry_t* openqueue_macGetAdvPacket() {
    return NULL;
 }
 
+
+#if (IEEE802154E_TSCH == 0)
+
 inline bool RITQueue_IsEmpty(void) {	return (numAvailableElements == 0) ? true : false; }
 
 inline bool RITQueue_IsFull(void) { 	return (numAvailableElements == maxElements) ? true : false; }
@@ -406,21 +409,100 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 			return false;
 
 	}
-    else {
-    	// AQUI EU TENHO QUE CHECAR SE O ADDRESS 1 eh do SINK... (FF 02 ...00 02)
-        if ((addr1->type == 0x03) &&  (addr2->type == 0x02))  {
-        	if ((addr1->addr_64b[0] == 0xFF) &&
-                (addr1->addr_64b[1] == 0x02) &&
-        	    (addr1->addr_64b[14] == 0x00) &&
-        	    (addr1->addr_64b[15] == 0x02)) {
-    	        return true;
-        	}
-    	}
+    else if ((addr1->type == 0x03) &&  (addr2->type == 0x02))
+    {
+		//AQUI TEM DOIS CASOS
+		// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
+		// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
 
-    }
+		if ((addr1->addr_64b[0] == 0xFF) &&
+			(addr1->addr_64b[1] == 0x02) &&
+			(addr1->addr_64b[14] == 0x00) &&
+			(addr1->addr_64b[15] == 0x02)) {
+			return true;
+		}
+		else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
+				 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
+				 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
+				 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
+				 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
+				 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
+				 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
+				 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
+			return true;
+		}
+	}
 
 	return false;
 }
+
+#if 0
+bool  RITQueue_isMyAddress(open_addr_t* addr){
+
+	uint8_t i, nroctets = 0;
+
+    if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
+    { //if address is broadcast then send for anyone.
+        return true;
+    }
+    else if (addr1->type == addr2->type)
+	{
+		switch (addr1->type)
+		{
+		case 0x01:
+			nroctets = 2;
+			break;
+		case 0x02:
+			nroctets = 8;
+			break;
+		case 0x03:
+			nroctets = 16;
+			break;
+		default:
+			nroctets = 0;
+			break;
+		}
+
+		if (nroctets > 0) {
+			for (i = 0; i < nroctets; i++) {
+				if (addr1->addr_16b[i] != addr2->addr_16b[i])
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+			return false;
+
+	}
+    else if ((addr1->type == 0x03) &&  (addr2->type == 0x02))
+    {
+		//AQUI TEM DOIS CASOS
+		// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
+		// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
+
+		if ((addr1->addr_64b[0] == 0xFF) &&
+			(addr1->addr_64b[1] == 0x02) &&
+			(addr1->addr_64b[14] == 0x00) &&
+			(addr1->addr_64b[15] == 0x02)) {
+			return true;
+		}
+		else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
+				 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
+				 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
+				 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
+				 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
+				 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
+				 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
+				 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
+			return true;
+		}
+	}
+
+	return false;
+}
+#endif
 
 bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2){
 
@@ -454,7 +536,7 @@ bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2){
 	return false;
 }
 
-uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending)
+uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParents)
 {
 	uint8_t  i;
 
@@ -480,6 +562,7 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending)
 				pvObjList[i].isBroadcastMulticast = psEle->isBroadcastMulticast;
 				memcpy(pvObjList[i].msg, psEle->msg, psEle->msglength);
 				pvObjList[i].pending = pending;
+				pvObjList[i].numTargetParents = numTargetParents;
 
 				if (psEle->frameType == IANA_UDP)
 					coappending = true;
@@ -516,6 +599,19 @@ void RITQueue_updateactualtxtime(uint32_t actualtime)
 
     if (macRITActualPos < maxElements)
 	  pvObjList[macRITActualPos].lasttxduration = actualtime ;
+
+	//LeaveCriticalSection
+	ENABLE_INTERRUPTS();
+
+}
+void RITQueue_update_element (uint8_t pos)
+{
+	//EnterCriticalSection
+	INTERRUPT_DECLARATION();
+	DISABLE_INTERRUPTS();
+
+    if (macRITActualPos < maxElements)
+	  pvObjList[pos].numTargetParents--;
 
 	//LeaveCriticalSection
 	ENABLE_INTERRUPTS();
@@ -720,6 +816,7 @@ bool RITQueue_Free(uint8_t elementpos)
 		pvObjList[elementpos].msglength   = 0;
 		pvObjList[elementpos].frameType   = 0;
 		pvObjList[elementpos].pending     = 0;
+		pvObjList[elementpos].numTargetParents     = 0;
 		pvObjList[elementpos].countretry  = 0;
 		pvObjList[elementpos].lasttxduration  = 0;
 		pvObjList[elementpos].isBroadcastMulticast = 0;
@@ -792,7 +889,7 @@ void RITQueue_Init(void){
 		RITQueue_Free(i);
 	}
 }
-
+#endif // if (IEEE802154E_TSCH == 0)
 //=========================== private =========================================
 
 void openqueue_reset_entry(OpenQueueEntry_t* entry) {

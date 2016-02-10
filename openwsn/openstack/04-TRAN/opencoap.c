@@ -25,6 +25,7 @@ opencoap_vars_t opencoap_vars;
 static uint8_t rffbuf[10];
 
 #endif
+extern uint8_t testrff_isforwarding;
 
 //=========================== prototype =======================================
 
@@ -300,6 +301,8 @@ void opencoap_receive(OpenQueueEntry_t* msg) {
 		   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
 		   rffbuf[pos++]= (uint8_t) msg->l4_sourcePortORicmpv6Type;
 		   rffbuf[pos++]= (uint8_t) msg->creator;
+
+		    testrff_isforwarding = TRUE;
 
 		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	   }

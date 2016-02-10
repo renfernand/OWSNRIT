@@ -21,8 +21,8 @@
 //somente um ou nenhum pode ser escolhido.
 
 #define IEEE802154E_TSCH   0
-#define IEEE802154E_RIT    0
-#define IEEE802154E_AMAC   1
+#define IEEE802154E_RIT     1
+#define IEEE802154E_AMAC    0
 #define IEEE802154E_RITMC   0
 
 
@@ -33,7 +33,7 @@
 #define ENABLE_CSMA_CA  0
 #endif
 
-#define FORCETOPOLOGY 0 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
+#define FORCETOPOLOGY 1 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
 
 //define o nr de msg de tx que sera enviada antes de ter um pedido de um rx para o openvisualizer
 #define OPENBRIDGE_MAX_TX_TO_RX 2
@@ -73,7 +73,7 @@
 #define DBG_IEEE802_TX  1
 #define DBG_IEEE802_RX  1
 #define DBG_RPL               1
-#define DBG_FORWARDING        0
+#define DBG_FORWARDING        1
 #define DBG_CSMACA            0
 #define DBG_IEEE802_TIMER     0
 #define DBG_RADIO_POWER_CONS  0

@@ -57,7 +57,7 @@ motes atuais CC2538EM
 [5] bbbb::0012:4b00:03a6:4cbe [0xbe]
 [6] bbbb::0012:4b00:02f4:AF58 [0x58]
 */
-#define MOTE1   0x09
+#define MOTE1   0xFD
 #define MOTE2   0xC0
 #define MOTE3   0x87
 #define MOTE4   0x52
@@ -133,8 +133,8 @@ bool topology_isAcceptablePacket(ieee802154_header_iht* ieee802514_header) {
    switch (idmanager_getMyID(ADDR_64B)->addr_64b[7]) {
       case MOTE1:
          if (
-               ieee802514_header->src.addr_64b[7]== MOTE2 ||
-               ieee802514_header->src.addr_64b[7]== MOTE3
+               ieee802514_header->src.addr_64b[7]== MOTE2
+               // ieee802514_header->src.addr_64b[7]== MOTE3
             ) {
             returnVal=TRUE;
          }
@@ -150,7 +150,7 @@ bool topology_isAcceptablePacket(ieee802154_header_iht* ieee802514_header) {
          break;
       case MOTE3:
          if (
-               ieee802514_header->src.addr_64b[7]==MOTE1 ||
+               //ieee802514_header->src.addr_64b[7]==MOTE1 ||
                ieee802514_header->src.addr_64b[7]==MOTE2 ||
                ieee802514_header->src.addr_64b[7]==MOTE4 ||
                ieee802514_header->src.addr_64b[7]==MOTE5

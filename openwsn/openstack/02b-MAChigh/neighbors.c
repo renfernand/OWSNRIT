@@ -290,6 +290,34 @@ bool neighbors_isNeighborWithLowerDAGrank(uint8_t index) {
 }
 
 
+/* RFF - Retorno da tabela de vizinhos os vizinhos validos que estao estáveis.
+ * Tabela tem 10 elementos.
+ */
+bool neighbors_isValidNeighbor(uint8_t index) {
+   bool    returnVal;
+
+   if ((neighbors_vars.neighbors[index].used==TRUE) && (neighbors_vars.neighbors[index].stableNeighbor == TRUE)) {
+      returnVal = TRUE;
+   } else {
+      returnVal = FALSE;
+   }
+
+   return returnVal;
+}
+
+uint8_t neighbors_howmanyIhave(void){
+
+	uint8_t numTargetParents=0;
+	uint8_t nbrIdx;
+
+	for (nbrIdx=0;nbrIdx<MAXNUMNEIGHBORS;nbrIdx++) {
+	  if ((neighbors_isValidNeighbor(nbrIdx))==TRUE) {
+	     //neighbors_getNeighbor(&address,ADDR_64B,nbrIdx);
+	     numTargetParents++;
+	  }
+	}
+    return numTargetParents;
+}
 /**
 \brief Indicate whether some neighbor has a lower DAG rank that me.
 

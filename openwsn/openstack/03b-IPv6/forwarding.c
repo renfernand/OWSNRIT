@@ -25,6 +25,7 @@ static uint8_t rffbuf[10];
 
 uint8_t ucFlagForwarding =0;
 
+
 //=========================== prototypes ======================================
 
 void      forwarding_getNextHop(
@@ -407,6 +408,7 @@ void forwarding_getNextHop(open_addr_t* destination128b, open_addr_t* addressToW
 \param[in]     flow_label      The flowlabel to add in the 6LoWPAN header.
 \param[in]     fw_SendOrfw_Rcv The packet is originating from this mote
    (PCKTSEND), or forwarded (PCKTFORWARD).
+   RFF - AQUI EH O FORWARDING DE UM DAO...
 */
 owerror_t forwarding_send_internal_RoutingTable(
       OpenQueueEntry_t*      msg,
@@ -467,6 +469,7 @@ http://tools.ietf.org/html/rfc6554#page-9.
 
 \param[in,out] msg             The packet to send.
 \param[in]     ipv6_header     The packet's IPv6 header.
+  RFF - AQUI EH UM FORWARDING DE UM COAP...
 */
 owerror_t forwarding_send_internal_SourceRouting(
       OpenQueueEntry_t* msg,
