@@ -92,7 +92,7 @@ void openudp_receive(OpenQueueEntry_t* msg) {
    }
    
 //teste rff  DBG6TOP_RX
-#if (DEBUG_LOG_RIT  == 1)
+#if 0 //(DEBUG_LOG_RIT  == 1)
 rffbuf[0]= 0x41;
 rffbuf[1]= msg->l4_protocol;
 rffbuf[2]= msg->l4_protocol_compressed;

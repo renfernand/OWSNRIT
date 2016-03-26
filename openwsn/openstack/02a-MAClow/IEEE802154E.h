@@ -26,8 +26,9 @@
 #define RIT500ms   0
 #define RIT1000ms  0
 
-
 //valores dos ticks
+//    1 ms -    33 ticks
+//   10 ms -   328 ticks
 //   12 ms -   393 ticks
 //   25 ms -   819 ticks
 //   50 ms -  1638 ticks
@@ -37,6 +38,10 @@
 //  400 ms - 13107 ticks
 //  500 ms - 16384 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
 // 1000 ms - 32768 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
+
+#define TICK_MAC_RITMC_PERIOD   33
+
+
 #if (RIT100ms == 1)
 	#define TICK_MAC_RIT_PERIOD           3277
 	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 819 //RIT + 25 ms - tenho que garantir ao menos um ola por periodo

@@ -1862,10 +1862,10 @@ void changeIsSync(bool newIsSync) {
    ieee154e_vars.isSync = newIsSync;
    
    if (ieee154e_vars.isSync==TRUE) {
-      leds_sync_on();
+      //leds_sync_on();
       resetStats();
    } else {
-      leds_sync_off();
+      //leds_sync_off();
       schedule_resetBackoff();
    }
 }

@@ -375,9 +375,16 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 	uint8_t i, nroctets = 0;
 
     if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
-    { //if address is broadcast then send for anyone.
+    { //if address is broadcast then send for anyone (DIO frame).
         return true;
     }
+#if (USE_RITREQ_SHORT == 1)
+    else if ((addr1->type == 0x02) && (addr2->type == 0x01))
+    { // o addr2 é um olá request...neste caso somente comparo o final do frame
+    	if ((addr1->addr_64b[6] == addr2->addr_16b[0]) && (addr1->addr_64b[7] == addr2->addr_16b[1]))
+            return true;
+    }
+#endif
     else if (addr1->type == addr2->type)
 	{
 		switch (addr1->type)
@@ -409,28 +416,49 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 			return false;
 
 	}
-    else if ((addr1->type == 0x03) &&  (addr2->type == 0x02))
+#if (USE_RITREQ_SHORT == 1)
+    else if ((addr1->type == 0x03) &&  (addr2->type == 0x01))
     {
 		//AQUI TEM DOIS CASOS
 		// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
 		// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
 
-		if ((addr1->addr_64b[0] == 0xFF) &&
-			(addr1->addr_64b[1] == 0x02) &&
-			(addr1->addr_64b[14] == 0x00) &&
-			(addr1->addr_64b[15] == 0x02)) {
+		if ((addr1->addr_128b[0] == 0xFF) &&
+			(addr1->addr_128b[1] == 0x02) &&
+			(addr1->addr_128b[14] == 0x00) &&
+			(addr1->addr_128b[15] == 0x02)) {
 			return true;
 		}
-		else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
-				 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
-				 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
-				 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
-				 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
-				 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
-				 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
-				 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
+		else if ((addr1->addr_128b[14] == addr2->addr_16b[0]) &&
+				 (addr1->addr_128b[15] == addr2->addr_64b[1])) {
 			return true;
 		}
+
+
+#else
+	    else if ((addr1->type == 0x03) &&  (addr2->type == 0x01))
+	    {
+			//AQUI TEM DOIS CASOS
+			// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
+			// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
+
+			if ((addr1->addr_64b[0] == 0xFF) &&
+				(addr1->addr_64b[1] == 0x02) &&
+				(addr1->addr_64b[14] == 0x00) &&
+				(addr1->addr_64b[15] == 0x02)) {
+				return true;
+			}
+			else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
+					 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
+					 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
+					 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
+					 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
+					 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
+					 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
+					 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
+				return true;
+			}
+#endif
 	}
 
 	return false;

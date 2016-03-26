@@ -9,6 +9,7 @@
 */
 
 #include "opendefs.h"
+#include "board.h"
 
 //=========================== define ==========================================
 
@@ -39,7 +40,11 @@ enum IEEE802154_fcf_type_enums {
    IEEE154_TYPE_UNDEFINED              = 5,
 };
 
-#define IEEE154_TYPE_OLA      IEEE154_TYPE_BEACON //TESTE RFF VERIFICAR ONDE FICA O OLA
+#if (USE_RITREQ_SHORT == 1)
+#define IEEE154_TYPE_OLA                 IEEE154_TYPE_CMD
+#else
+#define IEEE154_TYPE_OLA                 IEEE154_TYPE_BEACON
+#endif
 
 enum IEEE802154_fcf_sec_enums {
    IEEE154_SEC_NO_SECURITY             = 0,

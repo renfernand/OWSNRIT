@@ -1,3 +1,4 @@
+#include "board.h"
 #include "opendefs.h"
 #include "icmpv6rpl.h"
 #include "icmpv6.h"
@@ -10,8 +11,11 @@
 #include "idmanager.h"
 #include "opentimers.h"
 #include "IEEE802154E.h"
-#include "board.h"
 #include "leds.h"
+#if (IEEE802154E_RIT == 1)
+#include "IEEE802154RIT.h"
+#endif
+
 
 //=========================== variables =======================================
 extern neighbors_vars_t neighbors_vars;
@@ -25,7 +29,7 @@ extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
 static uint8_t rffbuf[10];
 open_addr_t         dao_address;
-
+extern RIT_stats_t ritstat;
 #endif
 //=========================== prototypes ======================================
 
@@ -420,6 +424,8 @@ void icmpv6rpl_receive(OpenQueueEntry_t* msg) {
 		}
 
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+		//openserial_startOutput();
    }
 #endif
 
@@ -508,6 +514,20 @@ void icmpv6rpl_timer_DIO_task() {
    // update the delayDIO
    icmpv6rpl_vars.delayDIO = (icmpv6rpl_vars.delayDIO+1)%5;
 
+#if 0 // (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+   {
+	   uint8_t pos = 0;
+
+	    rffbuf[pos++]= RFF_ICMPv6RPL_TX;
+	    rffbuf[pos++]= 0x01;
+	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
+	    rffbuf[pos++]= icmpv6rpl_vars.CountSendingDAO;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+		//openserial_startOutput();
+   }
+#endif
    // check whether we need to send DIO
    if (icmpv6rpl_vars.delayDIO==0) {
 #if (IEEE802154E_TSCH == 0)
@@ -522,7 +542,7 @@ void icmpv6rpl_timer_DIO_task() {
 #else
       sendDIO();
 #endif
-      
+
       // pick a new pseudo-random periodDIO
       icmpv6rpl_vars.periodDIO = TIMER_DIO_TIMEOUT+(openrandom_get16b()&0xff);
       
@@ -586,6 +606,10 @@ void sendDIO() {
    
    // I'm now busy sending
    icmpv6rpl_vars.busySending = TRUE;
+
+#if (IEEE802154E_RIT == 1)
+   ritstat.txdio.countdata++;
+#endif
    
    // reserve a free packet buffer for DIO
    msg = openqueue_getFreePacketBuffer(COMPONENT_ICMPv6RPL);
@@ -732,7 +756,7 @@ void sendDAO() {
    }
    #endif
 
-#if 0 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if 0// (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
 		uint8_t pos=0;
 
@@ -761,6 +785,8 @@ void sendDAO() {
 #if (IEEE802154E_RIT == 1)
    // if you get here, you start construct DAO
    icmpv6rpl_vars.busySendingDAO =TRUE;
+
+   ritstat.txdao.countdata++;
 #endif
    
    // reserve a free packet buffer for DAO

@@ -350,7 +350,7 @@ owerror_t sixtop_send(OpenQueueEntry_t *msg) {
    }
 #endif
 
-
+   //leds_debug_toggle();
 
    if (msg->l2_IEListPresent == IEEE154_IELIST_NO) {
       return sixtop_send_internal(

@@ -19,23 +19,6 @@
 #include "openqueue.h"
 #include "IEEE802154RIT.h"
 
-typedef struct {
-	uint32_t countprod;
-	uint32_t countsendok;
-	uint32_t countsendackok;
-} sRITstat;
-
-
-
-typedef struct {
-	sRITstat txdio;
-	sRITstat txdao;
-    sRITstat txcoap;
-    uint32_t rxdio;
-    uint32_t rxdao;
-    uint32_t rxcoap;
-} RIT_stats_t;
-
 
 
 //=========================== variables =======================================
@@ -1915,7 +1898,7 @@ port_INLINE void activityrx_newframeolaack(PORT_RADIOTIMER_WIDTH capturedTime) {
    sRITqueue elequeue;
 	uint8_t   *pauxframe;
 
-	leds_sync_toggle();
+	//leds_sync_toggle();
    // change state
    changeState(S_RIT_RXDATAOFFSET);
 
@@ -4390,8 +4373,8 @@ void endSlot() {
 
 	radiotimer_cancel();
 
-	leds_debug_off();
-	leds_sync_off();
+	//leds_debug_off();
+	//leds_sync_off();
 
 	// record the captured time
 	//ieee154e_vars.lastCapturedTime = capturedTime;
