@@ -1,4 +1,5 @@
 #include "opendefs.h"
+#include "board.h"
 #include "neighbors.h"
 #include "openqueue.h"
 #include "packetfunctions.h"
@@ -9,8 +10,18 @@
 //=========================== variables =======================================
 
 neighbors_vars_t neighbors_vars;
+extern const forceNeighbor_t tableNeighbor[];
+extern const uint8_t MoteBestChanTable[];
 
+#if (IEEE802154E_AMCA == 1)
+//esta tabela de vizinhos eh diferentes do RPL pois o do rpl somente tem os vizinhos que entraram no RPL...
+//esta outra tem a ver com todos os vizinhos que mandaram ola para o mote
+macneighbors_vars_t macneighbors_vars;
+#endif
 //=========================== prototypes ======================================
+bool macisThisRowMatching(open_addr_t* address, uint8_t rowNumber);
+void forceNeighborhood(uint8_t myaddr);
+uint8_t getMotePos(uint8_t addr,uint8_t len);
 
 void registerNewNeighbor(
         open_addr_t* neighborID,
@@ -32,6 +43,9 @@ bool isThisRowMatching(
 \brief Initializes this module.
 */
 void neighbors_init() {
+#if (IEEE802154E_AMCA == 1)
+   open_addr_t *myaddr = idmanager_getMyID(ADDR_16B);
+#endif
    
    // clear module variables
    memset(&neighbors_vars,0,sizeof(neighbors_vars_t));
@@ -42,9 +56,16 @@ void neighbors_init() {
    } else {
       neighbors_vars.myDAGrank=DEFAULTDAGRANK;
    }
-}
 
-//===== getters
+#if (IEEE802154E_AMCA == 1)
+   // clear module variables
+   memset(&macneighbors_vars,0,sizeof(macneighbors_vars_t));
+
+   macneighbors_vars.mybestchan = macneighbors_getFixedBestChan(myaddr->addr_16b[1]);
+   forceNeighborhood(myaddr->addr_16b[1]);
+#endif
+
+}
 
 /**
 \brief Retrieve this mote's current DAG rank.
@@ -454,8 +475,10 @@ void neighbors_indicateTx(open_addr_t* l2_dest,
          // handle roll-over case
         
           if (neighbors_vars.neighbors[i].numTx>(0xff-numTxAttempts)) {
-              neighbors_vars.neighbors[i].numWraps++; //counting the number of times that tx wraps.
-              neighbors_vars.neighbors[i].numTx/=2;
+#if (IEEE802154E_AMCA == 0)
+        	  neighbors_vars.neighbors[i].numWraps++; //counting the number of times that tx wraps.
+#endif
+        	  neighbors_vars.neighbors[i].numTx/=2;
               neighbors_vars.neighbors[i].numTxACK/=2;
            }
          // update statistics
@@ -740,6 +763,207 @@ bool isThisRowMatching(open_addr_t* address, uint8_t rowNumber) {
 }
 
 
-// RIT Routine
+#if (IEEE802154E_AMCA == 1)
+void forceNeighborhood(uint8_t myaddr){
+	uint8_t i,pos;
+	uint16_t addr16b,bc;
+
+     i=0;
+
+     pos = getMotePos(myaddr,1);
+
+     if (pos < MAX_NUM_MOTES){
+		for (i=0;i<tableNeighbor[pos].numNeighbor;i++) {
+			addr16b = tableNeighbor[pos].ele[i].addr16b;
+			bc = tableNeighbor[pos].ele[i].bc;
+			macneighbors_vars.neighbors[i].used                   = TRUE;
+			macneighbors_vars.neighbors[i].parentPreference       = 0;
+			macneighbors_vars.neighbors[i].stableNeighbor         = TRUE;
+			macneighbors_vars.neighbors[i].switchStabilityCounter = 0;
+			macneighbors_vars.neighbors[i].addr_16b.type = 1;
+			macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] = *((uint8_t *)&addr16b);
+			macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] = *(((uint8_t *)&addr16b)+1);
+			//memcpy(&neighbors_vars.neighbors[i].addr_64b,address,sizeof(open_addr_t));
+			macneighbors_vars.neighbors[i].numRx                  = 1;
+			macneighbors_vars.neighbors[i].numTx                  = 0;
+			macneighbors_vars.neighbors[i].numTxACK               = 0;
+			macneighbors_vars.neighbors[i].bestchan               = bc;
+			macneighbors_vars.neighbors[i].broadcastPending       = 0;
+		}
+     }
+}
+
+uint8_t macneighbors_getFixedBestChan(uint8_t addr16b){
+	uint8_t bestchan=0;
+	uint8_t pos=0;
+
+	pos= getMotePos(addr16b,1);
+
+	if (pos < MAX_NUM_MOTES){
+		bestchan = MoteBestChanTable[pos];
+	}
+
+	return bestchan;
+
+}
+
+
+uint8_t macneighbors_getMyBestChan(void){
+	return (macneighbors_vars.mybestchan);
+}
+
+/*
+ * apartir do address retorna o bestchannel da tabela de vizinhos
+ * quando o address eh broadcast, retorna o primeiro pendente da lista e o respectivo address deste vizinho em targetaddr
+ */
+uint8_t macneigh_getBChan(open_addr_t* address){
+   uint8_t     i;
+   open_addr_t temp_addr_16b;
+   uint8_t     returnVal=0;
+
+   // but neighbor's IPv6 address in prefix and EUI64
+   switch (address->type) {
+	  case ADDR_16B:
+		 memcpy((void *)&temp_addr_16b,(void *) address,sizeof(open_addr_t));
+		 break;
+	  case ADDR_64B:
+		  temp_addr_16b.type = 1;
+		  temp_addr_16b.addr_16b[0] = address->addr_64b[6];
+		  temp_addr_16b.addr_16b[1] = address->addr_64b[7];
+		  break;
+	  case ADDR_128B:
+		  temp_addr_16b.type = 1;
+		  //Aqui pode ser o dagroot...neste caso o endereco eh 0xFF02...0002
+		  //PROVISORIO>...TODO!!!! SOMENTE PARA TESTE...DESCOBRIR COMO LER O ENDERECO DO DESTINO...
+		  if (((address->addr_128b[0] == 0xFF) && (address->addr_128b[1] == 0x02)) ||
+			  ((address->addr_128b[0] == 0xFE) && (address->addr_128b[1] == 0x80)))
+		  {
+			  uint16_t addr16b=ADDR16b_MOTE0;
+			  temp_addr_16b.addr_16b[1] = *((uint8_t *)&addr16b);
+			  temp_addr_16b.addr_16b[0] = *(((uint8_t *)&addr16b)+1);
+		  }
+		  break;
+	  default:
+		 return returnVal;
+   }
+
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	  if (macisThisRowMatching(&temp_addr_16b,i)) {
+		 returnVal  = macneighbors_vars.neighbors[i].bestchan;
+		 break;
+	  }
+   }
+
+   return (returnVal);
+}
+
+void macneigh_getBChanMultiCast(uint8_t *bestchannel,open_addr_t* targetaddr){
+   uint8_t     i;
+   open_addr_t temp_addr_16b;
+   uint8_t     returnVal=0;
+
+   //Descubro um vizinho que ainda esta pendente o broadcast...entao seleciono o canal dele...
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	  if ((macneighbors_vars.neighbors[i].used == TRUE) &&
+		  (macneighbors_vars.neighbors[i].broadcastPending)) {
+	     *bestchannel  = macneighbors_vars.neighbors[i].bestchan;
+		 targetaddr->type = macneighbors_vars.neighbors[i].addr_16b.type;
+		 targetaddr->addr_16b[0] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[0];
+		 targetaddr->addr_16b[1] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[1];
+		 break;
+	  }
+   }
+
+}
+
+bool macisThisAddressPendingBroadcast(open_addr_t* address) {
+
+	uint8_t i;
+	bool ret=0;
+
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	  if ((macneighbors_vars.neighbors[i].used == TRUE) &&
+		  (macneighbors_vars.neighbors[i].broadcastPending) &&
+		  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == address->addr_16b[0]) &&
+		  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == address->addr_16b[1])) {
+		 ret  = TRUE;
+		 break;
+	  }
+   }
+
+   return ret;
+}
+
+bool macisThisRowMatching(open_addr_t* address, uint8_t rowNumber) {
+   switch (address->type) {
+      case ADDR_16B:
+         return macneighbors_vars.neighbors[rowNumber].used &&
+                packetfunctions_sameAddress(address,&macneighbors_vars.neighbors[rowNumber].addr_16b);
+      default:
+         openserial_printCritical(COMPONENT_NEIGHBORS,ERR_WRONG_ADDR_TYPE,
+                               (errorparameter_t)address->type,
+                               (errorparameter_t)3);
+         return FALSE;
+   }
+}
+
+/**
+\brief Retrieve the number of neighbors this mote's currently knows of.
+
+\returns The number of neighbors this mote's currently knows of.
+*/
+uint8_t macneighbors_getNumNeighbors() {
+   uint8_t i;
+   uint8_t returnVal;
+
+   returnVal=0;
+   for (i=0;i<MAXNUMNEIGHBORS;i++) {
+      if (macneighbors_vars.neighbors[i].used==TRUE) {
+         returnVal++;
+      }
+   }
+   return returnVal;
+}
+
+/**
+\brief Retrieve the number of neighbors this mote's currently knows of.
+
+\returns The number of neighbors this mote's currently knows of.
+*/
+uint8_t macneighbors_setBroadCastPending(void) {
+   uint8_t i;
+   uint8_t returnVal;
+
+   returnVal=0;
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+      if (macneighbors_vars.neighbors[i].used==TRUE) {
+    	  macneighbors_vars.neighbors[i].broadcastPending = TRUE;
+         returnVal++;
+      }
+   }
+   return returnVal;
+}
+
+/**
+\brief Retrieve the number of neighbors this mote's currently knows of.
+
+\returns The number of neighbors this mote's currently knows of.
+*/
+uint8_t macneighbors_clearBroadcastPending(open_addr_t actualsrcaddr) {
+   uint8_t i;
+
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+       	  (macneighbors_vars.neighbors[i].addr_16b.type == actualsrcaddr.type) &&
+    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == actualsrcaddr.addr_16b[0]) &&
+    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == actualsrcaddr.addr_16b[1])){
+    	  macneighbors_vars.neighbors[i].broadcastPending = 0;
+    	  return TRUE;
+      }
+   }
+   return FALSE;
+}
+
+#endif
 
 

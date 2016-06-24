@@ -551,8 +551,9 @@ Note that the backoff counter is global, not per slot.
 \returns TRUE if it is OK to send on this slot, FALSE otherwise.
 */
 bool schedule_getOkToSend() {
-   bool returnVal;
-   
+   bool returnVal=FALSE;
+
+#if 0
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    
@@ -577,7 +578,7 @@ bool schedule_getOkToSend() {
    }
    
    ENABLE_INTERRUPTS();
-   
+#endif
    return returnVal;
 }
 

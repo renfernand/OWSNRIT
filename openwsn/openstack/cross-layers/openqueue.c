@@ -4,11 +4,12 @@
 #include "packetfunctions.h"
 #include "IEEE802154E.h"
 #include "radio.h"
+#include "neighbors.h"
 //=========================== variables =======================================
 
 openqueue_vars_t openqueue_vars;
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_AMCA == 1) || (IEEE802154E_RITMC == 1)
 OpenQueueEntry_t advRIT;
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
 sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
@@ -26,7 +27,7 @@ uint8_t u8NrMsgQueue;          // numero de posicoes utilizadas na queue de RIT 
 uint8_t numAvailableElements;  // numero de lugares ocupados no pool de mensagem
 uint8_t maxElements;
 uint8_t macRITActualPos;           //tem a informacao da posicao do atual Tx Msg Pending (antes do ola)
-uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
+//uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
 uint32_t numOfQueueInsertionErrors;
 
 //=========================== prototypes ======================================
@@ -93,11 +94,12 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
    DISABLE_INTERRUPTS();
    
    // refuse to allocate if we're not in sync
+#if (IEEE802154E_TSCH == 1)
    if (ieee154e_isSynch()==FALSE && creator > COMPONENT_IEEE802154E){
      ENABLE_INTERRUPTS();
      return NULL;
    }
-   
+#endif
    // if you get here, I will try to allocate a buffer for you
    
    // walk through queue and find free entry
@@ -189,7 +191,7 @@ owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
    return E_FAIL;
 }
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_AMCA == 1) || (IEEE802154E_RITMC == 1)
 // Inicializa a area de memoria do frame do RIT
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt) {
 
@@ -307,14 +309,14 @@ OpenQueueEntry_t* openqueue_sixtopGetReceivedPacket() {
 
 OpenQueueEntry_t* openqueue_macGetDataPacket(open_addr_t* toNeighbor) {
    uint8_t i;
-   INTERRUPT_DECLARATION();
-   DISABLE_INTERRUPTS();
+   //INTERRUPT_DECLARATION();
+   // DISABLE_INTERRUPTS();
    if (toNeighbor->type==ADDR_64B) {
       // a neighbor is specified, look for a packet unicast to that neigbhbor
       for (i=0;i<QUEUELENGTH;i++) {
          if (openqueue_vars.queue[i].owner==COMPONENT_SIXTOP_TO_IEEE802154E &&
             packetfunctions_sameAddress(toNeighbor,&openqueue_vars.queue[i].l2_nextORpreviousHop)) {
-            ENABLE_INTERRUPTS();
+            // ENABLE_INTERRUPTS();
             return &openqueue_vars.queue[i];
          }
       }
@@ -330,12 +332,12 @@ OpenQueueEntry_t* openqueue_macGetDataPacket(open_addr_t* toNeighbor) {
                 )
              )
             ) {
-            ENABLE_INTERRUPTS();
+            // ENABLE_INTERRUPTS();
             return &openqueue_vars.queue[i];
          }
       }
    }
-   ENABLE_INTERRUPTS();
+   // ENABLE_INTERRUPTS();
    return NULL;
 }
 
@@ -374,15 +376,15 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 
 	uint8_t i, nroctets = 0;
 
-    if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
-    { //if address is broadcast then send for anyone (DIO frame).
-        return true;
-    }
+    //if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
+    //{ //if address is broadcast then check the neighbor list
+    //	return true;
+    //}
 #if (USE_RITREQ_SHORT == 1)
-    else if ((addr1->type == 0x02) && (addr2->type == 0x01))
+    if ((addr1->type == 0x02) && (addr2->type == 0x01))
     { // o addr2 é um olá request...neste caso somente comparo o final do frame
     	if ((addr1->addr_64b[6] == addr2->addr_16b[0]) && (addr1->addr_64b[7] == addr2->addr_16b[1]))
-            return true;
+            return TRUE;
     }
 #endif
     else if (addr1->type == addr2->type)
@@ -410,7 +412,7 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 					return false;
 				}
 			}
-			return true;
+			return TRUE;
 		}
 		else
 			return false;
@@ -427,11 +429,11 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 			(addr1->addr_128b[1] == 0x02) &&
 			(addr1->addr_128b[14] == 0x00) &&
 			(addr1->addr_128b[15] == 0x02)) {
-			return true;
+			return TRUE;
 		}
 		else if ((addr1->addr_128b[14] == addr2->addr_16b[0]) &&
 				 (addr1->addr_128b[15] == addr2->addr_64b[1])) {
-			return true;
+			return TRUE;
 		}
 
 
@@ -446,7 +448,7 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 				(addr1->addr_64b[1] == 0x02) &&
 				(addr1->addr_64b[14] == 0x00) &&
 				(addr1->addr_64b[15] == 0x02)) {
-				return true;
+				return TRUE;
 			}
 			else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
 					 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
@@ -456,7 +458,7 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 					 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
 					 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
 					 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
-				return true;
+				return TRUE;
 			}
 #endif
 	}
@@ -571,12 +573,9 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 	if (psEle == NULL)
 		return maxElements; //msg invalida
 
-	//EnterCriticalSection
-	INTERRUPT_DECLARATION();
-	DISABLE_INTERRUPTS();
-
 	if (RITQueue_IsFull() == false)
 	{
+#if 0 // AQUI EU NAO ESTOU USANDO MAIS A FILA..COLOCO SEMPRE NO PRIMEIRO ELEMENTO SOMENTE
 		//procuro o primeiro elemento da fila disponivel
 		for (i = 0; i < maxElements; i++)
 		{
@@ -603,12 +602,31 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 				break;
 			}
 		}
+#else
+		i =0;
+		if ((pvObjList[i].frameType == 0) && (pvObjList[i].msglength == 0))
+		{
+			/* Insert msg into the queue. */
+			pvObjList[i].destaddr = psEle->destaddr;
+			pvObjList[i].timestamp = psEle->timestamp;
+			pvObjList[i].msglength = psEle->msglength;
+			pvObjList[i].frameType = psEle->frameType;
+			pvObjList[i].isBroadcastMulticast = psEle->isBroadcastMulticast;
+			memcpy(pvObjList[i].msg, psEle->msg, psEle->msglength);
+			pvObjList[i].pending = pending;
+			pvObjList[i].numTargetParents = numTargetParents;
 
+			if (psEle->frameType == IANA_UDP)
+				coappending = true;
+
+			if (psEle->frameType != IANA_ICMPv6_RPL_DIO) {
+				pvObjList[i].countretry++;
+			}
+
+			numAvailableElements++;
+		}
+#endif
 	}
-
-
-	//LeaveCriticalSection
-	ENABLE_INTERRUPTS();
 
 	return i;
 }
@@ -646,6 +664,37 @@ void RITQueue_update_element (uint8_t pos)
 
 }
 
+
+uint8_t RITQueue_getNrPendingParents (uint8_t pos)
+{
+    if (pos < maxElements)
+	  return (pvObjList[pos].numTargetParents);
+
+    return 0;
+}
+
+uint8_t RITQueue_Clear_Pending(uint8_t pos,open_addr_t actualsrcaddr)
+{
+	uint8_t  elem=0;
+
+	if (RITQueue_IsEmpty() == false)
+	{
+		if ( pos < maxElements)
+		{
+			if (macneighbors_clearBroadcastPending(actualsrcaddr) == TRUE) {
+				if (pvObjList[pos].numTargetParents > 0)
+					pvObjList[pos].numTargetParents--;
+
+				elem = TRUE;
+			}
+		}
+	}
+
+	return elem;
+}
+
+
+
 sRITqueue RITQueue_Get_Element(uint8_t pos)
 {
 	sRITqueue  elem;
@@ -680,27 +729,22 @@ sRITqueue RITQueue_Get_Element(uint8_t pos)
 
 uint8_t RITQueue_Get_Pos(open_addr_t *paddr)
 {
-	uint8_t i=maxElements;
-
-	//EnterCriticalSection
-	INTERRUPT_DECLARATION();
-	DISABLE_INTERRUPTS();
+	uint8_t i,ret=maxElements;
+	uint8_t broadcast=0;
 
 	if (RITQueue_IsEmpty() == false)
 	{
 		for (i = 0; i < maxElements; i++)
 		{
-			if (RITQueue_AddrIsTheSame(&pvObjList[i].destaddr, paddr) == true)
+			if (RITQueue_AddrIsTheSame(&pvObjList[i].destaddr, paddr) == TRUE)
 			{
+				ret = i;
 				break;
 			}
 		}
 	}
 
-	//LeaveCriticalSection
-	ENABLE_INTERRUPTS();
-
-	return i;
+	return ret;
 }
 
 
@@ -901,6 +945,8 @@ uint8_t RITQueue_cleanupoldmsg(void){
 	}
 
 
+
+
 	return count;
 }
 
@@ -937,3 +983,5 @@ void openqueue_reset_entry(OpenQueueEntry_t* entry) {
    entry->l2_retriesLeft               = 0;
    entry->l2_IEListPresent             = 0;
 }
+
+

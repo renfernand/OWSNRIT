@@ -29,7 +29,35 @@ Documentation
 
 ------------------------------------------------------------------
 Update history
+Version: V8_1_1
+Date: 24-06-16
+Remarks:
+Esta versao eh um teste do RIT Ola para validar o mecanismo do CSMA e tambem do RIT para
+mais de um vizinho anunciando.
+O teste consistiu de desabilitar o TX e somente ter o RX OLA e a recepcao.
+Porem, aqui da para ver que ele sempre fica fixo em um vizinho e por mais que o outro anuncie
+(vejo a anunciacao no wireshark) ele nao consegue ler info do cara.
+
 -----------------------------------------------------------------
+
+Version: V8_1_0
+Date: 7-04-16
+Remarks:
+Nesta versao criei o AMCA multicanal
+
+Bugs Resolvidos:
+Agora o CSMA esta funcionando somente com o MAC timer.
+A tarefa MAC roda em cima do systick programado de acordo com a necessidade.
+A chamada do inicio do slot eh feita pela tarefa geral comum as outras tarefas.
+O actualtime tambem esta funcionando...so que ele eh um incremento desde o inicio do slot.      
+      
+Bugs Atuais:
+- As vezes a interrupcao do MAC Timer (CSMA) para de funcionar...apesar de continuar enviar o frame. Mas eu criei um mecanismo de quando travar eu resetar ela.
+
+- Parece que nao esta funcionando quando eu coloco um outro no na rede.
+
+-----------------------------------------------------------------
+
 Version: V8_0_4
 Date: 10_02_16
 Remarks:

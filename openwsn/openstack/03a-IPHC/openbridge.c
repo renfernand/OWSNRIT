@@ -219,6 +219,18 @@ void openbridge_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
                             (errorparameter_t)0,
                             (errorparameter_t)0);
    }
+
+#if ENABLE_DEBUG_RFF
+	   {
+			uint8_t pos=0;
+
+			 rffbuf[pos++]= RFF_OPENBRIDGE_RX;
+			 rffbuf[pos++]= 0x01;
+			 rffbuf[pos++]= msg->length;
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	   }
+#endif
    openqueue_freePacketBuffer(msg);
 }
 

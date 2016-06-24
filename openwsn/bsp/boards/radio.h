@@ -13,6 +13,7 @@
 */
 
 #include "radiotimer.h"
+#include "board.h"
 
 //=========================== define ==========================================
 
@@ -75,7 +76,12 @@ void     radio_rfOff(void);
 // TX
 void     radio_loadPacket(uint8_t* packet, uint8_t len);
 void     radio_txEnable(void);
+#if (ENABLE_CSMA_CA == 1)
+void     radio_txNow(uint8_t flagUseCsma);
+void      macCspTxBusyIsr(PORT_TIMER_WIDTH capturedTime);
+#else
 void     radio_txNow(void);
+#endif
 // RX
 void     radio_rxEnable(void);
 void     radio_rxNow(void);

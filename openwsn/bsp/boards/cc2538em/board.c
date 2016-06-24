@@ -25,7 +25,7 @@
 #include "hw_memmap.h"
 #include "hw_ints.h"
 #include  "uarthal.h"
-
+#include  "gptimer.h"
 
 //=========================== variables =======================================
 
@@ -75,15 +75,14 @@ void board_init() {
    leds_init();
    debugpins_init();
    button_init();
-   bsp_timer_init();
-   radiotimer_init();
+   bsp_timer_init();   //timer usado pelas tarefas das camadas superiores..
+   radiotimer_init();  //usado pela RIT para enviar msg com CSMA/CA
    uart_init();
    uart1_init();    //sens_itf or DBG_USING_UART1
 #if (USE_SPI_INTERFACE == 1)
    bspSpiInit();
 #endif
    radio_init();
-
   // leds_debug_on();
 }
 

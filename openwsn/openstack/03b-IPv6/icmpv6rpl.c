@@ -12,7 +12,7 @@
 #include "opentimers.h"
 #include "IEEE802154E.h"
 #include "leds.h"
-#if (IEEE802154E_RIT == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMCA == 1)
 #include "IEEE802154RIT.h"
 #endif
 
@@ -674,7 +674,6 @@ void sendDIO() {
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numRx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTxACK;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numWraps;
 
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
    }
@@ -707,9 +706,10 @@ void icmpv6rpl_timer_DAO_task() {
    // check whether we need to send DAO
    if (icmpv6rpl_vars.delayDAO==0) {
       
-      // send DAO
+#if (ONLY_RPL_DIO == 0)
+	   // send DAO
       sendDAO();
-      
+#endif
       // pick a new pseudo-random periodDAO
       icmpv6rpl_vars.periodDAO = TIMER_DAO_TIMEOUT+(openrandom_get16b()&0xff);
       
@@ -921,7 +921,7 @@ void sendDAO() {
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numRx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTxACK;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numWraps;
+
 		/*
 		rffbuf[pos++]= msg->l3_destinationAdd.type;
 		if (msg->l3_destinationAdd.type == 3)

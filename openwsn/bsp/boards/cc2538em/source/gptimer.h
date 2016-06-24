@@ -133,6 +133,7 @@ extern "C"
 #define GPTIMER_3A_SYNC           0x00000040  // Synchronize Timer 3A
 #define GPTIMER_3B_SYNC           0x00000080  // Synchronize Timer 3B
 
+#define GPTIMER_TAILR             0x40030028 //rff
 //*****************************************************************************
 //
 // Prototypes for the APIs.

@@ -16,6 +16,8 @@
 #include "board.h"
 
 //=========================== define ==========================================
+#define MTOVF_CMP1 0x03
+#define MTOVF_CMP2 0x04
 
 //=========================== typedef =========================================
 
@@ -35,17 +37,22 @@ void     radiotimer_setEndFrameCb(radiotimer_capture_cbt cb);
 void     radiotimer_start(PORT_RADIOTIMER_WIDTH period);
 // direct access
 PORT_RADIOTIMER_WIDTH radiotimer_getValue(void);
+void radiotimer_clearValue(void);
 void     radiotimer_setPeriod(PORT_RADIOTIMER_WIDTH period);
 PORT_RADIOTIMER_WIDTH radiotimer_getPeriod(void);
+uint8_t checkinterrupt(void);
 // compare
 void     radiotimer_schedule(PORT_RADIOTIMER_WIDTH offset);
 void     radiotimer_cancel(void);
 // capture
 PORT_RADIOTIMER_WIDTH radiotimer_getCapturedTime(void);
-
+uint32_t radiotimer_getfreerunning(void);
 // interrupt handlers
 kick_scheduler_t   radiotimer_isr(void);
 
+
+//CSMA = 1
+void RITTimer_Init(void);
 /**
 \}
 \}

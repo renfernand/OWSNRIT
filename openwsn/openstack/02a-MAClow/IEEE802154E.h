@@ -166,7 +166,7 @@ bit after the start of the packet.
 #define FIRST_FRAME_BYTE             1
 
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
+#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_AMCA == 1) ||(IEEE802154E_RITMC == 1)
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
    S_RIT_SLEEP                   = 0x00,   // ready for next slot
@@ -192,11 +192,12 @@ typedef enum {
    S_RIT_RXDATALISTEN            = 0x11,   // idle listening for data
    S_RIT_RXDATA                  = 0x12,   // data SFD received, receiving more bytes
    S_RIT_TXACKOFFSET             = 0x13,   // waiting to prepare for Tx ACK
-   S_RIT_TXACKPREPARE            = 0x14,   // preparing for Tx ACK
+   S_RIT_TXACKPREPARE            = 0x15,   // preparing for Tx ACK
    S_RIT_TXACKREADY              = 0x15,   // Tx ACK ready, waiting for 'go'
    S_RIT_TXACKDELAY              = 0x16,   // 'go' signal given, waiting for SFD Tx ACK
    S_RIT_TXACK                   = 0x17,   // Tx ACK SFD received, sending bytes
    S_RIT_RXPROC                  = 0x18,   // processing received data
+   S_RIT_TX_CONTINUEWAIT         = 0x19,   // received a invalid packet then open window again
 
    S_RIT_RXOLAPREPARE        = 0x20,   // Open the window to receive data !!!!!
    S_RIT_RXOLA               = 0x21,   // Open the window to receive data !!!!!
@@ -214,8 +215,9 @@ typedef enum {
    S_RIT_TXDATAECHO          = 0x33,
    S_RIT_NOECHOTXACK         = 0x34,
    S_RIT_TXDATAPREPARE       = 0x35,
-   S_RIT_RXOLA1              = 0x36
-
+   S_RIT_RXOLA1              = 0x36,
+   S_RIT_TXMULTICAST         = 0x37,
+   S_RIT_TXMULTICASTTIMEOUT  = 0x38,
 } ieee154e_state_t;
 
 
@@ -370,7 +372,9 @@ typedef struct {
    PORT_RADIOTIMER_WIDTH     radioOnTics;             // how many tics within the slot the radio is on
    bool                      radioOnThisSlot;         // to control if the radio has been turned on in a slot.
 
+   uint8_t                   RITQueue_ElementPending;      //salvo o elemento atual na lista do RIT para ser enviado
    uint8_t                   macRIT_Pending_TX_frameType;  //RIT - flag TX message pending
+   open_addr_t               targetaddr;                   //quando broadcast o atual endereco que estou buscando
 } ieee154e_vars_t;
 
 BEGIN_PACK

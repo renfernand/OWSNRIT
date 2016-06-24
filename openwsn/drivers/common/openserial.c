@@ -359,8 +359,6 @@ uint8_t openserial_getInputBuffer(uint8_t* bufferToWrite, uint8_t maxNumBytes) {
 
 void openserial_startInput() {
 
-	//leds_error_toggle();
-
 #if (ENABLE_BRIDGE_UART0 == 1)
    INTERRUPT_DECLARATION();
    
@@ -537,7 +535,6 @@ void openserial_stop() {
    }
    
    if (busyReceiving == FALSE && inputBufFill>0) {
-
       DISABLE_INTERRUPTS();
       cmdByte = openserial_vars.inputBuf[0];
       ENABLE_INTERRUPTS();

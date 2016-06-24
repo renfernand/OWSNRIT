@@ -15,32 +15,46 @@
 #include "board_info.h"
 #include "toolchain_defs.h"
 
-#define SINK 0
+#define SINK  0
 
 //permite escolher entre os protocolos da camada MAC a serem utilizados:
 //somente um ou nenhum pode ser escolhido.
 
-#define IEEE802154E_TSCH   0
-#define IEEE802154E_RIT     1
+#define IEEE802154E_TSCH    0
+#define IEEE802154E_RIT     0
+#define IEEE802154E_AMCA    1
 #define IEEE802154E_AMAC    0
 #define IEEE802154E_RITMC   0
 
-
-#if ((IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1))
+#if ((IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_AMCA == 1) || (IEEE802154E_RITMC == 1))
 /* enable the CSMA_CA in the transmission */
 #define ENABLE_CSMA_CA  1
 #else
 #define ENABLE_CSMA_CA  0
 #endif
 
-#define FORCETOPOLOGY 1 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
+#define CSMA_802154e_ALGORITM  1
+
+#define TIMERSCHED_USECOMPARE2 0
+
+//este define eh para testar somente o DIO, desabilitando as funcoes do DAO...
+#define ONLY_RPL_DIO  1
+/* aqui o RITREQ SHORT indica o RIT da especificacao - ou senao sera o frame beacon original do openwsn
+* O RitSHORT tem somente 12 bytes enquanto o do openwsn tem 64 bytes
+*/
+#define USE_RITREQ_SHORT 1
+
+#define FORCETOPOLOGY   0 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
 
 //define o nr de msg de tx que sera enviada antes de ter um pedido de um rx para o openvisualizer
-#define OPENBRIDGE_MAX_TX_TO_RX 2
+#define OPENBRIDGE_MAX_TX_TO_RX 3
+
+
+#define RIT_SM_TICK_MS 100
 
 //usa o novo esquema de bridge para o dagroot (1) ou o antigo (0).
 //lembrando que o novo (1) esta com problemas no ping e coap
-#define NEW_DAG_BRIDGE 0
+#define NEW_DAG_BRIDGE 1
 
 /* define a UART0 para o DAG ROOT
  * DBG_USING_UART1
@@ -69,25 +83,48 @@
 
 #if ENABLE_DEBUG_RFF
 
-#define DEBUG_LOG_RIT   1
-#define DBG_IEEE802_TX  1
-#define DBG_IEEE802_RX  1
+#define DEBUG_LOG_RIT         1
+#define DBG_IEEE802_TX        1
+#define DBG_IEEE802_RX        1
 #define DBG_RPL               1
 #define DBG_FORWARDING        1
 #define DBG_CSMACA            0
 #define DBG_IEEE802_TIMER     0
 #define DBG_RADIO_POWER_CONS  0
 #define DBG_OPENQUEUE         0
-#define DBG_APP_1       0     //debug aplicacao - arquivo bsp\osens_itf_mote
-
+#define DBG_APP_1             0     //debug aplicacao - arquivo bsp\osens_itf_mote
 #else
-#define DEBUG_LOG_RIT  0
+#define DEBUG_LOG_RIT         0
+#define DBG_IEEE802_TX        0
+#define DBG_IEEE802_RX        0
+#define DBG_RPL               0
+#define DBG_FORWARDING        0
+#define DBG_CSMACA            0
+#define DBG_IEEE802_TIMER     0
+#define DBG_RADIO_POWER_CONS  0
+#define DBG_OPENQUEUE         0
+#define DBG_APP_1             0     //debug aplicacao - arquivo bsp\osens_itf_mote
+
 #endif
 //enable the log using UART0 - cannot be used for DAG ROOT
 #define DEBUG_VIA_SERIAL 0
 
 #define OSENS_UART_INT  0
 
+#if (ENABLE_CSMA_CA == 1)
+
+#define  DEBUG_CSMA  1
+#define  TESTE_CSMA  0
+#else
+#define  DEBUG_CSMA  0
+#define  TESTE_CSMA  1
+#endif
+
+/*este timer GPTIMER é um timer de GPIO que poderia ser usado em substituicao do MACTimer
+ * Mas ele nao funcionou...nao sei por que...mas toda vez que eu configuro ele os valores
+ * nao sao setados nos registros...
+ */
+#define USE_GPTIMER 0
 
 /*
  * HABILITA OS SENSORES JA UTILIZADOS NESTA PLACA CC2538EM
@@ -125,8 +162,6 @@
 #else
 #define USE_SPI_INTERFACE  0
 #endif
-
-
 
 //=========================== define ==========================================
 

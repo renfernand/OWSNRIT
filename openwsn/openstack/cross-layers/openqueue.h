@@ -82,7 +82,8 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 sRITqueue RITQueue_Dequeue_byaddr(open_addr_t addr);
 void RITQueue_Init(void);
 bool RITQueue_Enqueue(sRITqueue *pmsg);
-
+uint8_t RITQueue_Clear_Pending(uint8_t pos,open_addr_t actualsrcaddr);
+uint8_t RITQueue_getNrPendingParents (uint8_t pos);
 /**
 \}
 \}
