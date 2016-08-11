@@ -83,6 +83,7 @@ void      macCspTxBusyIsr(PORT_TIMER_WIDTH capturedTime);
 void     radio_txNow(void);
 #endif
 // RX
+void     radio_flushfifos(void);
 void     radio_rxEnable(void);
 void     radio_rxNow(void);
 void     radio_getReceivedFrame(uint8_t* bufRead,

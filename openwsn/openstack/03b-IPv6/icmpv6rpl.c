@@ -27,7 +27,6 @@ extern scheduler_dbg_t  scheduler_dbg;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
 open_addr_t         dao_address;
 extern RIT_stats_t ritstat;
 #endif
@@ -41,6 +40,8 @@ void sendDIO(void);
 void icmpv6rpl_timer_DAO_cb(void);
 void icmpv6rpl_timer_DAO_task(void);
 void sendDAO(void);
+
+uint8_t frameDioPending = 0;
 
 //=========================== public ==========================================
 
@@ -64,6 +65,7 @@ void icmpv6rpl_init() {
    icmpv6rpl_vars.fDodagidWritten           = 0;
    
    //=== DIO
+   frameDioPending  = 0x00;
    
    icmpv6rpl_vars.dio.rplinstanceId         = 0x00;        ///< TODO: put correct value
    icmpv6rpl_vars.dio.verNumb               = 0x00;        ///< TODO: put correct value
@@ -277,10 +279,10 @@ void icmpv6rpl_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
    {
 	   uint8_t ucPos=0;
 
-	   rffbuf[ucPos++]= RFF_ICMPv6RPL_TX;
+	   rffbuf[ucPos++]= RFF_ICMPv6RPL_TX+0xE;
 	   rffbuf[ucPos++]= 0xFE;
 	   rffbuf[ucPos++]= (uint8_t) msg->creator;
-	   rffbuf[ucPos++]= (uint8_t) msg->creator;
+	   rffbuf[ucPos++]= error;
 	   //rffbuf[ucPos++]= (uint8_t) msg->owner;
 	   //rffbuf[ucPos++]= (uint8_t) msg->length;
 	   //rffbuf[ucPos++]= (uint8_t) msg->l2_frameType;
@@ -325,7 +327,7 @@ void icmpv6rpl_receive(OpenQueueEntry_t* msg) {
    //leds_error_toggle();
    //teste rff
 
-#if (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if 0 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
 	   uint8_t ucPos=0;
 
@@ -514,7 +516,7 @@ void icmpv6rpl_timer_DIO_task() {
    // update the delayDIO
    icmpv6rpl_vars.delayDIO = (icmpv6rpl_vars.delayDIO+1)%5;
 
-#if 0 // (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if 0 //(SINK == 0) // (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
 	   uint8_t pos = 0;
 
@@ -531,14 +533,22 @@ void icmpv6rpl_timer_DIO_task() {
    // check whether we need to send DIO
    if (icmpv6rpl_vars.delayDIO==0) {
 #if (IEEE802154E_TSCH == 0)
-	  isFramePending = RITQueue_ExistFramePending();
+	  //isFramePending = RITQueue_ExistFramePending();
+/*
+#if (SINK == 0)
+	   frameDioPending = TRUE;
+#endif
+*/
 
-	  if (isFramePending == 0)
+#if (TESTRIT_ONLY_OLA == 0)
+	  if (frameDioPending == 0)
 	  {
 		  //leds_debug_toggle();
 	      // send DIO
 	      sendDIO();
 	  }
+#endif
+
 #else
       sendDIO();
 #endif
@@ -606,6 +616,7 @@ void sendDIO() {
    
    // I'm now busy sending
    icmpv6rpl_vars.busySending = TRUE;
+   frameDioPending = TRUE;
 
 #if (IEEE802154E_RIT == 1)
    ritstat.txdio.countdata++;
@@ -661,7 +672,7 @@ void sendDIO() {
    {
 	   uint8_t pos = 0;
 
-	    rffbuf[pos++]= RFF_ICMPv6RPL_TX;
+	    rffbuf[pos++]= RFF_ICMPv6RPL_TX+1;
 	    rffbuf[pos++]= 0x01;
 	    rffbuf[pos++]= msg->l4_protocol;
 	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
@@ -706,7 +717,7 @@ void icmpv6rpl_timer_DAO_task() {
    // check whether we need to send DAO
    if (icmpv6rpl_vars.delayDAO==0) {
       
-#if (ONLY_RPL_DIO == 0)
+#if ( (TESTRIT_ONLY_DIO == 0) && (TESTRIT_ONLY_OLA == 0))
 	   // send DAO
       sendDAO();
 #endif
@@ -910,8 +921,8 @@ void sendDAO() {
    {
 		uint8_t pos=0;
 
-		rffbuf[pos++]= RFF_ICMPv6RPL_TX;
-		rffbuf[pos++]= 0x03;
+		rffbuf[pos++]= RFF_ICMPv6RPL_TX+2;
+		rffbuf[pos++]= 0x02;
 		rffbuf[pos++]= msg->l2_frameType;
 	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
 	    rffbuf[pos++]= icmpv6rpl_vars.CountSendingDAO;

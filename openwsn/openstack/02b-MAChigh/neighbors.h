@@ -28,28 +28,33 @@
 
 /*
 motes atuais CC2538EM
-[1] bbbb::0012:4b00:02f4:ac09 [0x09] --> dagroot
+[0] bbbb::0012:4b00:02f4:acfd [0xfd] --> DAGROOT
+[1] bbbb::0012:4b00:02f4:ac09 [0x09]
 [2] bbbb::0012:4b00:02f4:afc0 [0xc0]
 [3] bbbb::0012:4b00:040e:fc87 [0x87]
 [4] bbbb::0012:4b00:03a6:5152 [0x52]
-[5] bbbb::0012:4b00:03a6:4cbe [0xbe]
+[5] bbbb::0012:4b00:03a6:FC89 [0x89]
 [6] bbbb::0012:4b00:02f4:AF58 [0x58]
+[7] bbbb::0012:4b00:03a6:4cbe [0xbe]
 */
 #define MOTE0   0xFD
 #define MOTE1   0x09
 #define MOTE2   0xC0
 #define MOTE3   0x87
 #define MOTE4   0x52
-#define MOTE5   0xBE
+#define MOTE5   0x89
 #define MOTE6   0x58
+#define MOTE7   0xBE
+#define MOTELAST 0xFF
 
 #define ADDR16b_MOTE0   0xACFD
 #define ADDR16b_MOTE1   0xAC09
 #define ADDR16b_MOTE2   0xAFC0
 #define ADDR16b_MOTE3   0xFC87
 #define ADDR16b_MOTE4   0x5152
-#define ADDR16b_MOTE5   0x4CBE
+#define ADDR16b_MOTE5   0xFC89
 #define ADDR16b_MOTE6   0xAF58
+#define ADDR16b_MOTE7   0x4CBE
 
 /* best channel */
 #define MOTE0_BC   20
@@ -59,6 +64,7 @@ motes atuais CC2538EM
 #define MOTE4_BC   20
 #define MOTE5_BC   20
 #define MOTE6_BC   20
+#define MOTE7_BC   20
 
 #define MAX_NUM_MOTES 7   //este define eh usado na montagem da topologia
 //=========================== typedef =========================================
@@ -71,9 +77,14 @@ typedef struct {
    bool             stableNeighbor;
    uint8_t          switchStabilityCounter;
    open_addr_t      addr_16b;
-   uint8_t          numRx;
-   uint8_t          numTx;
-   uint8_t          numTxACK;
+   uint16_t          numTxErr;
+   uint16_t          numTxDIO;
+   uint16_t          numTxDIOErr;
+   uint16_t          numTxDAO;
+   uint16_t          numTxDAOErr;
+   uint16_t          numTxCOAP;
+   uint16_t          numTxCOAPErr;
+   uint16_t          numTxHello;
    uint8_t          bestchan;           //bestchannel
    uint8_t          broadcastPending;   //quando msg broadcast flag indica se enviou msg
 } macneighborRow_t;
@@ -89,7 +100,7 @@ typedef struct {
 }forceNeighbor_ele_t;
 typedef struct {
    uint8_t numNeighbor;
-   forceNeighbor_ele_t ele[3];
+   forceNeighbor_ele_t ele[MAXNUMMACNEIGHBORS];
 } forceNeighbor_t;
 
 #endif
@@ -146,7 +157,7 @@ void          neighbors_init(void);
 bool neighbors_isValidNeighbor(uint8_t index);
 // getters
 uint8_t macneigh_getBChan(open_addr_t* address);
-void macneigh_getBChanMultiCast(uint8_t *bestchannel,open_addr_t* targetaddr);
+uint8_t macneigh_getBChanMultiCast(uint8_t *bestchannel,open_addr_t* targetaddr, uint8_t);
 uint8_t macneighbors_getMyBestChan(void);
 uint8_t macneighbors_getFixedBestChan(uint8_t lastbyte);
 bool macisThisAddressPendingBroadcast(open_addr_t* address) ;
@@ -158,14 +169,19 @@ open_addr_t*  neighbors_getKANeighbor(uint16_t kaPeriod);
 uint8_t neighbors_howmanyIhave(void);
 
 uint8_t macneighbors_getNumNeighbors(void);
-uint8_t macneighbors_setBroadCastPending(void);
+uint8_t macneighbors_setBroadCastPending(uint8_t );
 uint8_t macneighbors_clearBroadcastPending(open_addr_t actualsrcaddr);
+
+void macneighbors_updtlivelist(open_addr_t actualsrcaddr);
+void macneighbors_clearlivelist(open_addr_t actualsrcaddr);
+uint8_t macneighbors_calcbroadcastsent(void);
 
 // interrogators
 bool          neighbors_isStableNeighbor(open_addr_t* address);
 bool          neighbors_isPreferredParent(open_addr_t* address);
 bool          neighbors_isNeighborWithLowerDAGrank(uint8_t index);
 bool          neighbors_isNeighborWithHigherDAGrank(uint8_t index);
+uint8_t macneighbors_getaddrbroadcastsent(open_addr_t *address);
 
 // updating neighbor information
 void          neighbors_indicateRx(

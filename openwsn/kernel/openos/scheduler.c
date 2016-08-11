@@ -55,6 +55,7 @@ void scheduler_start() {
       debugpins_task_clr();
       board_sleep();
       debugpins_task_set();                      // IAR should halt here if nothing to do
+      checkinterrupt();
    }
 }
 

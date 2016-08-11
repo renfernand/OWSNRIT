@@ -3,6 +3,7 @@
 #include "openserial.h"
 #include "packetfunctions.h"
 #include "IEEE802154E.h"
+#include "IEEE802154RIT.h"
 #include "radio.h"
 #include "neighbors.h"
 //=========================== variables =======================================
@@ -13,11 +14,8 @@ openqueue_vars_t openqueue_vars;
 OpenQueueEntry_t advRIT;
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
 sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
+#endif
 
-#endif
-#if ENABLE_DEBUG_RFF
-static uint8_t rffbuf[30];
-#endif
 
 //support variable for RIT procedure
 extern uint8_t     coappending;

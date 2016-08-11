@@ -13,18 +13,16 @@
 #include "debugpins.h"
 #include "scheduler.h"
 #include "IEEE802154E.h"
-
+#include "IEEE802154RIT.h"
 //=========================== variables =======================================
 #if (DEBUG_LOG_RIT  == 1)
 //extern ieee154e_vars_t    ieee154e_vars;
 //extern ieee154e_stats_t   ieee154e_stats;
 //extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-
 #endif
 
 uint8_t ucFlagForwarding =0;
-
+extern uint8_t rffpasshere;
 
 //=========================== prototypes ======================================
 
@@ -408,7 +406,7 @@ void forwarding_getNextHop(open_addr_t* destination128b, open_addr_t* addressToW
 \param[in]     flow_label      The flowlabel to add in the 6LoWPAN header.
 \param[in]     fw_SendOrfw_Rcv The packet is originating from this mote
    (PCKTSEND), or forwarded (PCKTFORWARD).
-   RFF - AQUI EH O FORWARDING DE UM DAO...
+   RFF - AQUI EH O FORWARDING DE UM DAO OU COAP...
 */
 owerror_t forwarding_send_internal_RoutingTable(
       OpenQueueEntry_t*      msg,
@@ -417,7 +415,6 @@ owerror_t forwarding_send_internal_RoutingTable(
       uint32_t*              flow_label,
       uint8_t                fw_SendOrfw_Rcv
    ) {
-   
 
    // retrieve the next hop from the routing table
    forwarding_getNextHop(&(msg->l3_destinationAdd),&(msg->l2_nextORpreviousHop));
@@ -431,21 +428,21 @@ owerror_t forwarding_send_internal_RoutingTable(
       return E_FAIL;
    }
 
-#if (DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+#if 0 //(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
    {
 	 uint8_t pos=0;
 
-	   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
-	   rffbuf[pos++]= 0x03;
-	   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-	   rffbuf[pos++]= (uint8_t) msg->length;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.type;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[15];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[15];
+	   if (rffpasshere) {
+		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   openserial_startOutput();
+		   rffpasshere = 0;
+		   return E_FAIL;
+	   }
 
-	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
    }
 #endif
 

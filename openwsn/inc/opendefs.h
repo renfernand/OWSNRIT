@@ -82,6 +82,9 @@ enum {
    OW_BIG_ENDIAN                       = FALSE,
 };
 
+//usado para distinguir entre DAO e DAO com ACK apenas para estatitisticas
+#define ICMPv6_RPL_DAO_ACK  249
+#define ICMPv6_RPL_COAP_ACK 248
 // protocol numbers, as defined by the IANA
 enum {
    IANA_IPv6HOPOPT                     = 0x00,

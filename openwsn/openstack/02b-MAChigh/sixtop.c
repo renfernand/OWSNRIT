@@ -16,6 +16,7 @@
 #include "IEEE802154.h"
 #include "idmanager.h"
 #include "schedule.h"
+#include "IEEE802154RIT.h"
 
 //=========================== variables =======================================
 
@@ -26,7 +27,7 @@ sixtop_vars_t sixtop_vars;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
+
 #define TESTE_RIT_GENERATE_DATA_MSG  0
 
 #endif
@@ -325,33 +326,11 @@ void sixtop_removeCell(open_addr_t* neighbor){
 //======= from upper layer
 
 owerror_t sixtop_send(OpenQueueEntry_t *msg) {
-   
+
    // set metadata
    msg->owner        = COMPONENT_SIXTOP;
    msg->l2_frameType = IEEE154_TYPE_DATA;
    
-#if 0 //ENABLE_DEBUG_RFF
-   {
-		//uint32_t capturetime;
-		//uint8_t *pucAux = (uint8_t *) &capturetime;
-		uint8_t pos=0;
-
-		//capturetime=radio_getTimerValue();
-
-		 rffbuf[pos++]= RFF_SIXTOP_TX;
-		 rffbuf[pos++]= 0x01;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux;
-		 rffbuf[pos++]= msg->l2_IEListPresent;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
-
-   //leds_debug_toggle();
-
    if (msg->l2_IEListPresent == IEEE154_IELIST_NO) {
       return sixtop_send_internal(
          msg,
@@ -445,7 +424,7 @@ void task_sixtopNotifSendDone() {
 void task_sixtopNotifReceive() {
    OpenQueueEntry_t* msg;
    uint16_t          lenIE;
-   
+
    // get received packet from openqueue
    msg = openqueue_sixtopGetReceivedPacket();
    if (msg==NULL) {
@@ -492,21 +471,9 @@ void task_sixtopNotifReceive() {
 		rffbuf[pos++]= msg->l4_protocol;
 		rffbuf[pos++]= msg->l4_length;
 
-/*
-  	    rffbuf[pos++]= address->type;
-
-  	    if (address->type == 3)
-		{
-			rffbuf[pos++]= address->addr_128b[14];
-			rffbuf[pos++]= address->addr_128b[15];
-		}
-		else //considero igual a 2
-		{
-			rffbuf[pos++]= address->addr_64b[6];
-			rffbuf[pos++]= address->addr_64b[7];
-		}
-*/
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		openserial_startOutput();
+
    }
 #endif
 
@@ -522,7 +489,7 @@ void task_sixtopNotifReceive() {
    // reset it to avoid race conditions with this var.
    msg->l2_joinPriorityPresent = FALSE; 
    
-   // send the packet up the stack, if it qualifies
+     // send the packet up the stack, if it qualifies
    switch (msg->l2_frameType) {
       case IEEE154_TYPE_BEACON:
       case IEEE154_TYPE_DATA:
@@ -613,6 +580,26 @@ owerror_t sixtop_send_internal(
    uint8_t iePresent, 
    uint8_t frameVersion) {
 
+   uint8_t aux=0;
+   uint8_t pos=0;
+   uint32_t Address = (uint32_t ) &aux;
+   uint8_t *pucAux = (uint8_t *) &Address;
+#if 0 //ENABLE_DEBUG_RFF
+   {
+		aux++;
+
+		rffbuf[pos++]= RFF_SIXTOP_TX;
+		rffbuf[pos++]= 0x60;
+		rffbuf[pos++]= aux;
+		rffbuf[pos++]= *(pucAux+0);
+		rffbuf[pos++]= *(pucAux+1);
+		rffbuf[pos++]= *(pucAux+2);
+		rffbuf[pos++]= *(pucAux+3);
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		openserial_startOutput();
+   }
+#endif
 
    // assign a number of retries
    if (

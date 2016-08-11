@@ -15,8 +15,9 @@
 #include "board_info.h"
 #include "toolchain_defs.h"
 
-#define SINK  0
-
+#define SINK 1
+#define WATCHDOG_CONF_ENABLE 0
+#define BUILD_VER  "V48114"
 //permite escolher entre os protocolos da camada MAC a serem utilizados:
 //somente um ou nenhum pode ser escolhido.
 
@@ -37,25 +38,51 @@
 
 #define TIMERSCHED_USECOMPARE2 0
 
-//este define eh para testar somente o DIO, desabilitando as funcoes do DAO...
-#define ONLY_RPL_DIO  1
-/* aqui o RITREQ SHORT indica o RIT da especificacao - ou senao sera o frame beacon original do openwsn
-* O RitSHORT tem somente 12 bytes enquanto o do openwsn tem 64 bytes
-*/
-#define USE_RITREQ_SHORT 1
+//Define se o timer que sera usado para habilitar o slottime é baseado no timer da tarefa ou no timer do radio...
+//atualmente o melhor eh da tarefa...
+#define TIMERPERIOD_FREERUNNING 1
 
-#define FORCETOPOLOGY   0 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
+//este define eh para testar os diferentes comandos separamente...
+// ONLY_DIO = 1 - desabilita o RPL.DAO...
+// ONLY_OLA = 1 - desabilita o RPL.DIO...(MAS NAO INFLUENCIA O DAO)
+#define TESTRIT_ONLY_DIO  0
+#define TESTRIT_ONLY_OLA  0
 
-//define o nr de msg de tx que sera enviada antes de ter um pedido de um rx para o openvisualizer
-#define OPENBRIDGE_MAX_TX_TO_RX 3
+//este define configura o envio do COAP automaticamente internamente...
+//Atencao!!! esta com uma configuracao fixa...MOTE_QTDE_SALTOS
+#if (SINK == 1)
+#define SINK_SIMULA_COAP  1
+#else
+#define SINK_SIMULA_COAP  0
+#endif
 
-
-#define RIT_SM_TICK_MS 100
+#if (SINK_SIMULA_COAP == 1)
+// DEVE SER CONFIGURADO O NR DE SALTOS 1,2,3 ate 4 saltos - Porem esta com topologia fixa no openbridge.c
+// 1 SALTO  - M0 - M1
+// 2 SALTOS - M0 - M1 - M2
+// 3 SALTOS - M0 - M1 - M2 - M3
+// 4 SALTOS - M0 - M1 - M2 - M3 - M4
+#define MOTE_QTDE_SALTOS  3
+#endif
 
 //usa o novo esquema de bridge para o dagroot (1) ou o antigo (0).
 //lembrando que o novo (1) esta com problemas no ping e coap
 #define NEW_DAG_BRIDGE 1
 
+/* aqui o RITREQ SHORT indica o RIT da especificacao - ou senao sera o frame beacon original do openwsn
+* O RitSHORT tem somente 12 bytes enquanto o do openwsn tem 64 bytes
+*/
+#define USE_RITREQ_SHORT 1
+
+#define FORCETOPOLOGY   1 //atencao!!! aqui eu devo preencher a tabela pois somente tem alguns motes.
+
+//define o nr de msg de tx que sera enviada antes de ter um pedido de um rx para o openvisualizer
+#define OPENBRIDGE_MAX_TX_TO_RX 1
+
+#define RADIOTIMER_TICS_MS 0.32 /* 320us */
+
+
+#define MULTI_CHANNEL_HELLO_ENABLE 1
 /* define a UART0 para o DAG ROOT
  * DBG_USING_UART1
  * Define se usará a UART1 pinos P1.18(Rx) P1.20(Tx) para debug.
@@ -71,14 +98,12 @@
 #define DBG_USING_UART1           0     //quando 1 indica que o debug 0x11 vai para UART1 (somente util qdo dagROOT)
 #define DAGROOT_ENABLE_ONSTARTUP  1
 #define DAGROOT                   1
-#define SINK_SIMULA_COAP          0
 #else
 #define ENABLE_BRIDGE_UART0       0     //Quando DAGROOT ele fica enviando os logs comuns na serial...isso atrapalha o debug
 #define ENABLE_DEBUG_RFF          1     //imprime na serial o debug 0x11
 #define DBG_USING_UART1           0     //quando 1 indica que o debug 0x11 vai para UART1 (somente util qdo dagROOT)
 #define DAGROOT_ENABLE_ONSTARTUP  0
 #define DBG_USING_UART1           0
-#define SINK_SIMULA_COAP          0
 #endif
 
 #if ENABLE_DEBUG_RFF
@@ -160,7 +185,7 @@
 
 
 #else
-#define USE_SPI_INTERFACE  0
+	#define USE_SPI_INTERFACE  0
 #endif
 
 //=========================== define ==========================================

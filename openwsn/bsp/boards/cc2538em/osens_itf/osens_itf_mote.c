@@ -18,6 +18,7 @@
 #include "leds.h"
 #include "uart.h"
 #include "debugpins.h"
+#include "IEEE802154RIT.h"
 #if MYLINKXS_SENSORS
 #include "mylinkxs.h"
 #if SONOMA14
@@ -34,9 +35,6 @@
 
 #define DBG_READ  0
 #define DBG_WRITE 1
-#if (ENABLE_DEBUG_RFF == 1) && (DBG_APP_1 == 1)
-static uint8_t rffbuf[30];
-#endif
 
 #if (MYLINKXS_REMOTE_CONTROL == 1)
 uint8_t flagwriteenable=0;
@@ -1185,8 +1183,9 @@ uint8_t osens_liga_lampada_local(void)
 
 uint8_t osens_init(void)
 {
+#if  (MYLINKXS_SENSORS == 1)
 	osens_mote_init();
-
+#endif
 
 	return 0;
 }

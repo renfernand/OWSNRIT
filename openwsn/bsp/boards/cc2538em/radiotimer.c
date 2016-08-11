@@ -31,6 +31,7 @@
 #endif
 
 #define RADIOTIMER_32MHZ_TICS_PER_32KHZ_TIC 976  //32Mhz to 32Khz ratio
+
 //=========================== variables =======================================
 
 typedef struct {
@@ -45,7 +46,8 @@ radiotimer_vars_t radiotimer_vars;
 volatile uint32_t TimingDelay=0;
 volatile uint32_t govfcount=0;
 volatile uint32_t radiotimer_freerunnig=0;
-static uint32_t lastradiotimer_freerunnig=0;
+volatile uint32_t ritTimingPeriodOvf=0;
+uint32_t lastradiotimer_freerunnig=0;
 static uint32_t countStopIrq=0;
 void gptimer_init(void);
 //=========================== prototypes ======================================
@@ -60,6 +62,9 @@ uint32_t ritTimingPeriod=0;
 bool ritTimerPeriodEnable=0;
 uint32_t ritTimingSched;
 uint32_t ritTimingclock=0;
+uint32_t systickcount;
+uint32_t lastsystickcount;
+uint32_t countStopSystick;
 bool ritTimerSchedEnable;
 #endif
 void gptimer_isr_private(void);
@@ -306,6 +311,7 @@ uint8_t checkinterrupt(void){
 
 	uint8_t ret=0;
 
+	//verifica MACTIMER se ele travou...
 	if (lastradiotimer_freerunnig == radiotimer_freerunnig) {
 		countStopIrq++;
 
@@ -330,6 +336,25 @@ uint8_t checkinterrupt(void){
 		countStopIrq = 0;
 
   lastradiotimer_freerunnig = radiotimer_freerunnig;
+
+
+  //verifico Systick timer se travou
+/*
+  if (lastsystickcount == systickcount) {
+	countStopSystick++;
+	if (countStopSystick > 100) {
+		countStopSystick = 0;
+		SysTickDisable();
+		SysTickPeriodClear();
+		//radiotimer_schedule();
+	}
+  }
+  else
+	  countStopSystick = 0;
+
+  lastsystickcount = systickcount;
+*/
+
 
   return ret;
 }
@@ -374,11 +399,20 @@ void radiotimer_setPeriod(PORT_RADIOTIMER_WIDTH period) {
 
     IntEnable(INT_MACTIMR);
 #else
-    opentimers_start(period, TIMER_ONESHOT, TIME_MS, (opentimers_cbt) radiotimer_vars.overflow_cb);
+	#if (TIMERPERIOD_FREERUNNING == 1)
+		ritTimingPeriod      = period/RADIOTIMER_TICS_MS;
+		ritTimingPeriodOvf   = radiotimer_freerunnig + ritTimingPeriod+1;  //checar o estouro
+		ritTimerPeriodEnable = TRUE;
+	#else
+		opentimers_start(period, TIMER_ONESHOT, TIME_MS, (opentimers_cbt) radiotimer_vars.overflow_cb);
+	#endif
 #endif
 
 }
 
+/*
+ * obtem o period restante para o estouro do timer
+ */
 PORT_RADIOTIMER_WIDTH radiotimer_getPeriod() {
 	PORT_RADIOTIMER_WIDTH period=0;
 #if (ENABLE_CSMA_CA == 0)
@@ -389,13 +423,17 @@ PORT_RADIOTIMER_WIDTH radiotimer_getPeriod() {
 	period+=(HWREG(RFCORE_SFR_MTMOVF1)<<8);
 	period+=(HWREG(RFCORE_SFR_MTMOVF2)<<16);
 #else
-	period = ritTimingPeriod;
+	//period = ritTimingPeriod;
+	period = (ritTimingPeriodOvf - radiotimer_freerunnig)*RADIOTIMER_TICS_MS;
 #endif
     return period;
 }
 
 
 void radiotimer_schedule(PORT_RADIOTIMER_WIDTH offset) {
+
+	uint32_t period;
+	uint32_t timeticks;
 
 #if (ENABLE_CSMA_CA  == 0)
 	//===== compare
@@ -415,16 +453,29 @@ void radiotimer_schedule(PORT_RADIOTIMER_WIDTH offset) {
 	HWREG(RFCORE_SFR_MTIRQM)|=RFCORE_SFR_MTIRQM_MACTIMER_OVF_COMPARE1M;
 	IntEnable(INT_MACTIMR);
 #else
-	//usa o systick como compare - valor eh em miliseconds
-	volatile uint32_t timeticks = SYSTICK_MS*offset;
 
-	SysTickPeriodSet(timeticks);
-	SysTickEnable();
-	//SysTickPeriodClear();
-	//SysTickIntEnable();
+    //pego atual tempo restante da janela de rit e coloco uma margem de seguranca para sempre haver o endslot
+	period = radiotimer_getPeriod();
 
-	//ritTimingSched = timeticks + ritTimingclock;
-	//ritTimerSchedEnable = TRUE;
+	if (period > offset) {
+	  period = offset;
+	}
+
+    if (period > 1) {
+		timeticks = SYSTICK_MS*period;
+
+		SysTickPeriodSet(timeticks);
+		SysTickEnable();
+		//SysTickPeriodClear();
+		//SysTickIntEnable();
+	    //leds_error_on();
+	}
+    else {
+		SysTickPeriodSet(SYSTICK_MS);
+		SysTickEnable();
+    }
+
+
 #endif
 
 }
@@ -538,6 +589,7 @@ void timertickisr(void)
 
   //leds_sync_toggle();
   ritTimingclock++;
+
 }
 
 
@@ -563,6 +615,8 @@ void SysTickIntHandler(void)
 	   //return KICK_SCHEDULER;
 	}
 
+   //leds_error_toggle();
+   systickcount++;
 	//timertickisr();
 	//TimingDelay_Decrement();
 }
@@ -574,12 +628,15 @@ void RITTimer_Init(void) {
 	ritTimerPeriodEnable = 0;
 	ritTimingSched=0;
 	ritTimingclock=0;
+	systickcount=0;
+	lastsystickcount=0;
+	countStopSystick=0;
 	ritTimerSchedEnable=0;
 
 	SysTickSetup();
 	//TICK_MAC_RITMC_PERIOD
 	radio_startTimer(10);
-	radiotimer_setPeriod_ms(10);
+	radiotimer_setPeriod(10);
 
 #if (ENABLE_CSMA_CA == 1)
 	radio_csma_vars.capturedTime0 = 0;
@@ -754,6 +811,16 @@ void radiotimer_isr_private(void)
     /* clear overflow compare interrupt flag */
     T2IRQF = ~TIMER2_PERF;
     //timertickisr();
+#if (TIMERPERIOD_FREERUNNING == 1)
+    //checa timer...
+    if (ritTimerPeriodEnable){
+        if (radiotimer_freerunnig > ritTimingPeriodOvf){
+   	     if (radiotimer_vars.overflow_cb!=NULL) {
+                radiotimer_vars.overflow_cb();
+          }
+        }
+    }
+#endif
   }
 
   //return DO_NOT_KICK_SCHEDULER;
@@ -765,8 +832,6 @@ void radiotimer_isr_private(void)
 void gptimer_isr_private(void)
 {
 	TimerIntClear(GPTIMER0_BASE,GPTIMER_TIMA_TIMEOUT);
-
-	leds_sync_toggle();
 }
 
 #endif

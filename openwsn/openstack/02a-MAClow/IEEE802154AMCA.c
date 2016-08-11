@@ -20,22 +20,43 @@
 #include "IEEE802154RIT.h"
 #include "SysTick.h"
 #include "mac_csp_tx.h"
+#include "topology.h"
+#include "openbridge.h"
+#if (WATCHDOG_CONF_ENABLE == 1)
+#include "watchdog.h"
+#endif
+#include "stdlib.h"
+
+#define TESTE_TIMER 0
+#define TEST_MEASURE_NEIGHBOR_RATE 0
+
+#define TRATA_ACK 1
 
 //=========================== variables =======================================
+extern uint8_t rffpasshere;
 extern radio_csma_vars_t radio_csma_vars;
-uint8_t countdebug=0;
-uint8_t flagSerialTx;
-uint8_t lastslotwastx;
-#define TRATA_ACK 1
-uint8_t testrff_isforwarding;
-open_addr_t actualsrcaddr;         //usado quando recebe um frame...para identificar quem enviou...
-
+extern uint32_t ritTimingclock;
+extern uint32_t systickcount;
+extern uint32_t lastradiotimer_freerunnig;
 extern uint8_t ucFlagForwarding;
-uint8_t ucFlagTxReOpen;
-uint8_t  rfftooglelastype=0;
 extern scheduler_vars_t scheduler_vars;
 extern scheduler_dbg_t  scheduler_dbg;
 extern sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
+extern uint8_t frameDioPending;
+
+uint8_t nrErrorRetries;
+uint8_t COAPSimCount;
+
+uint8_t msghello[30];
+uint8_t isrmultichannelhello;
+uint32_t slottimeref;
+uint8_t flagSerialTx;
+uint8_t lastslotwastx;
+uint8_t testrff_isforwarding;
+uint8_t ucFlagTxReOpen;
+uint8_t rfftooglelastype=0;
+uint8_t printstattoggle=0;
+open_addr_t actualsrcaddr;         //usado quando recebe um frame...para identificar quem enviou...
 ieee154e_vars_t    ieee154e_vars;
 ieee154e_stats_t   ieee154e_stats;
 ieee154e_dbg_t     ieee154e_dbg;
@@ -43,13 +64,10 @@ open_addr_t        address_1;
 uint8_t            flagreschedule=0;
 sRITelement        element;
 
-
-//Frame pendente
 uint8_t            coappending;
 //extern uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
 bool                txpending=FALSE;
 OpenQueueEntry_t  sPendingDataPacket;
-
 
 uint8_t macRITstate;
 
@@ -77,15 +95,13 @@ volatile uint32_t actualtimer0;
 
 //teste rff
 uint8_t rffslotOffset;
-uint8_t rffframetype;
 uint8_t rffframelen;
 uint8_t rffstate;
 
 #if 1 //ENABLE_DEBUG_RFF
-#define MAX_ELEM_ROUTE 100
-volatile uint8_t rffbuf[30];
-volatile uint8_t ritroute[MAX_ELEM_ROUTE];
-volatile uint8_t lastritroutepos = 0;
+uint8_t rffbuf[MAX_ELEM_ROUTE];
+uint8_t ritroute[MAX_ELEM_ROUTE];
+uint8_t lastritroutepos = 0;
 
 #define DBG_802154E_TX_DATA 1
 #define DBG_802154E_RX_DATA 0
@@ -93,7 +109,7 @@ uint8_t rffnewsendmsg;
 #define RFF_LOG_DEBUG_DAO 1
 #endif
 
-
+uint8_t RFFcount=0;
 uint8_t rffcountdao=0;
 uint8_t rffcountdao_tx=0;
 uint8_t rffcountdao_txok=0;
@@ -110,17 +126,28 @@ extern OpenQueueEntry_t advRIT;
 #define DEBUG_ACK  0
 uint8_t MsgNeedAck;
 
-#define TESTE_TIMER 0
+uint32_t moteerr1count=0;
+uint32_t moteerr2count=0;
+uint32_t moteOKcount=0;
+uint32_t moteRetrycount=0;
+uint32_t testTx=0;
+
+enum discardfrm {
+  DISCARD_NO_ENDSLOT_NO=0,
+  DISCARD_NO_ENDSLOT_YES,
+  DISCARD_YES_ENDSLOT_YES,
+};
 //=========================== prototypes ======================================
 void ieee154e_init(void);
 // interrupts
 void     isr_ieee154e_newSlot(void);
 void     isr_ieee154e_timer(void);
-
+void     isr_multichannelhello(void);
 port_INLINE void getRitRequest(void);
 void clearstatistics(void);
 
-port_INLINE uint8_t activitytx_reopenrxwindow(PORT_RADIOTIMER_WIDTH capturedTime);
+port_INLINE uint8_t activityrx_reopenrxwindow(open_addr_t addr);
+port_INLINE uint8_t activitytx_reopenrxwindow(void);
 port_INLINE void activitytx_olaackprepare(PORT_RADIOTIMER_WIDTH capturedTime);
 bool RITQueue_ExistFramePending(void);
 port_INLINE void activitytx_preparedata(PORT_RADIOTIMER_WIDTH capturedTime);
@@ -132,38 +159,32 @@ port_INLINE void activitytx_senddata(void);
 void     activity_synchronize_startOfFrame(PORT_RADIOTIMER_WIDTH capturedTime);
 void     activity_synchronize_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime);
 
+extern macneighbors_vars_t macneighbors_vars;
+
 // TX
 void     activity_ti1ORri1(void);
+port_INLINE void StartTxMultiChannelHello (void);
 port_INLINE void StartTxRITProcedure(uint8_t elepending, uint8_t newtxframe);
 port_INLINE void StartRxRITProcedure(void);
 port_INLINE void activityrx_rxolanoecho(void);
 port_INLINE void activityrx_waitolaecho(void);
 port_INLINE void activityrx_sendola(void);
 port_INLINE void activityrx_dataprepare(PORT_RADIOTIMER_WIDTH capturedTime);
-void     activity_ti2(void);
 void     activity_rxwindowend(void);
 port_INLINE void activitytx_rxolaprepare(void);
 port_INLINE void activityrx_senddataack(void);
 
-void     activity_tie3(void);
 void     activitytx_senddone(PORT_RADIOTIMER_WIDTH capturedTime);
 port_INLINE void activitytx_rxwaitforack(PORT_RADIOTIMER_WIDTH capturedTime);
-//void     activity_tie4(void);
-void     activity_ti7(void);
-void     activity_tie5(void);
-//void     activity_ti8(PORT_RADIOTIMER_WIDTH capturedTime);
 void     activityrx_noacktx(void);
 void     activitytx_rxnoack(void);
 void     activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime);
 // RX
-port_INLINE void activityrx_prepareritdatareq(void);
+port_INLINE uint8_t activityrx_prepareritdatareq(uint8_t hello);
 void     activitytx_rxwindowopen(void);
-//void     activity_rie1(void);
 void     activity_ritrxlistening(void);
 void     activity_rxritwindowend(void);
 void     activity_txritwindowend(void);
-//void     activity_ri4(PORT_RADIOTIMER_WIDTH capturedTime);
-void     activity_rie3(void);
 void     activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime);
 port_INLINE void activityrx_preparetxack(PORT_RADIOTIMER_WIDTH capturedTime);
 
@@ -248,6 +269,23 @@ uint32_t getdeltaTimerValue(void) {
  return delta;
 }
 
+/*
+ * Retorna o tempo (em ms) decorrido desde o inicio do slot time
+ */
+uint32_t getdeltaslotperiod_ms(void) {
+	volatile uint32_t value;
+	volatile uint32_t delta;
+
+	value = radio_getTimerValue();
+	if (value >= slottimeref)
+		delta = value - slottimeref;
+	else
+		delta = ((0xFFFFFFFF) - slottimeref) + value;
+
+	value = delta*RADIOTIMER_TICS_MS+1;
+ return (value);
+}
+
 //=========================== public ==========================================
 
 void clearstatistics(void)
@@ -279,7 +317,7 @@ void clearstatistics(void)
 	ritstat.txdio.countacktxrx=0;
 	ritstat.txdio.countacktxrxok=0;
 	ritstat.txdio.countacktxrxerr=0;
-
+	ritstat.rxdio=0;
 	ritstat.txdao.countdata=0;
 	ritstat.txdao.countdatatx=0;
 	ritstat.txdao.countdatatxok=0;
@@ -288,6 +326,7 @@ void clearstatistics(void)
 	ritstat.txdao.countacktxrx=0;
 	ritstat.txdao.countacktxrxok=0;
 	ritstat.txdao.countacktxrxerr=0;
+	ritstat.rxdao=0;
 
 	ritstat.txcoap.countdata=0;
 	ritstat.txcoap.countdatatx=0;
@@ -313,6 +352,209 @@ void clearritroute(void)
 #endif
 }
 
+#if (ENABLE_DEBUG_RFF == 1)
+
+uint8_t printvar(uint8_t *var,uint8_t size, uint8_t *buf,uint8_t pos){
+
+	//buf[pos++]= 0xBB;
+
+	switch(size)
+	{
+		case 1:
+			buf[pos++]= *var;
+			break;
+		case 2:
+			buf[pos++]= *var++;
+			buf[pos++]= *var;
+			break;
+		case 4:
+			buf[pos++]= *var++;
+			buf[pos++]= *var++;
+			buf[pos++]= *var++;
+			buf[pos++]= *var;
+			break;
+		default:
+			break;
+	}
+
+    return pos;
+}
+
+uint8_t printaddress(open_addr_t addr,uint8_t *buf,uint8_t pos){
+
+	buf[pos++]= 0xAA;
+	//buf[pos++]= addr.type;
+    if (addr.type == 0x01)
+    {
+		buf[pos++]= addr.addr_16b[0];
+		buf[pos++]= addr.addr_16b[1];
+    }
+    else if (addr.type == 0x02)	{
+		buf[pos++]= addr.addr_64b[6];
+		buf[pos++]= addr.addr_64b[7];
+    }
+	else if (addr.type == 0x03) {
+		buf[pos++]= addr.addr_128b[14];
+		buf[pos++]= addr.addr_128b[15];
+	}
+
+    return pos;
+
+}
+
+
+/* ignorar imprimir RX quando entrar nos seguintes casos:
+   0x85 - rxwindowend (acontece toda hora)
+   0x68 - quando ele receber um frame porem é um ola.
+*/
+const uint8_t noprint[]={0x84,0x85,0x68};
+uint8_t checkimprimir(void)
+{
+   uint8_t j,i;
+
+#if 1
+    for(j=0;j<sizeof(noprint);j++){
+    	for(i=0;i<lastritroutepos;i++){
+    		if (ritroute[i] == noprint[j])
+    			return 0;
+    	}
+    }
+#endif
+	return TRUE;
+}
+
+uint8_t incroute(uint8_t element)
+{
+#if ENABLE_DEBUG_RFF
+    //if (macRITstate == S_RIT_TX_state)
+    {
+		if (lastritroutepos < MAX_ELEM_ROUTE)
+		{
+			ritroute[lastritroutepos] = element;
+			lastritroutepos++;
+		}
+		else
+		{
+			lastritroutepos = 0;
+			ritroute[lastritroutepos] = 0xCC;
+			ritroute[lastritroutepos] = element;
+		}
+    }
+
+    return lastritroutepos;
+#else
+    return 0;
+#endif
+
+}
+//imprime as estatisticas
+void printstat(void){
+	uint8_t pos=0;
+	uint8_t i=0;
+
+	if (1) { // (printstattoggle == TRUE) {
+		printstattoggle = FALSE;
+		rffbuf[pos++]  = 0x96;   //ESTATISTICAS LIVELIST ATUAL DA VIZINHANÇA
+		rffbuf[pos++]= idmanager_getIsDAGroot();   //Mostra se é SINK =1  ou MOTE=0
+
+		for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+		  if (macneighbors_vars.neighbors[i].used==TRUE) {
+			pos = printaddress(macneighbors_vars.neighbors[i].addr_16b,&rffbuf[0],pos);
+			rffbuf[pos++]  = macneighbors_vars.neighbors[i].bestchan;
+			rffbuf[pos++]  = macneighbors_vars.neighbors[i].stableNeighbor;
+			//rffbuf[pos++]  = macneighbors_vars.neighbors[i].switchStabilityCounter;
+			pos = printvar((uint8_t *)&macneighbors_vars.neighbors[i].numTxDIO,sizeof(uint8_t),rffbuf,pos);
+			//pos = printvar((uint8_t *)&macneighbors_vars.neighbors[i].numTxDIOErr,sizeof(uint8_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&macneighbors_vars.neighbors[i].numTxDAO,sizeof(uint8_t),rffbuf,pos);
+			//pos = printvar((uint8_t *)&macneighbors_vars.neighbors[i].numTxDAOErr,sizeof(uint8_t),rffbuf,pos);
+		  }
+	    }
+	    //Nro de COAP
+#if (SINK == 1)
+		rffbuf[pos++] = 0xee;
+
+		pos = printvar((uint8_t *)&ritstat.txcoap.countdata     ,sizeof(uint16_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ritstat.txcoap.countdatatxok ,sizeof(uint16_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ritstat.txcoap.countacktxrxok,sizeof(uint16_t),rffbuf,pos);
+#endif
+	}
+	else {
+		printstattoggle = TRUE;
+#if 0
+		rffbuf[pos++]= 0x94; //ESTATISTICAS EXTERNA DO NR DE FRAMES ENVIADOS E RECEBIDOS
+	    pos = printvar((uint8_t *)&ritstat.txdio.countdata,sizeof(uint16_t),rffbuf,pos);
+	    pos = printvar((uint8_t *)&ritstat.txdio.countdatatx,sizeof(uint16_t),rffbuf,pos);
+	    pos = printvar((uint8_t *)&ritstat.txdio.countdatatxok,sizeof(uint16_t),rffbuf,pos);
+	    pos = printvar((uint8_t *)&ritstat.rxdio,sizeof(uint16_t),rffbuf,pos);
+
+	    rffbuf[pos++]= 0x93;   //ESTATISTICAS INTERNA DOS SLOTS PRODUZIDOS E FINALIZADOS
+		rffbuf[pos++]= idmanager_getIsDAGroot();
+
+		//pos = printvar((uint8_t *)&ieee154e_dbg.num_newSlot,sizeof(uint32_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ieee154e_dbg.num_txslot,sizeof(uint32_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ieee154e_dbg.num_txend,sizeof(uint32_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ieee154e_dbg.num_rxslot,sizeof(uint32_t),rffbuf,pos);
+		pos = printvar((uint8_t *)&ieee154e_dbg.num_rxend,sizeof(uint32_t),rffbuf,pos);
+#endif
+	}
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+}
+
+void printroute(void)
+{
+	uint8_t i=0;
+	uint8_t pos=0;
+	uint8_t imprimir=0;
+    uint8_t lastpos=0;
+
+	lastpos = incroute(0xCC);
+
+	if (macRITstate == S_RIT_RX_state){
+		imprimir = checkimprimir();
+		rffbuf[pos++]= 0x98;  //DEGUB - MOSTRA A ROTA DO SLOT RX
+	}
+	else if (macRITstate == S_RIT_multichnhello_state){
+		imprimir = 1;
+		rffbuf[pos++]= 0x97; //DEGUB - MOSTRA A ROTA DO SLOT LIVELIST
+	}
+	else{
+		imprimir = 1;     //DEGUB - MOSTRA A ROTA DO SLOT TX
+		rffbuf[pos++]= 0x99;
+	}
+
+
+	if  (imprimir) {
+
+		for(i=0;i<lastpos;i++)
+		{
+			rffbuf[pos++]=ritroute[i];
+		}
+
+		if ( pos < 40) {
+			if (macRITstate == S_RIT_RX_state) {
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_txslot,sizeof(uint32_t),rffbuf,pos);
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_txend,sizeof(uint32_t),rffbuf,pos);
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_rxslot,sizeof(uint32_t),rffbuf,pos);
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_rxend,sizeof(uint32_t),rffbuf,pos);
+			}
+			else if (macRITstate == S_RIT_multichnhello_state) {
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_txslot,sizeof(uint16_t),rffbuf,pos);
+				pos = printvar((uint8_t *)&ieee154e_dbg.num_txend,sizeof(uint16_t),rffbuf,pos);
+			}
+		}
+
+		//pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+	    //pos = printvar((uint8_t *)&ieee154e_dbg.num_rxslot,sizeof(uint16_t),rffbuf,pos);
+	    //pos = printvar((uint8_t *)&ieee154e_dbg.num_rxend,sizeof(uint16_t),rffbuf,pos);
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
+
+}
+
+
+#endif
 
 void ieee154e_init(void) {
 
@@ -327,12 +569,16 @@ void ieee154e_init(void) {
    resetStats();
    ieee154e_stats.numDeSync  = 0;
    rfftooglelastype = 0;
-
+   COAPSimCount=0;
    flagSerialTx = 0;
    flagreschedule = 0;
-
-   macRITstate =S_RIT_sleep_state;
-
+   moteerr1count=0;
+   moteerr2count=0;
+   moteOKcount=0;
+   moteRetrycount=0;
+   testTx=0;
+   isrmultichannelhello = 0;
+   macRITstate = 0;
    // switch radio on
    radio_rfOn();
 
@@ -367,127 +613,15 @@ void ieee154e_init(void) {
    radio_startTimer(macRITPeriod);
 #else
    RITTimer_Init();
-   opentimers_start(RIT_SM_TICK_MS, TIMER_ONESHOT, TIME_MS, (opentimers_cbt) isr_ieee154e_newSlot);
+
+   opentimers_start(RIT_MULTICHANNELHELLO_MS, TIMER_PERIODIC, TIME_MS, (opentimers_cbt) isr_multichannelhello);
+
 #endif
 #if (USE_GPTIMER == 1)
    gptimer_init();
 #endif
 }
 
-uint8_t incroute(uint8_t element)
-{
-#if ENABLE_DEBUG_RFF
-    //if (macRITstate == S_RIT_TX_state)
-    {
-		if (lastritroutepos < 20)
-		{
-			ritroute[lastritroutepos] = element;
-			lastritroutepos++;
-		}
-		else
-		{
-			lastritroutepos = 0;
-			ritroute[lastritroutepos] = element;
-		}
-    }
-
-    return lastritroutepos;
-#else
-    return 0;
-#endif
-
-}
-
-/* ignorar imprimir RX quando entrar nos seguintes casos:
-   0x85 - rxwindowend (acontece toda hora)
-   0x68 - quando ele receber um frame porem é um ola.
-*/
-const uint8_t noprint[]={0x84,0x85,0x68};
-uint8_t checkimprimir(void)
-{
-   uint8_t j,i;
-
-#if 1
-    for(j=0;j<sizeof(noprint);j++){
-    	for(i=0;i<lastritroutepos;i++){
-    		if (ritroute[i] == noprint[j])
-    			return 0;
-    	}
-    }
-#endif
-	return TRUE;
-}
-
-
-#if (ENABLE_DEBUG_RFF == 1)
-//imprime as estatisticas
-void printstat(void){
-	uint8_t pos=0;
-
-	rffbuf[pos++]= 0x93;
-
-	rffbuf[pos++]= (uint8_t) ritstat.txola.countdata;
-	rffbuf[pos++]= (uint8_t) ritstat.txola.countdatatx;
-	rffbuf[pos++]= (uint8_t) ritstat.txola.countdatatxok;
-	rffbuf[pos++]= (uint8_t) ritstat.txola.countdatatxerr;
-	rffbuf[pos++]= 0xaa;
-	rffbuf[pos++]= (uint8_t) ritstat.txdio.countdata;
-	rffbuf[pos++]= (uint8_t) ritstat.txdio.countdatatx;
-	rffbuf[pos++]= (uint8_t) ritstat.txdio.countdatatxok;
-	rffbuf[pos++]= (uint8_t) ritstat.txdio.countdatatxerr;
-	rffbuf[pos++]= 0xbb;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countdata;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countdatatx;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countdatatxok;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countdatatxerr;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countack;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countacktxrx;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countacktxrxok;
-	rffbuf[pos++]= (uint8_t) ritstat.txdao.countacktxrxerr;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-}
-
-void printroute(void)
-{
-	uint8_t i=0;
-	uint8_t pos=0;
-	uint8_t imprimir=0;
-    uint8_t lastpos=0;
-
-	lastpos = incroute(0xCC);
-
-	if (macRITstate == S_RIT_RX_window_state){
-		rffbuf[pos++]= 0x95;
-
-		imprimir = checkimprimir();
-	}
-	else {
-		imprimir = 1;
-		rffbuf[pos++]= 0x99;
-	}
-
-	if (imprimir) {
-		//rffbuf[pos++] = lastpos;
-		for(i=0;i<lastpos;i++)
-		{
-			rffbuf[pos++]=ritroute[i];
-		}
-
-		rffbuf[pos++]= radio_csma_vars.countok;
-		rffbuf[pos++]= radio_csma_vars.rfftxbusy;
-		rffbuf[pos++]= radio_csma_vars.rfftxstop2;
-		rffbuf[pos++]= radio_csma_vars.rfftxwait;
-		rffbuf[pos++]= radio_csma_vars.countBusy;
-		rffbuf[pos++]= radio_csma_vars.counterr;
-		rffbuf[pos++]= ritstat.txola.countdata;
-		rffbuf[pos++]= ritstat.txola.countdatatx;
-		rffbuf[pos++]= ritstat.txola.countdatatxerr;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-}
-#endif
 
 
 /**
@@ -524,6 +658,39 @@ PORT_RADIOTIMER_WIDTH ieee154e_asnDiff(asn_t* someASN) {
 //======= events
 
 /**
+\brief Indicates a new service Multichannel Hello to check the neighbourhood state.
+
+This function executes in ISR mode.
+*/
+void isr_multichannelhello (void) {
+
+   isrmultichannelhello = TRUE;
+
+
+#if (SINK_SIMULA_COAP == 1)
+  //simula coap
+   COAPSimCount++;
+
+#if 1 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+  {
+	uint8_t   pos=0;
+
+	rffbuf[pos++]= 0x00;
+	rffbuf[pos++]= 0x00;
+	rffbuf[pos++]= COAPSimCount;
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+  }
+#endif
+
+  if (COAPSimCount > 5){
+	  COAPSimCount = 0;
+	  openbridge_simucoap();
+  }
+#endif
+
+}
+/**
 \brief Indicates a new slot has just started.
 
 This function executes in ISR mode, when the new slot timer fires.
@@ -532,31 +699,18 @@ This function executes in ISR mode, when the new slot timer fires.
  * Network_StartRITProcedure - send Ola and open window for data
  *  */
 
-
-
 void isr_ieee154e_newSlot() {
   uint8_t ret;
 
-  ieee154e_dbg.num_newSlot++;
-
-#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &ieee154e_dbg.num_newSlot;
-
-	rffbuf[pos++]= 0xFE;
-	rffbuf[pos++]= 0xFE;
-	rffbuf[pos++]= macRITstate;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
+#if (WATCHDOG_CONF_ENABLE == 1)
+  WatchdogClear();
 #endif
+  ieee154e_dbg.num_newSlot++;
+  RFFcount = 0;
+  nrErrorRetries = 0;
+  rffpasshere = 0;
 
-#if 1 //(SINK == 1)
+#if 0 //(SINK == 1)
   ret = checkinterrupt();
 
   if (ret)
@@ -578,9 +732,9 @@ void isr_ieee154e_newSlot() {
 	  }
 	#endif
   }
-#else
-  radiotimer_clearValue();
+  //radiotimer_clearValue();
 #endif
+
   clearritroute();
 
   activity_ti1ORri1();
@@ -590,72 +744,110 @@ void isr_ieee154e_newSlot() {
 
 port_INLINE void activitytx_datanoecho(void) {
 
-	//open_addr_t address;
-	//uint8_t elementpos=0;
-	//uint8_t ret=0;
-	//uint8_t endslot=false;
+	uint32_t timeelapsedms;
+	uint32_t deltams;
+	uint8_t nrPending;
+	uint8_t endslot=TRUE;
 
 	radiotimer_cancel();
 
-	changeState(S_RIT_TXDATANOECHO);
+    radio_rfOff();
 
 	incroute(0x87);
+	changeState(S_RIT_TXDATANOECHO);
 
-   // turn off the radio
-   radio_rfOff();
-   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-   ieee154e_vars.radioOnThisSlot = 0;
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();
+    //ieee154e_vars.radioOnTics +=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
 
-    if (ieee154e_vars.RITQueue_ElementPending < maxElements) {
+	//TODO!!!AQUI EU DEVO VOLTAR A ABRIR A JANELA POIS PODE TER COLIDIDO UM...MAS PODE HAVER MAIS...SENAO VOU PERDER PARA TODOS...
+	//para os frames brodcast deve ser enviado um a um...sinalizo que ja enviei um frame...
+	if (sRIT_vars.isBroadcastMulticast == TRUE)
+	{
+		RITQueue_Clear_Pending(ieee154e_vars.RITQueue_ElementPending,actualsrcaddr);
 
-    	sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+		nrPending = RITQueue_getNrPendingParents(ieee154e_vars.RITQueue_ElementPending);
 
-		//para os frames brodcast deve ser enviado um a um...sinalizo que ja enviei um frame...
-		if (sRIT_vars.isBroadcastMulticast == TRUE)
-		{
-			RITQueue_Clear_Pending(ieee154e_vars.RITQueue_ElementPending,actualsrcaddr);
+		if (nrPending > 0) {
+
+			changeState(S_RIT_TXDATAOFFSET);
+			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
+
+			#if 1 // ((ENABLE_DEBUG_RFF == 1)  && (DBG_RADIO_POWER_CONS == 1))
+			{
+				uint8_t pos=0;
+
+				rffbuf[pos++]= RFF_IEEE802_TX;
+				rffbuf[pos++]= 0x87;
+				rffbuf[pos++]= nrPending;
+
+				pos = printaddress(actualsrcaddr,&rffbuf[0],pos);
+				pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+
+				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+				//openserial_startOutput();
+			}
+			#endif
+
+			endslot = FALSE;
+		}
+	}
+	else{ //AQUI EH UM DAO OU COAP...NESTE CASO DEVO VOLTAR A RETRANSMITIR NOVAMENTE
+		//REPROGRAMAR A JANELA
+		timeelapsedms = ieee154e_vars.lastCapturedTime + TX_RIT_TXDATAECHO_MS + 10;
+		if (TX_RIT_TIMEOUT_MS > timeelapsedms){
+
+			deltams = TX_RIT_TXDATAECHO_MS + 10;
+
+			#if 1 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+			{
+				uint8_t   pos=0;
+
+				rffbuf[pos++]= RFF_IEEE802_RX;
+				rffbuf[pos++]= 0x87;
+				pos = printvar((uint8_t *)&timeelapsedms,sizeof(uint32_t),rffbuf,pos);
+				pos = printvar((uint8_t *)&deltams,sizeof(uint32_t),rffbuf,pos);
+
+				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+			}
+			#endif
+
+		    //Volto ao estado anterior para indicar que estou novamente esperando um frame TX
+			changeState(S_RIT_TXDATA);
+
+			//como desliguei o radio anteriormente devo reprograma-lo para TX
+			radio_setFrequency(ieee154e_vars.freq);
+
+			radio_txEnable();
+
+		    radio_txNow(TX_USE_CSMA_CA);
+
+			radiotimer_schedule(deltams);
+
+			endslot = FALSE;
+		}
+		else{
+			endslot = TRUE;
 		}
 
-    	RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
 	}
 
+	if (endslot == TRUE) {
+		if (txpending == FALSE){
+			  RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
+		}
 
-#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-  {
-	uint8_t   pos=0;
+		if (ieee154e_vars.dataToSend != NULL) {
+		  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
 
-	rffbuf[pos++]= RFF_IEEE802_TX;
-	rffbuf[pos++]= 0x87;
-	rffbuf[pos++]= RITQueue_ElementPending;
-	rffbuf[pos++]= sRIT_vars.frameType;
-	rffbuf[pos++]= sRIT_vars.msglength;
-	rffbuf[pos++]= sRIT_vars.isBroadcastMulticast;
-	rffbuf[pos++]= sRIT_vars.destaddr.type;
-    if (element.destaddr.type == 0x01)	{
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[0];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[1];
-    }
-    if (element.destaddr.type == 0x02)	{
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[6];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[7];
-    }
-	else if (element.destaddr.type == 0x03) {
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[14];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[15];
+		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+
+		  ieee154e_vars.dataToSend = NULL;
+		}
+
+		endSlot();
 	}
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
-#endif
-
-	   // indicate succesful Tx to schedule to keep statistics
-	  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-	  // indicate to upper later the packet was sent successfully
-	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-	  // reset local variable
-	  ieee154e_vars.dataToSend = NULL;
-	  // abort
-	  endSlot();
 }
 
 
@@ -747,96 +939,94 @@ port_INLINE void activity_ti1ORri1() {
    bool newtxframe=FALSE;
    uint32_t macRITPeriod;
    uint32_t macRITTxPeriod;
-   slotOffset_t slotOffset;
+   slotOffset_t targetSlotOffset;
    volatile uint8_t	random;
    volatile uint32_t	rxritperiod;
 
-   //ieee154e_vars.lastCapturedTime = radiotimer_getValue();
    ieee154e_vars.lastCapturedTime = 0;
    actualtimer0 = radio_getTimerValue();
-	countdebug=0;
+   slottimeref = actualtimer0;
 
    radiotimer_cancel();
 
-   //aqui eu estou posicionando o slot para o slot 1.
-/*
-   if (ieee154e_vars.slotOffset > 3) {
-	   ieee154e_vars.slotOffset       = 1;
-	  // schedule_syncSlotOffset(ieee154e_vars.slotOffset);
-	  // ieee154e_vars.nextActiveSlotOffset = schedule_getNextActiveSlotOffset();
-   }
-
-  //if (schedule_getOkToSend())
-      //last_slotoffset = ieee154e_vars.slotOffset;
-      //last_nextActiveSlotOffset = ieee154e_vars.nextActiveSlotOffset;
-      // ieee154e_vars.slotOffset = RIT_checkpendingmsginsomeslot(&neighbor);
-      // ieee154e_vars.dataToSend = openqueue_macGetDataPacket(&neighbor);
-
-*/
-
     //verifico se existe mensagem pendente para ser enviada
     ieee154e_vars.dataToSend = NULL;
-    slotOffset = ieee154e_vars.slotOffset;
-    if ((slotOffset > 3) || (slotOffset == 0)) {
- 	   slotOffset = 1;
-    }
+    targetSlotOffset = ieee154e_vars.slotOffset;
 
-    if (txpending == FALSE)
+#if (TESTRIT_ONLY_OLA == 0)
+    if (1)  //(txpending == FALSE)
 	{
-		schedule_syncSlotOffset(slotOffset);
+		schedule_syncSlotOffset(targetSlotOffset);
 	    ieee154e_vars.nextActiveSlotOffset = schedule_getNextActiveSlotOffset();
 
 	    schedule_getNeighbor(&neighbor);
 
-	    //ESTA TRAVANDO AQUI...
 	    if (neighbor.type > 0) {
     	    //verifico se ele tem mensagem pendende
     	    ieee154e_vars.dataToSend  = openqueue_macGetDataPacket(&neighbor);
         }
 	}
-    else{
+    else {
     	ieee154e_vars.dataToSend  = &sPendingDataPacket;
     }
 
+#else
+	 txpending = FALSE;
+#endif
 
-  //--------------
-  // TREAT TX
-  if ((txpending == TRUE) || (ieee154e_vars.dataToSend != NULL)) {   // I have a packet to send
+   if ((txpending == TRUE) || (ieee154e_vars.dataToSend != NULL)) {   // I have a packet to send
+		macRITstate=S_RIT_TX_state;
 
-	//StartTxRITProcedure(txpending,newtxframe);
+		ieee154e_dbg.num_txslot++;
+		ritstat.txola.countdatatx++;
 
-    //radio_setTimerPeriod(TX_RIT_PERIOD_MS);
+		StartTxRITProcedure(txpending,newtxframe);
+
+		radio_setTimerPeriod(TX_RIT_PERIOD_MS);
   }
-  else  {
-	  //--------------
-	  // TREAT RX
-	  if (ieee154e_vars.dataReceived != NULL) {
+  else if (isrmultichannelhello == TRUE)  {
+
+		isrmultichannelhello = FALSE;
+		macRITstate = S_RIT_multichnhello_state;
+
+		ieee154e_dbg.num_txslot++;
+
+		StartTxMultiChannelHello();
+
+		radio_setTimerPeriod(TX_RIT_PERIOD_MS);
+  }
+  else {
+		macRITstate=S_RIT_RX_state;
+
+		ieee154e_dbg.num_rxslot++;
+
+	    if (ieee154e_vars.dataReceived != NULL) {
 		   // free the (invalid) received data buffer so RAM memory can be recycled
 		   openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
 		   ieee154e_vars.dataReceived = NULL;
-	   }
+	    }
 
-		#if SINK
-			 //start inputting serial data
-	          openserial_stop();
-			  if (toogleTxRxSerial()){
-				  openserial_startOutput();
-				  StartRxRITProcedure();
-			  }
-			  else {
-				  openserial_startInput();
-				#if (SINK_SIMULA_COAP == 1)
-				  //simula coap
-				  openbridge_simucoap();
-				#endif
-			  }
-
+	    /* TODO!!! Esta escolha da serial ainda esta trazendo problemas...No OpenWSN ele tem um slottime para serialRX e serialTX
+	     * Aqui a melhor configuracao foi esta somente no slot do Ola (RX) e chavear entre abertura da porta para serial RX
+	     *  e serial TX...Lembrando que o bug da serial eh que depois de um tempo a serial para de receber input do OpenVis.
+	     *  Talvez tenha relacao com o log que eu faco...
+	     */
+		#if  SINK
+		 //start inputting serial data
+		  if (toogleTxRxSerial()){
+			  openserial_startOutput();
+			  StartRxRITProcedure();
+		  }
+		  else {
+			  openserial_startInput();
+			  StartRxRITProcedure();
+		  }
 		#else
-		  openserial_stop();
+	      openserial_stop();
 		  openserial_startOutput();
 		  StartRxRITProcedure();
-
 		#endif
+
 
 		#if (ENABLE_CSMA_CA == 1)
 			  random = 1; //macRadioRandomByte() & ((1 << 4) - 1);
@@ -847,10 +1037,7 @@ port_INLINE void activity_ti1ORri1() {
 		#endif
   }
 
-  //leds_sync_toggle();
-
   ieee154e_vars.slotOffset = ieee154e_vars.nextActiveSlotOffset;
-
 
 }
 
@@ -911,8 +1098,76 @@ port_INLINE void getRitRequest(void) {
 	   //sixtop_vars.busySendingEB = TRUE;
 }
 
+//hellospec 0=Dont need ACK ; 1=Need ACK
+port_INLINE sRITelement activityrx_preparemultichannelhello(uint8_t hellospec, uint8_t *frame) {
 
-port_INLINE void activityrx_prepareritdatareq(void) {
+	uint8_t pos=0;
+	open_addr_t myaddr;
+	open_addr_t *pmyaddr=(open_addr_t *)&myaddr;
+	sRITelement psEle;
+
+	psEle.timestamp = 0;
+	psEle.msg = frame;
+
+	psEle.isBroadcastMulticast = TRUE;
+	psEle.destaddr.type = 1;
+	psEle.destaddr.addr_16b[0] = 0xFF;
+	psEle.destaddr.addr_16b[1] = 0xFF;
+
+	psEle.frameType = IANA_ICMPv6_RA_PREFIX_INFORMATION;  // 3 = MAC COMMAND
+
+	// MONTA O FRAME DE RIT Data Request
+	// Se addr.source 16bits e addr.dest 64bits = 0xE840
+
+	// bits 0-2   - FrameType      - 011 - MAC Command
+	// bit  3     - SecurityEnable - 0 = false
+	// bit  4     - Frame Pending  - 0 = false
+	// bit  5     - Ack Request    - 0 = false
+	// bit  6     - Intra Pan      - 1 = true
+	// bit  7-9   - Reserved       - Reserved
+	// bit  10-11 - Dest Addr Mode - 2 = short 16 bits
+	// bit  12-13 - Frame Ver      - 2 = Version 2
+	// bit  14-15 - Src Addr Mode  - 2 = short 16 bits
+
+	frame[pos++] = 0x43;  //FCS[0] LSB
+	frame[pos++] = 0xA8;  //FCS[1] MSB
+	frame[pos++] = 0xb1;  //Seq Number
+	frame[pos++] = 0xfe;
+	frame[pos++] = 0xca;
+	//address dest
+	frame[pos++] = psEle.destaddr.addr_16b[0];
+	frame[pos++] = psEle.destaddr.addr_16b[1];
+	//address source
+#if 0
+	pmyaddr = idmanager_getMyID(ADDR_64B);
+	frame[pos++] = pmyaddr->addr_16b[7];
+	frame[pos++] = pmyaddr->addr_16b[6];
+	frame[pos++] = pmyaddr->addr_16b[5];
+	frame[pos++] = pmyaddr->addr_16b[4];
+	frame[pos++] = pmyaddr->addr_16b[3];
+	frame[pos++] = pmyaddr->addr_16b[2];
+	frame[pos++] = pmyaddr->addr_16b[1];
+	frame[pos++] = pmyaddr->addr_16b[0];
+#else
+	pmyaddr = idmanager_getMyID(ADDR_16B);
+	frame[pos++] = pmyaddr->addr_16b[1];
+	frame[pos++] = pmyaddr->addr_16b[0];
+#endif
+	//Command Frame Identifier
+	frame[pos++] = CMDFRMID;
+	frame[pos++] = hellospec;   //hellospec 0=Dont need ACK ; 1=Need ACK
+	//crc
+	frame[pos++] = 0x00;
+	frame[pos++] = 0x00;
+
+	// space for 2-byte CRC
+	//packetfunctions_reserveFooterSize(&adv,2);
+
+    psEle.msglength = pos;
+
+	return psEle;
+}
+port_INLINE uint8_t activityrx_prepareritdatareq(uint8_t hellospec) {
 
 	header_IE_ht header_desc;
 	OpenQueueEntry_t adv;
@@ -935,6 +1190,7 @@ port_INLINE void activityrx_prepareritdatareq(void) {
 	// bit  10-11 - Dest Addr Mode - 2 = short 16 bits
 	// bit  12-13 - Frame Ver      - 2 = Version 2
 	// bit  14-15 - Src Addr Mode  - 2 = short 16 bits
+
 
 	frame[pos++] = 0x43;  //FCS[0] LSB
 	frame[pos++] = 0xA8;  //FCS[1] MSB
@@ -961,7 +1217,8 @@ port_INLINE void activityrx_prepareritdatareq(void) {
 	frame[pos++] = pmyaddr->addr_16b[0];
 #endif
 	//Command Frame Identifier
-	frame[pos++] = 0x20;
+	frame[pos++] = CMDFRMID;
+	frame[pos++] = hellospec;   //hellospec 0=Dont need ACK ; 1=Need ACK
 	//crc
 	frame[pos++] = 0x00;
 	frame[pos++] = 0x00;
@@ -970,6 +1227,8 @@ port_INLINE void activityrx_prepareritdatareq(void) {
 	//packetfunctions_reserveFooterSize(&adv,2);
 
 	radio_loadPacket((uint8_t *)&frame[0],pos);
+
+	return pos;
 }
 
 
@@ -979,7 +1238,7 @@ port_INLINE void activityrx_prepareritdatareq(void) {
 // Este start eh do proprio RIT entao devo somente aguardar o estouro do timer...
 void activity_RITDoNothing(void){
 	changeState(S_RIT_RXOLAREADY);
-	macRITstate=S_RIT_RX_window_state;
+	macRITstate=S_RIT_RX_state;
 }
 */
 
@@ -996,25 +1255,10 @@ port_INLINE void StartRxRITProcedure(void) {
 	uint32_t random,rxritperiod;
 
 	changeState(S_RIT_TXOLAPREPARE);
-	macRITstate=S_RIT_RX_window_state;
-    incroute(0x01);
 
-#if 0// ((ENABLE_DEBUG_RFF == 1)  && (DBG_IEEE802_TIMER == 1))
-	{
-		uint8_t *pucAux = (uint8_t *) &ieee154e_vars.lastCapturedTime;
-		uint8_t pos=0;
+	incroute(idmanager_getIsDAGroot());
 
-		rffbuf[pos++]= RFF_IEEE802_RX;
-		rffbuf[pos++]= 0x01;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-#endif
-	// o Ola eh sempre enviado para o meu melhor canal
+	// o ola eh sempre enviado para o meu melhor canal
 	ieee154e_vars.freq = macneighbors_getMyBestChan();
 
 	// configure the radio for that frequency
@@ -1022,7 +1266,7 @@ port_INLINE void StartRxRITProcedure(void) {
 
 #if (USE_RITREQ_SHORT == 1)
 	//frame reduzido...12 bytes
-	activityrx_prepareritdatareq();
+	activityrx_prepareritdatareq(0);
 #else
 	//frame do Beacon do OpenWSN...64bytes
 	//################ load the packet in the radio's Tx buffer
@@ -1042,15 +1286,25 @@ port_INLINE void StartRxRITProcedure(void) {
 
 	ritstat.txola.countdata++;
 
-#if (ENABLE_CSMA_CA == 1)
     random = macRadioRandomByte() & ((1 << 3) - 1);
-	rxritperiod = (RX_RIT_TXOLAPREPARE_MS + random);
+	rxritperiod = (RX_RIT_TXOLAPREPARE_MS);  // + random);
 	radiotimer_schedule(rxritperiod);
-#else
-	radiotimer_schedule(50);
-	//radiotimer_schedule(RX_RIT_TXOLAPREPARE_TICKS);
-#endif
 
+	#if 0// ((ENABLE_DEBUG_RFF == 1)  && (DBG_IEEE802_TIMER == 1))
+		{
+			uint8_t pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_RX;
+			rffbuf[pos++]= 0x01;
+			rffbuf[pos++]= ieee154e_vars.slotOffset;
+			rffbuf[pos++]= ieee154e_vars.freq;
+			pos = printvar((uint8_t *)&rxritperiod,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+			openserial_startOutput();
+		}
+	#endif
 }
 
 port_INLINE void activityrx_sendola(void) {
@@ -1061,10 +1315,10 @@ port_INLINE void activityrx_sendola(void) {
 
   radiotimer_cancel();
 
-  //leds_debug_toggle();
-
 #if (ENABLE_CSMA_CA == 1)
-  ieee154e_vars.lastCapturedTime = getdeltaTimerValue();
+
+  ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();   // getdeltaTimerValue();
+
   radio_txNow(TX_USE_CSMA_CA);
 
   radiotimer_schedule(RX_RIT_TXOLAECHO_MS);
@@ -1088,6 +1342,8 @@ port_INLINE void activityrx_sendola(void) {
 
 		rffbuf[pos++]= RFF_IEEE802_RX;
 		rffbuf[pos++]= 0x02;
+		rffbuf[pos++]= ieee154e_vars.slotOffset;
+/*
 		rffbuf[pos++]= radio_csma_vars.countok;
 		rffbuf[pos++]= radio_csma_vars.rfftxbusy;
 		rffbuf[pos++]= radio_csma_vars.rfftxstop2;
@@ -1095,161 +1351,75 @@ port_INLINE void activityrx_sendola(void) {
 		rffbuf[pos++]= radio_csma_vars.nb;
 		rffbuf[pos++]= radio_csma_vars.countBusy;
 		rffbuf[pos++]= radio_csma_vars.counterr;
+*/
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	}
 #endif
-
-}
-
-
-
-#if 0
-port_INLINE void activityrx_waitolaecho(void) {
-  uint32_t dur_rt3;
-
-  changeState(S_RIT_RXOLAECHO);
-  incroute(0x03);
-
-  //radiotimer_cancel();
-  // turn off the radio
-  //radio_rfOff();
-  //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-  //ieee154e_vars.radioOnThisSlot = 0;
-
- // calculate the frequency to Rx on
- ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset());
-
- // configure the radio for that frequency
- radio_setFrequency(ieee154e_vars.freq);
-
- // enable the radio in Rx mode. The radio does not actively listen yet.
-  radio_rxEnable();
-
-  radio_rxNow();
-
-  //dur_rt2 = ieee154e_vars.lastCapturedTime+TsTxOffset-TsLongGT-delayRx;
-  dur_rt3 = ieee154e_vars.lastCapturedTime+200;
-  radiotimer_schedule(dur_rt3);
-
-#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
-	{
-		uint8_t *pucAux = (uint8_t *) &dur_rt3;
-		uint8_t pos=0;
-
-		rffbuf[pos++]= RFF_IEEE802_RX;
-		rffbuf[pos++]= 0x03;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataToSend->length;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-#endif
-}
-#endif
-port_INLINE void activityrx_rxolanoecho(void) {
-
-  radiotimer_cancel();
-  radio_rfOff();
-
-  changeState(S_RIT_RXOLANOECHO);
-
-  ieee154e_vars.lastCapturedTime += getdeltaTimerValue();
-
-  // turn off the radio - aqui eu nao recebi o ola...ignoro o slot
-  //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-  //ieee154e_vars.radioOnTics+=(ieee154e_vars.lastCapturedTime - ieee154e_vars.radioOnInit);
-
-  ieee154e_vars.radioOnThisSlot = 0;
-
-  incroute(0x83);
-
-  ritstat.txola.countdatatxerr++;
-
-#if ENABLE_DEBUG_RFF
-   {
-	uint8_t *pucAux = (uint8_t *) &ieee154e_vars.lastCapturedTime;
-	uint8_t pos=0;
-
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x83;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
-
-  //sinalizo erro pois o frame nao foi enviado...e termino o slot.
-
-  //openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
-  // ieee154e_vars.dataReceived = NULL;
-
-  endSlot();
-
-
 
 }
 
 
 /*
- * Teste - SendDAO Diretamente...sem esperar
- *  */
-port_INLINE void SendTxDAODirectly(void) {
+ *  aqui esta no inicio do slot RX e nao recebeu OLA ECHO...
+ *  Reprograma o timer para a janela do RIT e volta a enviar o pacote.
+ *  Problema aqui eh o radio estar travado e ele vai terminar o slot quando o timer estourar a janela.
+ */
+port_INLINE void activityrx_rxolanoecho(void) {
 
-    changeState(S_RIT_TXDATA);
-
-	// change owner
-	ieee154e_vars.dataToSend->owner = COMPONENT_IEEE802154E;
-	// record that I attempt to transmit this packet
-	ieee154e_vars.dataToSend->l2_numTxAttempts++;
+	uint32_t deltams;
+	uint32_t timeelapsedms;
 
 	radiotimer_cancel();
 
-	// calculate the frequency to transmit on
-	ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset());
+	radio_rfOff();
 
-	// configure the radio for that frequency
-	radio_setFrequency(ieee154e_vars.freq);
+	changeState(S_RIT_RXOLANOECHO);
 
-	// load the packet in the radio's Tx buffer
-	radio_loadPacket(ieee154e_vars.dataToSend->payload,
-					ieee154e_vars.dataToSend->length);
+	incroute(0x83);
 
-	// enable the radio in Tx mode. This does not send the packet.
-	radio_txEnable();
-	ieee154e_vars.radioOnInit=radio_getTimerValue();
-	ieee154e_vars.radioOnThisSlot=TRUE;
-	//ieee154e_vars.lastCapturedTime = ieee154e_vars.radioOnInit;
+	ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();  //getdeltaTimerValue();
 
-#if 0 //ENABLE_DEBUG_RFF
-   {
-	uint32_t capturetime;
-	uint8_t *pucAux = (uint8_t *) &capturetime;
-	uint8_t pos=0;
+	//ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+	//ieee154e_vars.radioOnTics+=(ieee154e_vars.lastCapturedTime - ieee154e_vars.radioOnInit);
 
-	capturetime=radio_getTimerValue();
+	//REPROGRAMAR A JANELA COM UM TEMPO MENOR...
+	timeelapsedms = ieee154e_vars.lastCapturedTime;
+	if (RX_RIT_TIMEOUT_MS > timeelapsedms){
 
-	rffbuf[pos++]= RFF_IEEE802_TX;
-	rffbuf[pos++]= 0xF0;
-	rffbuf[pos++]= ieee154e_vars.dataToSend->creator;
-	rffbuf[pos++]= ieee154e_vars.dataToSend->l4_protocol;
+		deltams = RX_RIT_TIMEOUT_MS - timeelapsedms;
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
-#if (ENABLE_CSMA_CA == 1)
-   radio_txNow(TX_USE_CSMA_CA);
-#else
-   radio_txNow();
-#endif
+		if (deltams < 5)
+			deltams = 5;
 
-   radiotimer_schedule(DURATION_tt3);
+		#if 1 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+		{
+			uint8_t   pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_RX;
+			rffbuf[pos++]= 0x83;
+			pos = printvar((uint8_t *)&timeelapsedms,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&deltams,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		}
+		#endif
+
+
+	    //Volto ao estado anterior para indicar que estou novamente esperando um frame TX
+		changeState(S_RIT_TXOLA);
+
+		//como desliguei o radio anteriormente devo reprograma-lo para TX
+		radio_setFrequency(ieee154e_vars.freq);
+
+		radio_txEnable();
+
+	    radio_txNow(TX_USE_CSMA_CA);
+
+		radiotimer_schedule(deltams);
+	}
+	else{
+		endSlot();
+	}
 
 }
 
@@ -1286,7 +1456,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 	iphc_nextheader = *(ieee154e_vars.dataToSend->payload+23);
 
 	if (ieee154e_vars.dataToSend->l4_protocol == IANA_ICMPv6) {
-		testerff = 0x01;
+		testerff = 0x11;
 	    //preparo elemento para ser colocado na fila do RIT
 		pmsgout->msglength =  ieee154e_vars.dataToSend->length;
 		pmsgout->timestamp = radio_getTimerValue();
@@ -1303,11 +1473,10 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			if (txpending != true)
 			{
 				macRIT_Pending_TX_frameType = IANA_ICMPv6_RPL_DIO;
+				ritstat.txdio.countdata++;
 				pmsgout->frameType = macRIT_Pending_TX_frameType;
 				pmsgout->destaddr  = ieee154e_vars.dataToSend->l3_destinationAdd;
 				testerff = 0x12;
-                //rit statistics - conta novo produtor
-				ritstat.txdio.countdatatx++;
 			}
 			else
 			{
@@ -1318,7 +1487,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		}
 		else if (ieee154e_vars.dataToSend->l4_sourcePortORicmpv6Type == IANA_ICMPv6_RPL)
 		{
-			testerff = 0x02;
+			testerff = 0x14;
 			//FRAME DAO
 			macRIT_Pending_TX_frameType = IANA_ICMPv6_RPL_DAO;
 
@@ -1327,7 +1496,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 
 			if (ieee154e_vars.dataToSend->creator == COMPONENT_FORWARDING)
 			{
-				testerff = 0x03;
+				testerff = 0x15;
 
 				 //salvo o endereco do destino que pode estar na posicao final do frame (RPL Transition)
 				 //address_1.type = ieee154e_vars.dataToSend->l3_destinationAdd.type;
@@ -1335,9 +1504,9 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 
 				 if (ieee154e_vars.dataToSend->l3_destinationAdd.type == 3)
 				 {
-						testerff = 0x04;
+						testerff = 0x16;
 
-
+					address_1 = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
                     /*
 					 pu8Address = (uint8_t *) &(ieee154e_vars.dataToSend->l3_destinationAdd.addr_128b[15]);
 					 address_1.addr_64b[7] = *pu8Address--;
@@ -1355,8 +1524,12 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			}
 			else
 			{
-				testerff = 0x05;
+				testerff = 0x17;
+
+
+				address_1 = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
 				 //salvo o endereco do destino que pode estar na posicao final do frame (RPL Transition)
+				 /*
 				 address_1.type = 2;
 				 pu8Address = (uint8_t *) (ieee154e_vars.dataToSend->payload + ieee154e_vars.dataToSend->length-3);
 				 address_1.addr_64b[7] = *pu8Address--;
@@ -1367,6 +1540,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 				 address_1.addr_64b[2] = *pu8Address--;
 				 address_1.addr_64b[1] = *pu8Address--;
 				 address_1.addr_64b[0] = *pu8Address;
+				 */
 			}
 
 			pmsgout->frameType = macRIT_Pending_TX_frameType;
@@ -1375,7 +1549,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		}
 	}
 	else if (ieee154e_vars.dataToSend->l4_protocol == IANA_UDP) {
-		testerff = 0x09;
+		testerff = 0x18;
 		macRIT_Pending_TX_frameType = IANA_UDP;
 		pmsgout->msglength =  ieee154e_vars.dataToSend->length;
 		pmsgout->timestamp = radio_getTimerValue();
@@ -1385,10 +1559,10 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		flagpending = true;
 
         //rit statistics - conta novo produtor
-		ritstat.txcoap.countdata++;
+		ritstat.txcoap.countdatatx++;
 	}
 	else if (ieee154e_vars.dataToSend->l4_protocol == IANA_UNDEFINED) {
-		testerff = 0x06;
+		testerff = 0x19;
 
 	    //preparo elemento para ser colocado na fila do RIT
 		pmsgout->msglength =  ieee154e_vars.dataToSend->length;
@@ -1408,10 +1582,9 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 			(icmpv6_type == IANA_ICMPv6_RPL) &&
 			(icmpv6_code == IANA_ICMPv6_RPL_DIO))
 		{
-			testerff = 0x07;
+			testerff = 0x1A;
 
-            //rit statistics - conta novo produtor
-			ritstat.txdio.countdatatx++;
+			ritstat.txdio.countdata++;
 
 			//AQUI EH O CASO DA BRIDGE ANTIGA!!!!
 			macRIT_Pending_TX_frameType = IANA_ICMPv6_RPL_DIO;
@@ -1422,18 +1595,18 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		else if ((iphc_header1 == 0x78) &&
 				 ((iphc_nextheader == IANA_UDP) || (iphc_nextheader == IANA_IPv6ROUTE)))
 		{ //verifica se o IPHC header eh 6LowPAN e o Next eh UDP ou IPV6 Route  (INFERENCIA DO COAP)
-			testerff = 0x08;
+			testerff = 0x1B;
 			macRIT_Pending_TX_frameType = IANA_UDP;
 			pmsgout->frameType = macRIT_Pending_TX_frameType;
 			pmsgout->destaddr  = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
 
             //rit statistics - conta novo produtor
-			ritstat.txcoap.countdata++;
+			ritstat.txcoap.countdatatx++;
 		}
 	}
 	else if (ieee154e_vars.dataToSend->l4_protocol == IANA_IPv6ROUTE) {
 		//AQUI EH QUANDO O COAP ENVIA UM FORWARDING FRAME...
-		testerff = 0x0A;
+		testerff = 0x1C;
 
 	    //preparo elemento para ser colocado na fila do RIT
 		pmsgout->msglength =  ieee154e_vars.dataToSend->length;
@@ -1448,13 +1621,13 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 
 		if ((iphc_header1 == 0x78) && ((iphc_nextheader == IANA_UDP) || (iphc_nextheader == IANA_IPv6ROUTE)))
 		{ //verifica se o IPHC header eh 6LowPAN e o Next eh UDP ou IPV6 Route  (INFERENCIA DO COAP)
-			testerff = 0x0B;
+			testerff = 0x1D;
 			macRIT_Pending_TX_frameType = IANA_UDP;
 			pmsgout->frameType = macRIT_Pending_TX_frameType;
 			pmsgout->destaddr  = ieee154e_vars.dataToSend->l2_nextORpreviousHop;
 
             //rit statistics - conta novo produtor
-			ritstat.txcoap.countdata++;
+			ritstat.txcoap.countdatatx++;
 		}
 	}
 
@@ -1465,7 +1638,7 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 
 		if (pmsgout->isBroadcastMulticast){
 			//descubro quantos vizinhos tenho na minha vizinhanca
-		    numTargetParents = macneighbors_setBroadCastPending();
+		    numTargetParents = macneighbors_setBroadCastPending(1);
 		}
 		else{
 		    numTargetParents = 1;
@@ -1477,8 +1650,12 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
     	sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 	}
 
-    if (sRIT_vars.destaddr.type == 0) {
+	/* Aqui eh o caso onde tenho alguma excessao ou nao tenho nenhum vizinho vivo na livelist
+	 * entao desconsidero o frame e notifico falha e termino o slot sem enviar nada.
+	 */
+    if ((sRIT_vars.destaddr.type == 0) || (numTargetParents == 0)) {
     	incroute(0xF5);
+    	macRIT_Pending_TX_frameType = 0;
     }
 
 	#if ((ENABLE_DEBUG_RFF) && (DBG_IEEE802_TX == 1))
@@ -1495,9 +1672,9 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		rffbuf[pos++]= ieee154e_vars.slotOffset;
 		rffbuf[pos++]= macRIT_Pending_TX_frameType;
 		rffbuf[pos++]= testerff;
-		rffbuf[pos++]= ieee154e_vars.dataToSend->l4_protocol;
-		rffbuf[pos++]= ieee154e_vars.dataToSend->l2_numTxAttempts;
-		rffbuf[pos++]= ieee154e_vars.dataToSend->l2_retriesLeft;
+		//rffbuf[pos++]= ieee154e_vars.dataToSend->l4_protocol;
+		//rffbuf[pos++]= ieee154e_vars.dataToSend->l2_numTxAttempts;
+		//rffbuf[pos++]= ieee154e_vars.dataToSend->l2_retriesLeft;
 		rffbuf[pos++]= pmsgout->isBroadcastMulticast;
 		rffbuf[pos++]= numTargetParents;
 
@@ -1505,50 +1682,10 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
 		//rffbuf[pos++]= iphc_header1;
 		//rffbuf[pos++]= iphc_nextheader;
 
-		rffbuf[pos++]= pmsgout->destaddr.type;
-		if (element.destaddr.type == 0x01)	{
-			rffbuf[pos++]= pmsgout->destaddr.addr_16b[0];
-			rffbuf[pos++]= pmsgout->destaddr.addr_16b[1];
-		}
-		if (element.destaddr.type == 0x02)	{
-			rffbuf[pos++]= pmsgout->destaddr.addr_64b[6];
-			rffbuf[pos++]= pmsgout->destaddr.addr_64b[7];
-		}
-		else if (element.destaddr.type == 0x03) {
-			rffbuf[pos++]= pmsgout->destaddr.addr_128b[14];
-			rffbuf[pos++]= pmsgout->destaddr.addr_128b[15];
-		}
+		pos = printaddress(pmsgout->destaddr,rffbuf,pos);
+		pos = printaddress(ieee154e_vars.dataToSend->l3_destinationAdd,rffbuf,pos);
+		pos = printaddress(ieee154e_vars.dataToSend->l2_nextORpreviousHop,rffbuf,pos);
 
-
-		/*
-		rffbuf[pos++]= 0xDD;
-		rffbuf[pos++]= dio_stat.countprod;
-		rffbuf[pos++]= dio_stat.countsendok;
-		rffbuf[pos++]= dio_stat.countsenderror;
-		rffbuf[pos++]= 0xEE;
-		rffbuf[pos++]= dao_stat.countprod;
-		rffbuf[pos++]= dao_stat.countsendok;
-		rffbuf[pos++]= dao_stat.countsenderror;
-
-		rffbuf[pos++]= 0xEE;
-		rffbuf[pos++]= numAvailableElements;
-		for (i=0; i<maxElements ;i++)
-			rffbuf[pos++]= pvObjList[i].frameType;
-
-		rffbuf[pos++]= 0xCC;
-		pucAux = (uint8_t *) &ieee154e_vars.asn;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= 0xcc;
-		pucAux = (uint8_t *) &ieee154e_vars.dataToSend;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= 0xcc;
-	*/
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	}
 	#endif
@@ -1557,9 +1694,46 @@ uint8_t checkmsgtype(sRITelement *pmsgout,uint8_t txpending,uint8_t newtxframe) 
    return (macRIT_Pending_TX_frameType);
 }
 
+port_INLINE void StartTxMultiChannelHello (void) {
 
-//como tem mensagem pendente ele stop o RIT_OLA e start RIT RX_ waiting for TX  ola
-port_INLINE void StartTxRITProcedure(uint8_t txpending,uint8_t newtxframe) {
+	uint8_t frame[30];
+	sRITelement psEle;
+	uint8_t numTargetParents;
+
+	changeState(S_RIT_TXDATAOFFSET);
+
+	//montar frame de Multi-Channel Hello
+	psEle = activityrx_preparemultichannelhello(0,frame);
+
+	//descubro quantos vizinhos tenho na minha vizinhanca
+	numTargetParents = macneighbors_setBroadCastPending(0);
+
+	//coloco elemento na fila do RIT_Tx
+    ieee154e_vars.RITQueue_ElementPending = RITQueue_Put(&psEle,0,numTargetParents);
+
+    //preencho a variavel global ritvars
+    sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+
+#if 1 //((ENABLE_DEBUG_RFF) && (DBG_IEEE802_TX == 1))
+{
+	uint8_t pos=0;
+
+	rffbuf[pos++]= RFF_IEEE802_TX;
+	rffbuf[pos++]= 0xAA;
+	rffbuf[pos++]= numTargetParents;
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+	openserial_startOutput();
+}
+#endif
+
+
+    activitytx_rxolaprepare();
+}
+
+#if (TEST_MEASURE_NEIGHBOR_RATE == 1)
+port_INLINE void testeTxRITProcedure(void) {
 
 	uint8_t macRIT_Pending_TX_frameType=0;
 	//uint32_t dur_rt1;
@@ -1567,61 +1741,112 @@ port_INLINE void StartTxRITProcedure(uint8_t txpending,uint8_t newtxframe) {
 
 	changeState(S_RIT_TXDATAOFFSET);
     macRITstate=S_RIT_TX_state;
-/*
- * TODO!!!! EXISTE OUTRO TIPO DE DADO SEM SER DO TIPO DATA OU BEACON ?
- */
-	if (ieee154e_vars.dataToSend->l2_frameType == IEEE154_TYPE_DATA) {
+
+    testTx++;
+
+	sRIT_vars.destaddr.type = 0x02;
+	sRIT_vars.destaddr.addr_64b[0] = 0x00;
+	sRIT_vars.destaddr.addr_64b[1] = 0x00;
+	sRIT_vars.destaddr.addr_64b[2] = 0x00;
+	sRIT_vars.destaddr.addr_64b[3] = 0x00;
+	sRIT_vars.destaddr.addr_64b[4] = 0x00;
+	sRIT_vars.destaddr.addr_64b[5] = 0x00;
+	sRIT_vars.destaddr.addr_64b[6] = 0x51;
+	sRIT_vars.destaddr.addr_64b[7] = 0x52;
+	ieee154e_vars.freq = 20;
+	ieee154e_vars.targetaddr.type = sRIT_vars.destaddr.type;
+	ieee154e_vars.targetaddr.addr_64b[0] = sRIT_vars.destaddr.addr_64b[0];
+
+	activitytx_rxolaprepare();
+
+    openserial_startOutput();
+
+}
+
+uint8_t checkframeola(void){
+    uint8_t ret=FALSE;
+
+	if ((actualsrcaddr.type == 1) &&
+		(actualsrcaddr.addr_16b[1] == MOTE1)) {
+       mote1count++;
+	}
+	else if ((actualsrcaddr.type == 1) &&
+			(actualsrcaddr.addr_16b[1] == MOTE2)) {
+	       mote2count++;
+	}
+
+	//checa se bate com o que eu queria...senao volto a esperar...
+	if ((actualsrcaddr.type == 1) &&
+		(actualsrcaddr.addr_16b[1] == sRIT_vars.destaddr.addr_64b[7])) {
+       moteOKcount++;
+       ret = TRUE;
+	}
+	else {
+       moteRetrycount++;
+	}
+
+	return ret;
+}
+#endif
+
+
+port_INLINE void StartTxRITProcedure(uint8_t txpending,uint8_t newtxframe) {
+
+	uint8_t macRIT_Pending_TX_frameType=0;
+    uint8_t notifyerror=0;
+
+	changeState(S_RIT_TXDATAOFFSET);
+
+    if (ieee154e_vars.dataToSend->l2_frameType == IEEE154_TYPE_DATA) {
 		macRIT_Pending_TX_frameType = checkmsgtype(&element,txpending,newtxframe);
 	}
 
     incroute(macRIT_Pending_TX_frameType);
 
     //TODO!!!!aqui tive problemas de frame invalido...nao sei por que...
-    //neste caso eu desprezo o frame.
     if (ieee154e_vars.dataToSend->l2_retriesLeft > 3)
     {
-    	  incroute(0x81);
-		  // indicate to upper later the packet was sent successfully
-		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-		  // reset local variable
-		  ieee154e_vars.dataToSend = NULL;
-		  // abort
-		  endSlot();
-
+    	notifyerror = TRUE;
     }
     else if ((macRIT_Pending_TX_frameType > 0) || (txpending))
 	{
-		//radiotimer_schedule(DURATION_rt2);
-		//dur_rt1 = 22;
-		//dur_rt1 = ieee154e_vars.lastCapturedTime+TsTxOffset-TsLongGT-delayRx-maxRxDataPrepare;
-		//dur_rt1 = ieee154e_vars.lastCapturedTime+22;
-		//radiotimer_schedule(dur_rt1);
 		activitytx_rxolaprepare();
-
 	}
 	else
 	{
-		SendTxDAODirectly();
+		notifyerror = TRUE;
 	}
 
-    openserial_startOutput();
+    if (notifyerror == TRUE){
+    	incroute(0x81);
 
+		#if 1// ((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+		  {
+			uint8_t   pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_TX;
+			rffbuf[pos++]= 0x81;
+			rffbuf[pos++]= macRIT_Pending_TX_frameType;
+			rffbuf[pos++]= ieee154e_vars.dataToSend->l2_retriesLeft;
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		  }
+		#endif
+
+		if (ieee154e_vars.dataToSend != NULL) {
+		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+		  ieee154e_vars.dataToSend = NULL;
+     	}
+     	endSlot();
+    }
 }
 
-/* Tx Rit procedure - Aqui ele vai ter de esperar receber um frame de RIT para enviar
- *  Calcula Frequencia
- *  prepara o frame do RIT request
- *  carrega o frame
- */
 port_INLINE void activitytx_senddata(void) {
-
-	//uint32_t duration;
 
 	radiotimer_cancel();
 
-    //leds_sync_on();
-
     changeState(S_RIT_TXDATA);
+
     incroute(0x06);
 
 #if (ENABLE_CSMA_CA == 1)
@@ -1630,23 +1855,8 @@ port_INLINE void activitytx_senddata(void) {
     radio_txNow();
 #endif
 
-    //duration = ieee154e_vars.lastCapturedTime + RIT_DURATION_tt4;   tt4=500
-    //duration = ieee154e_vars.lastCapturedTime + 700;
     radiotimer_schedule(TX_RIT_TXDATAECHO_MS);
 
-
-}
-
-
-
-port_INLINE void activity_tie3() {
-   // log the error
-   openserial_printError(COMPONENT_IEEE802154E,ERR_WDDATADURATION_OVERFLOWS,
-                         (errorparameter_t)ieee154e_vars.state,
-                         (errorparameter_t)ieee154e_vars.slotOffset);
-
-   // abort
-   endSlot();
 }
 
 /*
@@ -1657,160 +1867,72 @@ port_INLINE void activitytx_senddone(PORT_RADIOTIMER_WIDTH capturedTime) {
 	//open_addr_t address;
 	uint8_t nrPending=0;
 	uint8_t ret=0;
-	uint8_t endslot=0;
+	uint8_t endslot=TRUE;
 	uint8_t reenviobroadcast=0;
 
     radiotimer_cancel();
 
-   // change state
-   changeState(S_RIT_RXACKOFFSET);
-   incroute(0x07);
+    changeState(S_RIT_RXACKOFFSET);
 
-   // turn off the radio
-   radio_rfOff();
+	incroute(0x07);
 
-#if ((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t  *pucAux;
+    radio_rfOff();
 
-	rffbuf[pos++]= RFF_IEEE802_TX;
-	rffbuf[pos++]= 0x07;
-	rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
-	rffbuf[pos++]= sRIT_vars.frameType;
-	rffbuf[pos++]= sRIT_vars.msglength;
-	rffbuf[pos++]= sRIT_vars.isBroadcastMulticast;
-	rffbuf[pos++]= 0xcc;
+	if (sRIT_vars.frameType == IANA_ICMPv6_RA_PREFIX_INFORMATION)  {  //MULTI CHANNEL HELLO CMD
+		// notifica o recebimento na tabela de vizinhos
+		macneighbors_updtlivelist(ieee154e_vars.targetaddr);
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
-#endif
-	//verifica se existe msg pendente para este endereco de destino
-    //   RITQueue_copyaddress(&address,&element.destaddr);
-    if (ieee154e_vars.RITQueue_ElementPending < maxElements) {
+		//update statistics
+		macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_SUCCESS);
 
-    	sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
-
-    	//update statistics
-    	switch (sRIT_vars.frameType)
-    	{
-    		case  IANA_ICMPv6_RPL_DIO:
-    			ritstat.txdio.countdatatxok++;
-    			break;
-    		case  IANA_ICMPv6_RPL_DAO:
-    			ritstat.txdao.countdatatxok++;
-    			break;
-    		case  IANA_UDP:
-    			ritstat.txcoap.countdatatxok++;
-    			break;
-
-    	}
-	}
-
-	if (sRIT_vars.frameType  != IANA_ICMPv6_RPL_DIO)  {
-       if (ieee154e_vars.dataToSend != NULL)
-       {
-    	   // decides whether to listen for an ACK
-    	   //if (packetfunctions_isBroadcastMulticast(&ieee154e_vars.dataToSend->l2_nextORpreviousHop) !=TRUE) {
-		   if (sRIT_vars.isBroadcastMulticast == FALSE) {
-
-			    //update statistics
-		    	switch (sRIT_vars.frameType)
-		    	{
-		    		case  IANA_ICMPv6_RPL_DAO:
-		    			ritstat.txdao.countacktxrx++;
-		    			break;
-		    		case  IANA_UDP:
-		    			ritstat.txcoap.countacktxrx++;
-		    			break;
-		       }
-
-			   activitytx_rxwaitforack(capturedTime);
-
-		   }
-		   else {
-			   endslot=TRUE;
-		   }
-	   }
-       else { //(ieee154e_vars.dataToSend == NULL
-			#if 1 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-			  {
-				uint8_t   pos=0;
-				uint8_t  *pucAux;
-
-				rffbuf[pos++]= RFF_IEEE802_TX;
-				rffbuf[pos++]= 0x55;
-				rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
-				rffbuf[pos++]= sRIT_vars.frameType;
-				rffbuf[pos++]= sRIT_vars.msglength;
-				rffbuf[pos++]= sRIT_vars.isBroadcastMulticast;
-				rffbuf[pos++]= 0xcc;
-				pucAux = (uint8_t *) &ieee154e_vars.dataToSend;
-				rffbuf[pos++]= *pucAux++;
-				rffbuf[pos++]= *pucAux++;
-				rffbuf[pos++]= *pucAux++;
-				rffbuf[pos++]= *pucAux++;
-				rffbuf[pos++]= 0xcc;
-
-				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-			  }
-			#endif
-
-    	   endslot=TRUE;
-       }
-
-       txpending=FALSE;
-	}
-	else { //frameType  == IANA_ICMPv6_RPL_DIO
-
-
-		#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-		  {
-			uint8_t   pos=0;
-			uint8_t  *pucAux;
-
-			rffbuf[pos++]= RFF_IEEE802_TX;
-			rffbuf[pos++]= 0x72;
-			rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
-			rffbuf[pos++]= sRIT_vars.frameType;
-			rffbuf[pos++]= sRIT_vars.msglength;
-			rffbuf[pos++]= sRIT_vars.isBroadcastMulticast;
-			rffbuf[pos++]= sRIT_vars.numTargetParents;
-			rffbuf[pos++]= actualsrcaddr.type;
-			switch (actualsrcaddr.type)
-			{
-				case 0x01:
-					rffbuf[pos++]= actualsrcaddr.addr_16b[0];
-					rffbuf[pos++]= actualsrcaddr.addr_16b[1];
-					break;
-				case 0x02:
-					rffbuf[pos++]= actualsrcaddr.addr_64b[6];
-					rffbuf[pos++]= actualsrcaddr.addr_64b[7];
-					break;
-				case 0x03:
-					rffbuf[pos++]= actualsrcaddr.addr_128b[14];
-					rffbuf[pos++]= actualsrcaddr.addr_128b[15];
-					break;
-				default:
-					break;
-			}
-			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-		  }
-		#endif
-		//O RPL DIO EH BROADCAST...
-		//ENTAO EU DEVO CHECAR SE EU JA ENVIEI O DIO PARA TODOS OS MEUS VIZINHOS...
-		//E SE AINDA NAO DEVO ESPERAR UM NOVO OLA...
-		//FACO ISSO ATE TERMINAR A MINHA JANELA DE RIT_TX.
-
-		//para os frames brodcast deve ser enviado um a um...sinalizo que ja enviei um frame...
 		RITQueue_Clear_Pending(ieee154e_vars.RITQueue_ElementPending,actualsrcaddr);
 
 		nrPending = RITQueue_getNrPendingParents(ieee154e_vars.RITQueue_ElementPending);
+
 		if (nrPending > 0) {
+
 			incroute(0x72);
-			countdebug++;
-			//configuro o proximo canal
-			changeState(S_RIT_TXMULTICAST);
+
+			changeState(S_RIT_TXDATAOFFSET);
+			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
+
+		   endslot = FALSE;
+		}
+
+		#if 1// ((ENABLE_DEBUG_RFF == 1)  && (DBG_RADIO_POWER_CONS == 1))
+		{
+			uint8_t *pucAux = (uint8_t *) &ieee154e_vars.dataToSend;
+			uint8_t pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_TX;
+			rffbuf[pos++]= 0x72;
+			pos = printaddress(actualsrcaddr,&rffbuf[0],pos);
+			pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
+
+			rffbuf[pos++]= nrPending;
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+			//openserial_startOutput();
+		}
+		#endif
+	}
+	else if (sRIT_vars.frameType == IANA_ICMPv6_RPL_DIO) {
+
+	    //QDO O RPL DIO -> CHECAR SE JA ENVIOU DIO PARA TODOS OS VIZINHOS
+		//SENAO...REPROGRAMAR E TORNAR A ESPERAR UM NOVO OLA...ATE TERMINAR OS VIZINHOS OU A JANELA DE RIT_TX.
+		RITQueue_Clear_Pending(ieee154e_vars.RITQueue_ElementPending,actualsrcaddr);
+
+		//update statistics
+		macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_SUCCESS);
+
+		nrPending = RITQueue_getNrPendingParents(ieee154e_vars.RITQueue_ElementPending);
+
+		if (nrPending > 0) {
+
+			incroute(0x72);
+
+			changeState(S_RIT_TXDATAOFFSET);
 			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
 
 			#if 1 // ((ENABLE_DEBUG_RFF == 1)  && (DBG_RADIO_POWER_CONS == 1))
@@ -1821,42 +1943,65 @@ port_INLINE void activitytx_senddone(PORT_RADIOTIMER_WIDTH capturedTime) {
 				rffbuf[pos++]= RFF_IEEE802_TX;
 				rffbuf[pos++]= 0x72;
 				rffbuf[pos++]= nrPending;
+				pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
 
 				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 
-				//openserial_startOutput();
+				openserial_startOutput();
 			}
 			#endif
-
-		}
-		else {
-			endslot=TRUE;
-			txpending=FALSE;
+            endslot = FALSE;
 		}
 
 	}
+	else  { //frameType  == (DAO OU COAP)
+	   if (ieee154e_vars.dataToSend != NULL)
+	   {
+		   // decides whether to listen for an ACK
+		   //if (packetfunctions_isBroadcastMulticast(&ieee154e_vars.dataToSend->l2_nextORpreviousHop) !=TRUE) {
+		   if (sRIT_vars.isBroadcastMulticast == FALSE) {
 
+               incroute(0x71);
 
-	if (endslot)
-	{
-          //calcula o tempo decorrido do radio ligado
-		  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+               //estatisticas
+               if (sRIT_vars.frameType == IANA_UDP) {
+                   ritstat.txcoap.countdatatxok++;
+               }
 
-		  if (txpending == FALSE){
-			  ret = RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
-		  }
-
-		  if (reenviobroadcast == 0){
-			   // indicate succesful Tx to schedule to keep statistics
-			  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-			  // indicate to upper later the packet was sent successfully
-			  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-		  }
-		  // reset local variable
-		  ieee154e_vars.dataToSend = NULL;
-		  // abort
-		  endSlot();
+			   activitytx_rxwaitforack(capturedTime);
+			   endslot = FALSE;
+		   }
+	   }
 	}
+
+	if (endslot == TRUE) {
+		//calcula o tempo decorrido do radio ligado
+		//ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+
+		if (txpending == FALSE){
+		  RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
+		}
+
+		if (macRITstate != S_RIT_multichnhello_state) {
+
+			#if 1 //TESTE RFF 250716
+				//TODO!!! PROVISORIO!!! Aqui foi implementado uma forma de enviar um notify no DIO para o RPL porem ele espera que o frame nao seja
+				//broadcast e tambem tenho o endereco no formato 64bits. Entao é convertido o endereco para este formato e enviado como nao se fosse
+				//broadcast pois no RIT o broadcast eh por vizinho e desta forma aumentara o nro de frames recebidos pelo nó.
+				//TODO!!! Aqui tambem pode ter mais de um vizinho que foi enviado o broadcast e aqui somente esta notificando o primeiro vizinho
+			    macneighbors_getaddrbroadcastsent(&ieee154e_vars.dataToSend->l2_nextORpreviousHop);
+			#endif
+
+			if (ieee154e_vars.dataToSend != NULL) {
+				notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+				ieee154e_vars.dataToSend = NULL;
+			}
+		}
+
+		endSlot();
+	}
+
+
 }
 
 
@@ -1892,155 +2037,99 @@ port_INLINE void activitytx_rxwaitforack(PORT_RADIOTIMER_WIDTH capturedTime) {
 
    radio_rxNow();
 
-
-    // duration = ieee154e_vars.lastCapturedTime+TICK_RIT_ACK_WAIT_PERIOD;
-   // radiotimer_schedule(duration);
    radiotimer_schedule(TX_RIT_ACK_TIMEOUT_MS);
 
-#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
-	{
-		uint8_t *pucAux = (uint8_t *) &duration;
-		uint8_t pos=0;
+	#if 1 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
+		{
+			uint8_t pos=0;
 
-		rffbuf[pos++]= RFF_IEEE802_TX;
-		rffbuf[pos++]= 0x08;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataToSend->length;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-#endif
+			rffbuf[pos++]= RFF_IEEE802_TX;
+			rffbuf[pos++]= 0x08;
 
-}
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		}
+	#endif
 
-
-
-/* TX_ACK_RESPONSE_TIMEOUT
- * Aqui se TX eu enviei o dado e esperava um ack...Entao ocorreu timeout e eu nao recebi o ack.
- */
-port_INLINE void activity_tie5() {
-
-#if ENABLE_DEBUG_RFF
-   {
-     uint32_t capturetime;
-     uint8_t *pucAux = (uint8_t *) &capturetime;
-     uint8_t pos=0;
-     capturetime=radio_getTimerValue();
-
-	 rffbuf[pos++]= RFF_IEEE802_TX;
-	 rffbuf[pos++]= 0x13;
-	 rffbuf[pos++]= *pucAux++;
-	 rffbuf[pos++]= *pucAux++;
-	 rffbuf[pos++]= *pucAux++;
-	 rffbuf[pos++]= *pucAux;
-
-	 openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif //teste rff
-
-
-#if 1
-	// indicate transmit failed to schedule to keep stats
-	schedule_indicateTx(&ieee154e_vars.asn,FALSE);
-
-	// decrement transmits left counter
-	ieee154e_vars.dataToSend->l2_retriesLeft--;
-
-	if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-	  // indicate tx fail if no more retries left
-	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-	} else {
-	  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
-	  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-	}
-
-	// reset local variable
-	ieee154e_vars.dataToSend = NULL;
-
-	// abort
-	endSlot();
-#else
-	// indicate transmit failed to schedule to keep stats
-	schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-
-	// decrement transmits left counter
-	ieee154e_vars.dataToSend->l2_retriesLeft=0;
-
-	if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-	  // indicate tx fail if no more retries left
-	  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-	} else {
-	  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
-	  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-	}
-
-	// reset local variable
-	ieee154e_vars.dataToSend = NULL;
-
-	// abort
-	endSlot();
-#endif
 }
 
 
 port_INLINE void activityrx_noacktx() {
 
-   incroute(0x88);
-   // change state
-   changeState(S_RIT_NOECHOTXACK);
+	uint32_t deltams;
+	uint32_t timeelapsedms;
 
-   // turn off the radio
+   incroute(0x88);
+
+   radiotimer_cancel();
+
    radio_rfOff();
 
+   changeState(S_RIT_NOECHOTXACK);
+
+   ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();  //getdeltaTimerValue();
+
    // compute the duty cycle if radio has been turned on
-   if (ieee154e_vars.radioOnThisSlot==TRUE){
-	  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-   }
+   // if (ieee154e_vars.radioOnThisSlot==TRUE){
+   //	  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+   // }
 
-#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
-	{
-		uint8_t *pucAux = (uint8_t *) &ieee154e_vars.radioOnTics;
-		uint8_t pos=0;
+	//REPROGRAMAR A JANELA COM UM TEMPO MENOR...
+	timeelapsedms = ieee154e_vars.lastCapturedTime + RX_RIT_ACKECHO_TIMEOUT_MS + 10;
+	if (RX_RIT_TIMEOUT_MS > timeelapsedms){
 
-		rffbuf[pos++]= RFF_IEEE802_RADIO;
-		rffbuf[pos++]= 0x88;
-		//rffbuf[pos++]= (uint8_t) ieee154e_vars.dataToSend->length;
-		//rffbuf[pos++]= (uint8_t) ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		deltams = RX_RIT_ACKECHO_TIMEOUT_MS + 10;
+
+		#if 1 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+		{
+			uint8_t   pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_RX;
+			rffbuf[pos++]= 0x88;
+			pos = printvar((uint8_t *)&timeelapsedms,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&deltams,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+			openserial_startOutput();
+		}
+		#endif
+
+		//Volto ao estado anterior para indicar que estou novamente esperando um frame TX
+		changeState(S_RIT_TXACK);
+
+		//como desliguei o radio anteriormente devo reprograma-lo para TX
+		radio_setFrequency(ieee154e_vars.freq);
+
+		radio_txEnable();
+
+		radio_txNow(TX_NOT_USE_CSMA_CA);
+
+		radiotimer_schedule(deltams);
 	}
-#endif
-   //clear vars for duty cycle on this slot
-   //ieee154e_vars.radioOnTics=0;
-   //ieee154e_vars.radioOnThisSlot=FALSE;
+	else{
+		endSlot();
+	}
+
 
 	// SINALIZO ERRO E GUARDO A MENSAGEM PARA TENTAR NO PROXIMO CICLO...activity_tie5(); (copie aqui embaixo)
-#if 0
-	// indicate transmit failed to schedule to keep stats
-    schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+	#if 0
+		// indicate transmit failed to schedule to keep stats
+		schedule_indicateTx(&ieee154e_vars.asn,FALSE);
 
-	// decrement transmits left counter
-	ieee154e_vars.dataToSend->l2_retriesLeft--;
+		// decrement transmits left counter
+		ieee154e_vars.dataToSend->l2_retriesLeft--;
 
-	if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-	  // indicate tx fail if no more retries left
-	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-	} else {
-	  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
-	  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-	}
+		if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
+		  // indicate tx fail if no more retries left
+		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+		} else {
+		  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
+		  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
+		}
 
-    // reset local variable
-    ieee154e_vars.dataToSend = NULL;
-#endif
-	// abort
-    endSlot();
+		// reset local variable
+		ieee154e_vars.dataToSend = NULL;
+	#endif
 }
 
 
@@ -2048,72 +2137,61 @@ port_INLINE void activitytx_rxnoack() {
 
 	incroute(0x89);
 
-   // change state
-   changeState(S_RIT_RXNOACK);
+   radiotimer_cancel();
 
    // turn off the radio
    radio_rfOff();
 
+   // change state
+   changeState(S_RIT_RXNOACK);
+
    // compute the duty cycle if radio has been turned on
-   if (ieee154e_vars.radioOnThisSlot==TRUE){
-	  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-   }
+   //if (ieee154e_vars.radioOnThisSlot==TRUE){
+   //	  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+   //}
 
    //update statistics
    if (ieee154e_vars.RITQueue_ElementPending < maxElements) {
 		//decrementa elemento pendente...para broadcast
 		RITQueue_update_element(ieee154e_vars.RITQueue_ElementPending);
 
-		sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+		//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
-		switch (sRIT_vars.frameType)
-		{
-			case  IANA_ICMPv6_RPL_DAO:
-				ritstat.txdao.countacktxrxerr++;
-				break;
-			case  IANA_UDP:
-				ritstat.txcoap.countacktxrxerr++;
-				break;
-		}
+	    macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_FAIL);
    }
 
 
-#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
+#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
 	{
 		uint8_t *pucAux = (uint8_t *) &ieee154e_vars.radioOnTics;
 		uint8_t pos=0;
 
-		rffbuf[pos++]= RFF_IEEE802_RADIO;
+		rffbuf[pos++]= RFF_IEEE802_TX;
 		rffbuf[pos++]= 0x89;
-		//rffbuf[pos++]= (uint8_t) ieee154e_vars.dataToSend->length;
-		//rffbuf[pos++]= (uint8_t) ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
+
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	}
 #endif
 
 	// SINALIZO ERRO E GUARDO A MENSAGEM PARA TENTAR NO PROXIMO CICLO...activity_tie5(); (copie aqui embaixo)
-#if 0
-	// indicate transmit failed to schedule to keep stats
-    schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+    if (ieee154e_vars.dataToSend != NULL) {
+		// indicate transmit failed to schedule to keep stats
+		schedule_indicateTx(&ieee154e_vars.asn,FALSE);
 
-	// decrement transmits left counter
-	ieee154e_vars.dataToSend->l2_retriesLeft--;
+		// decrement transmits left counter
+		ieee154e_vars.dataToSend->l2_retriesLeft--;
 
-	if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-	  // indicate tx fail if no more retries left
-	  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-	} else {
-	  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
-	  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-	}
+		if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
+		  // indicate tx fail if no more retries left
+		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+		} else {
+		  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
+		  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
+		}
 
-    // reset local variable
-    ieee154e_vars.dataToSend = NULL;
-#endif
+		// reset local variable
+		ieee154e_vars.dataToSend = NULL;
+    }
 	// abort
     endSlot();
 }
@@ -2127,6 +2205,7 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 //  uint16_t                  lenIE;
    uint8_t ret;
    uint8_t flagerr=0;
+   uint8_t frameType;
 
    incroute(0x09);
 
@@ -2138,10 +2217,13 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 
    // turn off the radio
    radio_rfOff();
-   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
 
    // record the captured time
-   ieee154e_vars.lastCapturedTime = capturedTime;
+   ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();   //getdeltaTimerValue();
+
+
+   //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+
 
    // get a buffer to put the (received) ACK in
    ieee154e_vars.ackReceived = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
@@ -2202,123 +2284,89 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
       // parse the IEEE802.15.4 header (RX ACK)
       ieee802154_retrieveHeader(ieee154e_vars.ackReceived,&ieee802514_header);
 
-#if 0
-      // break if invalid IEEE802.15.4 header
-      if (ieee802514_header.valid==FALSE) {
-         // break from the do-while loop and execute the clean-up code below
-         flagerr = TRUE;
-         break;
-      }
-#endif
+		#if 0
+			  // break if invalid IEEE802.15.4 header
+			  if (ieee802514_header.valid==FALSE) {
+				 // break from the do-while loop and execute the clean-up code below
+				 flagerr = TRUE;
+				 break;
+			  }
+		#endif
 
       // store header details in packet buffer
       ieee154e_vars.ackReceived->l2_frameType  = ieee802514_header.frameType;
       ieee154e_vars.ackReceived->l2_dsn        = ieee802514_header.dsn;
       memcpy(&(ieee154e_vars.ackReceived->l2_nextORpreviousHop),&(ieee802514_header.src),sizeof(open_addr_t));
 
-#if 0
-      // toss the IEEE802.15.4 header
-      packetfunctions_tossHeader(ieee154e_vars.ackReceived,ieee802514_header.headerLength);
+	#if 0
+		  // toss the IEEE802.15.4 header
+		  packetfunctions_tossHeader(ieee154e_vars.ackReceived,ieee802514_header.headerLength);
 
-      // break if invalid ACK
-      if (isValidAck(&ieee802514_header,ieee154e_vars.dataToSend)==FALSE) {
-         // break from the do-while loop and execute the clean-up code below
-         flagerr = TRUE;
-         break;
-      }
-      //hanlde IEs --xv poipoi
-      if (ieee802514_header.ieListPresent==FALSE){
-         flagerr = TRUE;
-         break; //ack should contain IEs.
-      }
+		  // break if invalid ACK
+		  if (isValidAck(&ieee802514_header,ieee154e_vars.dataToSend)==FALSE) {
+			 // break from the do-while loop and execute the clean-up code below
+			 flagerr = TRUE;
+			 break;
+		  }
+		  //hanlde IEs --xv poipoi
+		  if (ieee802514_header.ieListPresent==FALSE){
+			 flagerr = TRUE;
+			 break; //ack should contain IEs.
+		  }
 
-      if (ieee154e_processIEs(ieee154e_vars.ackReceived,&lenIE)==FALSE){
-        // invalid IEs in ACK
-        flagerr = TRUE;
-        break;
-      }
+		  if (ieee154e_processIEs(ieee154e_vars.ackReceived,&lenIE)==FALSE){
+			// invalid IEs in ACK
+			flagerr = TRUE;
+			break;
+		  }
 
-      // toss the IEs
-      packetfunctions_tossHeader(ieee154e_vars.ackReceived,lenIE);
-#endif
+		  // toss the IEs
+		  packetfunctions_tossHeader(ieee154e_vars.ackReceived,lenIE);
+	#endif
 
-#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
-  {
-		uint8_t   pos=0;
-		uint8_t *pucAux;
+		#if 1 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+		  {
+			uint8_t   pos=0;
 
-		if (ieee154e_vars.RITQueue_ElementPending < maxElements)
-		{
-			sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+			if (ieee154e_vars.RITQueue_ElementPending < maxElements)
+			{
+				sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
-			rffbuf[pos++]= RFF_IEEE802_TX;
-			rffbuf[pos++]= 0x07;
-			rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
-			rffbuf[pos++]= coappending;
-			rffbuf[pos++]= sRIT_vars.frameType;
-			rffbuf[pos++]= sRIT_vars.msglength;
-			pucAux = (uint8_t *) &ieee154e_vars.dataToSend;
-			rffbuf[pos++]= *pucAux++;
-			rffbuf[pos++]= *pucAux++;
-			rffbuf[pos++]= *pucAux++;
-			rffbuf[pos++]= *pucAux++;
-			rffbuf[pos++]= sRIT_vars.isBroadcastMulticast;
-			rffbuf[pos++]= sRIT_vars.destaddr.type;
+				rffbuf[pos++]= RFF_IEEE802_TX;
+				rffbuf[pos++]= 0x09;
+				rffbuf[pos++]= sRIT_vars.frameType;
+				rffbuf[pos++]= sRIT_vars.msglength;
 
-			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-		}
-  }
-#endif
+				pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
 
-	   //update statistics
-	   sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+			}
+		  }
+		#endif
 
-	   switch (sRIT_vars.frameType)
-	   {
-	   	   case IANA_UDP:
-			   ritstat.txcoap.countacktxrxok++;
-			   incroute(0x0A);
-			   coappending = 0;
-			   break;
-	   	   case IANA_ICMPv6_RPL_DAO:
-			   ritstat.txdao.countacktxrxok++;
-			   coappending = 0;
-			   break;
-   	   }
+	   macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_SUCCESS);
 
-       ret = RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
+	   //libera areas alocadas
+       RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
 
-      // inform schedule of successful transmission
-      schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+       if (ieee154e_vars.dataToSend != NULL) {
+		  // inform schedule of successful transmission
+		  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
 
-      // inform upper layer
-      notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-      ieee154e_vars.dataToSend = NULL;
+		  // inform upper layer
+		  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+		  ieee154e_vars.dataToSend = NULL;
+       }
 
       // in any case, execute the clean-up code below (processing of ACK done)
    } while (0);
 
-
-   if (flagerr)
-   {
+   if (flagerr) {
+	   incroute(0x89);
 	   //update statistics
-	   sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
-
-	   switch (sRIT_vars.frameType)
-	   {
-	   	   case IANA_UDP:
-			   ritstat.txcoap.countacktxrxerr++;
-			   incroute(0x0A);
-			   coappending = 0;
-			   break;
-	   	   case IANA_ICMPv6_RPL_DAO:
-			   ritstat.txdao.countacktxrxerr++;
-			   coappending = 0;
-			   break;
-   	   }
+	   macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_FAIL);
 
        ret = RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
-
    }
 
    // free the received ack so corresponding RAM memory can be recycled
@@ -2335,10 +2383,11 @@ port_INLINE void activitytx_rxackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 /*======= TX
 * esta rotina eh chamada logo apos o inicio do TxRITProcedure
 * ela prepara o radio para recepcao de um ola
-*
-* */
+*/
 port_INLINE void activitytx_rxolaprepare(void) {
-	//uint32_t dur_rt2;
+
+	uint8_t isBroadcast=0;
+	uint8_t ret;
 
     changeState(S_RIT_RXOLAPREPARE);
 
@@ -2349,23 +2398,38 @@ port_INLINE void activitytx_rxolaprepare(void) {
 	// turn off the radio
 	radio_rfOff();
 
-	//Descubro o melhor canal do destino do frame pendente
-	//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
     if (sRIT_vars.destaddr.type == 0){
-    	incroute(0xF5);
+		openserial_printError(COMPONENT_IEEE802154E,ERR_WRONG_RIT_CHANNEL,
+							(errorparameter_t)S_RIT_RXOLAPREPARE,0x02);
+		endSlot();
+		return;
     }
 
-	if (packetfunctions_isBroadcastMulticast(&sRIT_vars.destaddr) == TRUE){
-		macneigh_getBChanMultiCast(&ieee154e_vars.freq,&ieee154e_vars.targetaddr);
+	//Descubro o melhor canal do destino do frame pendente
+    isBroadcast = packetfunctions_isBroadcastMulticast(&sRIT_vars.destaddr);
+	if (isBroadcast == TRUE){
+		if (macRITstate == S_RIT_TX_state)  {
+			ret = macneigh_getBChanMultiCast(&ieee154e_vars.freq,&ieee154e_vars.targetaddr, TRUE);
+			if (ret == FALSE) {
+			   //nao existe nenhum elemento vivo na livelist devo aguardar
+			   incroute(0x28);
+			   endSlot();
+			   return;
+			}
+		}
+		else{ //macRITstate == Livelist
+			macneigh_getBChanMultiCast(&ieee154e_vars.freq,&ieee154e_vars.targetaddr, FALSE);
+		}
 	}
 	else{
+		ieee154e_vars.targetaddr = sRIT_vars.destaddr;
 		ieee154e_vars.freq = macneigh_getBChan(&sRIT_vars.destaddr);
 	}
 
 	if ((ieee154e_vars.freq == 0) || (ieee154e_vars.freq > 26)){
 		 // jump to the error code below this do-while loop
 		openserial_printError(COMPONENT_IEEE802154E,ERR_WRONG_RIT_CHANNEL,
-							(errorparameter_t)1,
+							(errorparameter_t)S_RIT_RXOLAPREPARE,
 							ieee154e_vars.freq);
 		 endSlot();
 		 return;
@@ -2373,182 +2437,107 @@ port_INLINE void activitytx_rxolaprepare(void) {
 
 #if 1 //(DEBUG_LOG_RIT  == 1) && (DBG_IEEE802_TX == 1)
   {
-	uint32_t capturetime;
-	//uint8_t *pucAux = (uint8_t *) &capturetime;
 	uint8_t pos=0;
-
-    //capturetime=radio_getTimerValue();
 
 	rffbuf[pos++]= RFF_IEEE802_TX;
 	rffbuf[pos++]= 0x02;
-	rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
+	rffbuf[pos++]= isBroadcast;
 	rffbuf[pos++]= ieee154e_vars.freq;
-	rffbuf[pos++]= ieee154e_vars.targetaddr.type;
-    if (ieee154e_vars.targetaddr.type == 0x01)	{
-		rffbuf[pos++]= ieee154e_vars.targetaddr.addr_16b[0];
-		rffbuf[pos++]= ieee154e_vars.targetaddr.addr_16b[1];
-    }
-	rffbuf[pos++]= sRIT_vars.destaddr.type;
-    if (sRIT_vars.destaddr.type == 0x01)	{
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[0];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[1];
-    }
-    if (sRIT_vars.destaddr.type == 0x02)	{
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[6];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[7];
-    }
-	else if (sRIT_vars.destaddr.type == 0x03) {
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[14];
-		rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[15];
-	}
+	pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
+	pos = printaddress(sRIT_vars.destaddr,&rffbuf[0],pos);
+	//pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
 
 	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
   }
 #endif
-   if (ieee154e_vars.freq > 0){
-
-	   // configure the radio for that frequency
-	   radio_setFrequency(ieee154e_vars.freq);
-
-	   // enable the radio in Rx mode. The radio does not actively listen yet.
-	    radio_rxEnable();
-
-	    //ieee154e_vars.radioOnInit=radio_getTimerValue();
-	    ieee154e_vars.radioOnInit=ieee154e_vars.lastCapturedTime;
-	    ieee154e_vars.radioOnThisSlot=TRUE;
-
-	#if 0 // (ENABLE_CSMA_CA == 1)
-	  changeState(S_RIT_RXOLA);
-	  radio_rxNow();
-	  radiotimer_schedule(TX_RIT_TIMEOUT_MS);
-	#else
-		//dur_rt2 = ieee154e_vars.lastCapturedTime+55;
-		radiotimer_schedule(TX_RIT_RXOLAPREPARE_MS);
-	#endif
-   }
-   else {
-	  // indicate to upper later the packet has error
-	  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-	  // reset local variable
-	  ieee154e_vars.dataToSend = NULL;
-	  // abort
-	  endSlot();
-   }
-
-}
-
-port_INLINE void activityrx_dataprepare(PORT_RADIOTIMER_WIDTH capturedTime) {
-	//volatile uint32_t dur_rt3;
-
-
-	radiotimer_cancel();
-
-	leds_debug_toggle();
-	// turn off the radio
-	radio_rfOff();
-
-	changeState(S_RIT_RXDATAPREPARE);
-
-	incroute(0x03);
-
-#if 1//((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t pos=0;
-	if (macRITstate == S_RIT_TX_state)
-	{
-		rffbuf[pos++]= RFF_IEEE802_TX;
-		rffbuf[pos++]= 0x03;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-
-  }
-#endif
-
-#if 1 //teste rff
-    ritstat.txola.countdatatxok++;
-
-    ieee154e_vars.lastCapturedTime += getdeltaTimerValue();
-
-   // recepcao da mensagem é no meu melhor canal
-   ieee154e_vars.freq = macneighbors_getMyBestChan();
 
    // configure the radio for that frequency
    radio_setFrequency(ieee154e_vars.freq);
 
    // enable the radio in Rx mode. The radio does not actively listen yet.
-    radio_rxEnable();
-    //ieee154e_vars.radioOnInit=radio_getTimerValue();
-    //ieee154e_vars.radioOnThisSlot=TRUE;
+	radio_rxEnable();
 
-#if (ENABLE_CSMA_CA == 1)
-    changeState(S_RIT_RXDATA);
+	//ieee154e_vars.radioOnInit=radio_getTimerValue();
+	//ieee154e_vars.radioOnInit=ieee154e_vars.lastCapturedTime;
+
+#if 0 // (ENABLE_CSMA_CA == 1)
+  changeState(S_RIT_RXOLA);
+  radio_rxNow();
+  radiotimer_schedule(TX_RIT_TIMEOUT_MS);
+#else
+	radiotimer_schedule(TX_RIT_RXOLAPREPARE_MS);
+#endif
+
+
+}
+
+port_INLINE void activityrx_dataprepare(PORT_RADIOTIMER_WIDTH capturedTime) {
+
 	radiotimer_cancel();
-    radio_rxNow();
-    radiotimer_schedule(RX_RIT_TIMEOUT_MS);
-#else
-	//dur_rt3 = ieee154e_vars.lastCapturedTime+TsTxOffset+TsLongGT;
-	radiotimer_schedule(RX_RIT_DELAY_TX_TO_RX_MS);
-#endif
 
-#else
-	endSlot();
-#endif
+	radio_rfOff();
 
+	changeState(S_RIT_RXDATAPREPARE);
+
+	incroute(0x03);
+	ritstat.txola.countdatatxok++;
+
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();   //getdeltaTimerValue();
+
+	#if 0//((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_RX == 1))
+	  {
+		uint8_t pos=0;
+		uint32_t freerunning = radiotimer_getfreerunning();
+
+		rffbuf[pos++]= RFF_IEEE802_RX;
+		rffbuf[pos++]= 0x03;
+		pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	  }
+	#endif
+
+	// recepcao da mensagem é no meu melhor canal
+	ieee154e_vars.freq = macneighbors_getMyBestChan();
+
+    // configure the radio for that frequency
+    radio_setFrequency(ieee154e_vars.freq);
+
+    // enable the radio in Rx mode. The radio does not actively listen yet.
+	radio_rxEnable();
+
+	changeState(S_RIT_RXDATA);
+	radiotimer_cancel();
+	radio_rxNow();
+	radiotimer_schedule(RX_RIT_TIMEOUT_MS);
 }
 
 
 port_INLINE void activitytx_rxwindowopen() {
 
-	uint32_t duration;
+	uint32_t period;
 
 	radiotimer_cancel();
 
     changeState(S_RIT_RXOLA);
 
-    ieee154e_vars.lastCapturedTime = getdeltaTimerValue();
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();
 
-    //RFF DEBUG
-	if (macRITstate == S_RIT_TX_state)
-		incroute(0x03);
-	else
-		incroute(0x55);
-	//RFF DEBUG END
+	incroute(0x03);
 
     radio_rxNow();
 
+	radiotimer_schedule(TX_RIT_TIMEOUT_MS);
 
-  //Schedule Timer TX Windows - Esta janela deve ser no minimo de 1 periodo de RIT.
-  //radiotimer_schedule(macRITRXforTxPeriod);
-  //duration = ieee154e_vars.lastCapturedTime + TICK_MAC_RIT_RX_TO_TX_PERIOD;
-  //if (duration > 16500)
-  //	  duration = 16500;
-
-    //update the Tx duration
-  //RITQueue_updateactualtxtime(TX_RIT_TIMEOUT_MS);
-
-  radiotimer_schedule(TX_RIT_TIMEOUT_MS);
-
-
-#if 0//((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_RX == 1))
+#if 1//((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_RX == 1))
   {
-    uint32_t capturetime;
-	uint8_t *pucAux = (uint8_t *) &duration;
 	uint8_t pos=0;
-	if (macRITstate == S_RIT_TX_state)
-	{
-	    capturetime=radio_getTimerValue();
 
-		rffbuf[pos++]= RFF_IEEE802_TX;
-		rffbuf[pos++]= 0x03;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
+	rffbuf[pos++]= RFF_IEEE802_TX;
+	rffbuf[pos++]= 0x03;
+	pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
 
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
   }
 #endif
 
@@ -2565,7 +2554,7 @@ port_INLINE void activity_rxwindowopen() {
 
     changeState(S_RIT_RXDATA);
 
-	incroute(0x04);
+	incroute(0x33);
 
     radio_rxNow();
 
@@ -2581,7 +2570,7 @@ port_INLINE void activity_rxwindowopen() {
 		uint8_t pos=0;
 
 		rffbuf[pos++]= RFF_IEEE802_RX;
-		rffbuf[pos++]= 0x04;
+		rffbuf[pos++]= 0x33;
 		rffbuf[pos++]= *pucAux++;
 		rffbuf[pos++]= *pucAux++;
 		rffbuf[pos++]= *pucAux++;
@@ -2606,16 +2595,16 @@ port_INLINE void activity_rxritwindowend() {
 
     radiotimer_cancel();
 
-    ieee154e_vars.lastCapturedTime = getdeltaTimerValue();
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();   //getdeltaTimerValue();
 
     // turn off the radio
     radio_rfOff();
 
     // change state
-    changeState(S_RIT_SLEEP_WINDOW);
+    changeState(S_RIT_RXSLEEP);
 
     //RFF DEBUG
-	incroute(0x84);
+	incroute(0x85);
 
    // compute the duty cycle if radio has been turned on
 /*
@@ -2624,224 +2613,439 @@ port_INLINE void activity_rxritwindowend() {
 	   ieee154e_vars.radioOnTics+=(ieee154e_vars.lastCapturedTime-ieee154e_vars.radioOnInit);
    }
 */
-#if 1// ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
+#if 0// ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
 {
-	uint8_t *pucAux = (uint8_t *)  &ieee154e_vars.lastCapturedTime;
 	uint8_t pos=0;
+	uint32_t freerunning = radiotimer_getfreerunning();
 
 	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x84;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux;
+	rffbuf[pos++]= 0x85;
+	pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+	pos = printvar((uint8_t *)&freerunning,sizeof(uint32_t),rffbuf,pos);
 
 	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 
-    openserial_startOutput();
+	openserial_startOutput();
 }
 #endif
 
+#if 1 //teste rff 050716
+ 	//aqui eu nao recebi nenhuma msg na janela...
+	if (macRITstate == S_RIT_TX_state) {
+		if (ieee154e_vars.dataToSend != NULL) {
+			incroute(0x40);
+			notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+			ieee154e_vars.dataToSend = NULL;
+		}
+	}
+#endif
 	// abort
 	endSlot();
 }
 
 
 /* ACABOU O RIT AQUI E NAO RECEBI NENHUMA MENSAGEM (macRITstate == S_RIT_TX_state)
- * Quando TX significa que abri a janela do RIT e nao teve nenhuma mensagem de ola.
+ * Como a janela de Tx é bem grande, é pressuposto que o nó esta ruim
  */
 
 port_INLINE void activity_txritwindowend() {
 
 	uint8_t nrPending=0;
+	uint8_t nrDIOsent=0;
 
     radiotimer_cancel();
 
     ieee154e_vars.lastCapturedTime = getdeltaTimerValue();
 
 	// change state
-    changeState(S_RIT_SLEEP_WINDOW);
+    changeState(S_RIT_TXSLEEP);
 
     //RFF DEBUG
 	incroute(0x84);
 
-   // turn off the radio
-   radio_rfOff();
-
-   /*
-   // compute the duty cycle if radio has been turned on
-   if (ieee154e_vars.radioOnThisSlot==TRUE){
-	  //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-	   ieee154e_vars.radioOnTics+=(ieee154e_vars.lastCapturedTime-ieee154e_vars.radioOnInit);
-   }
-*/
-#if 1// ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
-{
-	uint8_t *pucAux = (uint8_t *)  &ieee154e_vars.lastCapturedTime;
-	uint8_t pos=0;
-
-	rffbuf[pos++]= RFF_IEEE802_TX;
-	rffbuf[pos++]= 0x84;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux++;
-	rffbuf[pos++]= *pucAux;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-}
-#endif
+    // turn off the radio
+    radio_rfOff();
 
 	//verifico se o frame atual é um RPL.DAO ou COAP
-	sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+	//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
-	// SINALIZO ERRO E GUARDO A MENSAGEM PARA TENTAR NO PROXIMO CICLO...activity_tie5(); (copie aqui embaixo)
-	if (sRIT_vars.frameType != IANA_ICMPv6_RPL_DIO) {
-		incroute(0x43);
+    #if 1// ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
+	{
+		uint32_t period;
+		//uint8_t *pucAux = (uint8_t *)  &period;
+		uint8_t pos=0;
+
+		period = radiotimer_getPeriod();
+
+		rffbuf[pos++]= RFF_IEEE802_TX;
+		rffbuf[pos++]= 0x84;
+		rffbuf[pos++]= 0x83;
+		rffbuf[pos++]= macRITstate;
+		rffbuf[pos++]= sRIT_vars.frameType;
+
+		pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
+		pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+	#endif
+
+	//update statistics
+	macneighbors_updtstatistics(ieee154e_vars.targetaddr,sRIT_vars.frameType, E_FAIL);
+
+	// TODO!!!! BUG4 - Aqui eu aguardei o tempo do RIT_TX para uma nó...entao sinalizo para todos que nao esta ok..
+	// Isto faz sentido quando somente tenho um canal, mas em multi-canal eu somente escuto poucos ou somente um nó...
+	// O ideal era nao falar em erro para todos e tentar nos proximos ciclos...mas por enquanto esta assim mesmo...pois ele no fim
+	// cai por qtde de retry e somente sera tentado novamente quando voltar a livelist.
+     if (sRIT_vars.frameType == IANA_ICMPv6_RA_PREFIX_INFORMATION) {
+		macneighbors_clearlivelist(ieee154e_vars.targetaddr);
+    }
+    else if (sRIT_vars.frameType == IANA_ICMPv6_RPL_DIO)  {
+    	//Como o frame DIO eh brodcast ele pode ter ja enviado para alguns nós e falhado outros
+  		//se foi enviado para algum nó eu devo indicar as camadas superiores sucesso no envio
+        //caso contrario eu envio falha...
+
+  		nrDIOsent = macneighbors_calcbroadcastsent();
+  		if (ieee154e_vars.dataToSend != NULL) {
+  			if (nrDIOsent > 0) {
+  				notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+  			}
+  			else{
+  				notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+  			}
+
+  			ieee154e_vars.dataToSend = NULL;
+  		}
+
+  		#if 1// ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
+  		{
+  			uint8_t pos=0;
+
+  			rffbuf[pos++]= RFF_IEEE802_TX;
+  			rffbuf[pos++]= 0x84;
+  			rffbuf[pos++]= 0x84;
+  			rffbuf[pos++]= nrDIOsent;
+
+  			pos = printaddress(ieee154e_vars.targetaddr,&rffbuf[0],pos);
+  			pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+
+  			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+  		}
+  		#endif
+    }
+    else {// sRIT_vars.frameType != IANA_ICMPv6_RPL_DIO
+		incroute(0x83);
+
 		// indicate transmit failed to schedule to keep stats
-	   schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+		schedule_indicateTx(&ieee154e_vars.asn,FALSE);
 
-	   // decrement transmits left counter
-	   ieee154e_vars.dataToSend->l2_retriesLeft--;
+		// decrement transmits left counter
+		ieee154e_vars.dataToSend->l2_retriesLeft--;
 
-	   if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-		  // indicate tx fail if no more retries left
-		  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+		if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
+
+		  if (ieee154e_vars.dataToSend != NULL) {
+			  // indicate tx fail if no more retries left
+			  notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+			  // reset local variable
+			  ieee154e_vars.dataToSend = NULL;
+		  }
 	   }
 	   else {
 		  // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
 		  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
 	   }
-	   // reset local variable
-	   ieee154e_vars.dataToSend = NULL;
-
-		// abort
-	   endSlot();
-
-   }
-   else {
-	  incroute(0x44);
-	  //TODO!!!!removo elemento que estava pendente ??? (ou tento novamente???) Estou removendo
-		//para os frames brodcast deve ser enviado um a um...sinalizo que ja enviei um frame...
-		RITQueue_Clear_Pending(ieee154e_vars.RITQueue_ElementPending,ieee154e_vars.targetaddr);
-
-		nrPending = RITQueue_getNrPendingParents(ieee154e_vars.RITQueue_ElementPending);
-		if (nrPending > 0) {
-			incroute(0x47);
-			//configuro o proximo canal
-			changeState(S_RIT_TXMULTICAST);
-			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
-		}
-		else {
-		  // indicate succesful Tx to schedule to keep statistics
-		  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
-		  // indicate to upper later the packet was sent successfully
-		  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
-
-		  // reset local variable
-		   ieee154e_vars.dataToSend = NULL;
-
-		   // abort
-		   endSlot();
-		}
    }
 
-}
-
-port_INLINE void activity_rie3() {
-
-   // log the error
-   openserial_printError(COMPONENT_IEEE802154E,ERR_WDDATADURATION_OVERFLOWS,
-                         (errorparameter_t)ieee154e_vars.state,
-                         (errorparameter_t)ieee154e_vars.slotOffset);
-
-   // abort
    endSlot();
+
+
 }
 
 
-port_INLINE uint8_t activitytx_reopenrxwindow(PORT_RADIOTIMER_WIDTH capturedTime) {
+port_INLINE uint8_t activitytx_reopenrxwindow(void) {
 
-  uint8_t ret=0;
-  uint32_t duration;
+    uint8_t ret=FALSE;
+    uint8_t nrDIOsent=0;
+	uint32_t timeelapsedms;
+	uint32_t deltams;
 
-  radiotimer_cancel();
+    radiotimer_cancel();
 
-  changeState(S_RIT_RXOLA);
-  incroute(0x45);
-  //leds_sync_toggle();
+	//pego o elemento atual pendente
+	//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
-  ritstat.txdao.countdatatx++;
-  flagreschedule = TRUE;
+	pvObjList[ieee154e_vars.RITQueue_ElementPending].countretry++;
 
-  // turn off the radio
-  radio_rfOff();
-  //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-  //ieee154e_vars.radioOnThisSlot = 0;
+	// record the captured time
+	ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();
 
- // calculate the frequency to Rx on
- //ieee154e_vars.freq = calculateFrequency(schedule_getChannelOffset());
+	//REPROGRAMAR A JANELA COM UM TEMPO MENOR...
+	timeelapsedms = ieee154e_vars.lastCapturedTime;
+	if (TX_RIT_TIMEOUT_MS > timeelapsedms){
+		deltams = TX_RIT_TIMEOUT_MS - timeelapsedms;
 
- // configure the radio for that frequency
- radio_setFrequency(ieee154e_vars.freq);
+		incroute(0x45);
 
- // enable the radio in Rx mode. The radio does not actively listen yet.
-  radio_rxEnable();
+		if (deltams < 5)
+			deltams = 5;
 
-  radio_rxNow();
+		flagreschedule = TRUE;
 
-  //pego o elemento atual pendente
-  sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+		//radio_rfOff();
 
-  if (pvObjList[ieee154e_vars.RITQueue_ElementPending].countretry < 5)
-  {
-	  ritstat.txdao.countdatatxerr++;
+		radio_setFrequency(ieee154e_vars.freq);
 
-	  pvObjList[ieee154e_vars.RITQueue_ElementPending].countretry++;
-#if (ENABLE_CSMA_CA == 0)
-	  duration = ieee154e_vars.lastCapturedTime+7000;
-	  radiotimer_schedule(duration);
-#else
-     radiotimer_schedule(TX_RIT_TIMEOUT_MS);
-#endif
+		radio_rxEnable();
 
-	  ret=TRUE;
-  }
+		radio_rxNow();
 
+		//Volto ao estado anterior para indicar que estou novamente esperando um frame TX
+		changeState(S_RIT_RXOLA);
 
-  #if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
-	{
-		uint8_t *pucAux  = (uint8_t *) &sRIT_vars.lasttxduration;
-		//uint8_t *pucAux1 = (uint8_t *) &capturedTime;
-		uint8_t pos=0;
+		radiotimer_schedule(deltams);
 
-		rffbuf[pos++]= RFF_IEEE802_TX;
-		rffbuf[pos++]= 0x45;
-		rffbuf[pos++]= ieee154e_vars.RITQueue_ElementPending;
-		rffbuf[pos++]= ret;
-		rffbuf[pos++]= ieee154e_vars.freq;
-		rffbuf[pos++]= sRIT_vars.destaddr.type;
-	    if (sRIT_vars.destaddr.type == 0x01)	{
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[0];
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_16b[1];
-	    }
-	    if (sRIT_vars.destaddr.type == 0x02)	{
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[6];
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_64b[7];
-	    }
-		else if (sRIT_vars.destaddr.type == 0x03) {
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[14];
-			rffbuf[pos++]= sRIT_vars.destaddr.addr_128b[15];
+		#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
+		{
+			uint8_t pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_TX;
+			rffbuf[pos++]= 0x45;
+			rffbuf[pos++]= pvObjList[ieee154e_vars.RITQueue_ElementPending].countretry;
+			rffbuf[pos++]= ieee154e_vars.freq;
+			//pos = printaddress(sRIT_vars.destaddr,rffbuf,pos);
+
+			pos = printvar((uint8_t *)&timeelapsedms,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&deltams,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 		}
-		rffbuf[pos++]= pvObjList[ieee154e_vars.RITQueue_ElementPending].countretry;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		#endif
 	}
-#endif
+	else {
+		incroute(0x46);
+
+		//TODO!!! AQUI ANTES EU TRATAVA O FRAME E ENVIAVA UM NOTIFY PARA INDICAR PARA O RPL OS FRAMES BROADCAST QUE
+		//CONSEGUIRAM SER ENVIADOS...MAS ACHO QUE O IDEAL EH FAZER NO PROPRIO RPL TX...ou seja eu notifico falha
+		//e se for broadcast ele analisa se houve algum frame que foi ok...ele acessando um servico do neighbors.
+		// nrDIOsent = macneighbors_calcbroadcastsent();
+
+		  //ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+
+		  if (txpending == FALSE)
+			  ret = RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
+
+          if  (macRITstate != S_RIT_multichnhello_state) {
+			  //schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+
+			  if (ieee154e_vars.dataToSend != NULL) {
+					notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+
+				ieee154e_vars.dataToSend = NULL;
+			  }
+          }
+
+   		  endSlot();
+     }
 
 	return ret;
 }
 
+/*
+ * Aqui eu estou com msg TX pendente...e acabei de receber um ola
+ * Entao:
+ *   - Verifico se a msg pendente eh um DIO (Broadcast) e neste caso devo ver se a msg pendente precisa ainda ser enviada
+ *   - Verifico se a msg pendente eh um DAO entao devo enviar a msg para o endereco especifico
+ *   - Verifico se a msg pendente eh um COAP entao devo enviar a msg para o endereco especifico
+ */
+void tratatxstate(open_addr_t* address){
+    uint8_t elementpos;
 
+	if (sRIT_vars.isBroadcastMulticast){  //FRAME RPL.DIO ou MULTICHANNELHELLO
+
+		if (macisThisAddressPendingBroadcast(address) == TRUE){
+            ritstat.txdio.countdatatx++;
+			incroute(0x40);
+			changeState(S_RIT_TXACKOFFSET);
+			radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
+		}
+		else {
+			//Chegou msg mas de um endereco que nao vou enviar broadcast...devo aguardar novamente
+			incroute(0x41);
+        	ritstat.txdio.countack++;
+
+			changeState(S_RIT_TX_CONTINUEWAIT);
+			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
+		}
+
+	}
+	else { //frame eh COAP OU RPL.DAO
+		elementpos = RITQueue_Get_Pos(address);
+
+		if (elementpos < maxElements)
+		{ //OLA EH DA MSG PENDENTE...PREPARO PARA ENVIA-LA
+			ieee154e_vars.RITQueue_ElementPending = elementpos;
+			incroute(0x42);
+			changeState(S_RIT_TXACKOFFSET);
+			radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
+		}
+		else { //AQUI O ENDERECO DO OLA NAO EH O MESMO QUE EU ESTAVA ESPERANDO...VOLTO A ESPERAR...
+			incroute(0x43);
+
+			changeState(S_RIT_TX_CONTINUEWAIT);
+			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
+		}
+	}
+}
+
+/* tratarxstate - trata msg recebida diferente de ola
+ * return - 0 - nao descarta o frame e nao termina o slot
+ *          1 - termina o slot e nao descarta o frame (pois ele ja foi descartado)
+ *          2 - termina o slot e descarta o frame
+ */
+
+uint8_t tratarxstate (uint8_t ackRequested,uint8_t frameType, open_addr_t *rxaddr_dst) {
+   uint8_t DiscardAndEndSlot = 0;
+   uint8_t isFrameForMe=0;
+   uint32_t capturedTime=0;
+
+    incroute(0x05);
+	#if 1 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+	{
+		uint8_t   pos=0;
+
+		rffbuf[pos++]= RFF_IEEE802_RX;
+		rffbuf[pos++]= 0x05;
+		rffbuf[pos++]= frameType;
+		pos = printaddress(actualsrcaddr,&rffbuf[0],pos);
+		pos = printaddress(*rxaddr_dst,&rffbuf[0],pos);
+		//pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	}
+	#endif
+
+	 //checa se frame é para o mote (mesmo endereco destino ou eh um frame broadcast)
+	if (frameType == IEEE154_TYPE_UNDEFINED) {
+		incroute(0x53);
+		DiscardAndEndSlot = activityrx_reopenrxwindow(actualsrcaddr);
+	}
+	else if (packetfunctions_isBroadcastMulticast(rxaddr_dst)){
+
+		incroute(0x50);
+
+		//AQUI É UM DIO...ENTAO SOMENTO NOTIFICO AS CAMADAS SUPERIORES
+		ritstat.rxdio++;
+
+		//ieee154e_vars.radioOnTics+=radio_getTimerValue()-ieee154e_vars.radioOnInit;
+
+		// indicate reception to upper layer (no ACK asked)
+		if (ieee154e_vars.dataReceived!=NULL) {
+		   //ritstat.rxola.countdatatxok++;
+		   notif_receive(ieee154e_vars.dataReceived);
+		   ieee154e_vars.dataReceived = NULL;
+
+		   DiscardAndEndSlot = DISCARD_NO_ENDSLOT_YES;
+		}
+		else{
+		  ritstat.rxola.countdatatxerr++;
+		  DiscardAndEndSlot = DISCARD_YES_ENDSLOT_YES;
+		}
+
+	}
+	else if  (idmanager_isMyAddress(rxaddr_dst)) { //FRAME IS DAO OU COAP
+
+		// check if ack requested
+		if (ackRequested==1) {
+			incroute(0x51);
+
+			activityrx_preparetxack(capturedTime);
+			DiscardAndEndSlot = DISCARD_NO_ENDSLOT_NO;
+		}
+		else{
+			//Aqui ele eh para mim mas nao precisa de ACK...nao sei que frame eh??????
+			incroute(0x52);
+			DiscardAndEndSlot = DISCARD_YES_ENDSLOT_YES;
+		}
+	}
+	else { //aqui recebeu um frame que nao era ola e nao era para este mote....reprogramo a janela
+		//Este caso nao eh para acontecer normalmente
+		incroute(0x53);
+		DiscardAndEndSlot = activityrx_reopenrxwindow(actualsrcaddr);
+	}
+
+	return DiscardAndEndSlot;
+}
+
+
+/*
+ * Esta rotina é utilizada para reprogramar o timer e voltar a ouvir na janela do RX_RIT
+ * Neste caso será atualizado a livelist com este ola recebido
+ * e sera reprogramado a maquina de estado para esperar um novo frame ainda dentro da janela do ola.
+ *
+ */
+port_INLINE uint8_t activityrx_reopenrxwindow(open_addr_t actualsrcaddr) {
+   uint32_t deltams=0;
+   uint32_t timeelapsedms=0;
+
+#if (MULTI_CHANNEL_HELLO_ENABLE == 0)
+   // notifica o recebimento na tabela de vizinhos
+   macneighbors_updtlivelist(actualsrcaddr);
+#endif
+
+    //REPROGRAMAR A JANELA COM UM TEMPO MENOR...
+    timeelapsedms = ieee154e_vars.lastCapturedTime;
+    if (RX_RIT_TIMEOUT_MS > timeelapsedms){
+
+		incroute(0x47);
+
+		deltams = RX_RIT_TIMEOUT_MS - timeelapsedms;
+
+		if (deltams < 5)
+			deltams = 5;
+
+		#if 0 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+		{
+			uint8_t   pos=0;
+
+			rffbuf[pos++]= RFF_IEEE802_RX;
+			rffbuf[pos++]= 0x47;
+			pos = printvar((uint8_t *)&timeelapsedms,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&deltams,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		}
+		#endif
+
+		//como desliguei o radio anteriormente devo reprograma-lo para RX
+		ieee154e_vars.freq = macneighbors_getMyBestChan();
+
+		radio_setFrequency(ieee154e_vars.freq);
+
+		radio_rxEnable();
+
+		radio_rxNow();
+
+		//descarto o frame recebido
+		if (ieee154e_vars.dataReceived!=NULL) {
+		  openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
+		  ieee154e_vars.dataReceived = NULL;
+		}
+
+		//Volto ao estado anterior para indicar que estou novamente esperando um frame TX
+		changeState(S_RIT_RXDATA);
+
+		radiotimer_schedule(deltams);
+
+		return DISCARD_NO_ENDSLOT_NO;
+    }
+    else
+    {
+		return DISCARD_YES_ENDSLOT_YES;
+    }
+
+
+}
 /*
  * Aqui o frame foi recebido com sucesso...
  * se somente processo um frame por vez...fecho o radio e processo a resposta.
@@ -2863,39 +3067,14 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 
 	radio_rfOff();
 
-	changeState(S_RIT_TXACKOFFSET);
+	ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();    //getdeltaTimerValue();
+
+	changeState(S_RIT_RXNEWFRM);
 
 	incroute(0x04);
 
-	leds_sync_toggle();
-#if 1
    // get a buffer to put the (received) data in
    ieee154e_vars.dataReceived = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
-
-#if 0 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &capturedTime;
-
-	pauxframe = (uint8_t *) ieee154e_vars.dataReceived;
-
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x04;
-	rffbuf[pos++]= macRITstate;
-	rffbuf[pos++]= (uint8_t) pauxframe++;
-	rffbuf[pos++]= (uint8_t) pauxframe++;
-	rffbuf[pos++]= (uint8_t) pauxframe++;
-	rffbuf[pos++]= (uint8_t) pauxframe++;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-
-    openserial_startOutput();
-
-    ieee154e_vars.dataReceived = NULL;
-    endSlot();
-    return;
-  }
-#endif
 
    if (ieee154e_vars.dataReceived==NULL) {
       // log the error
@@ -2938,32 +3117,35 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
                                    &ieee154e_vars.dataReceived->l1_lqi,
                                    &ieee154e_vars.dataReceived->l1_crc);
 
-#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &capturedTime;
+	#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+	{
+		uint8_t   pos=0;
 
-	pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
+		if ((macRITstate == S_RIT_TX_state) || (macRITstate == S_RIT_multichnhello_state)) {
+			pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
+			rffbuf[pos++]= RFF_IEEE802_RX;
+			rffbuf[pos++]= 0x04;
+			//rffbuf[pos++]= macRITstate;
+			//rffbuf[pos++]= ieee154e_vars.dataReceived->length;
+			//rffbuf[pos++]= ieee154e_vars.freq;
+			//rffbuf[pos++]= ieee802514_header.valid;
+			//rffbuf[pos++]= pauxframe[1];   //802154.FCF [0]
+			//rffbuf[pos++]= pauxframe[2];   //802154.FCF [1]
+			//rffbuf[pos++]= pauxframe[6];   //dest addr [6]
+			//rffbuf[pos++]= pauxframe[7];   //dest addr [7]
+			rffbuf[pos++]= 0xaa;  //inverti os bytes abaixo do endereco para ficar mais facil
+			rffbuf[pos++]= pauxframe[9];   //src addr [7]
+			rffbuf[pos++]= pauxframe[8];   //src addr [6]
+			//rffbuf[pos++]= pauxframe[10];  //IPHC header [0]
+			rffbuf[pos++]= 0xee;   //src addr [7]
+			pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
 
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x04;
-	rffbuf[pos++]= macRITstate;
-	rffbuf[pos++]= ieee154e_vars.dataReceived->length;
-	rffbuf[pos++]= ieee154e_vars.freq;
-	rffbuf[pos++]= ieee802514_header.valid;
-	rffbuf[pos++]= pauxframe[1];   //802154.FCF [0]
-	rffbuf[pos++]= pauxframe[2];   //802154.FCF [1]
-	rffbuf[pos++]= pauxframe[6];   //dest addr [6]
-	rffbuf[pos++]= pauxframe[7];   //dest addr [7]
-	rffbuf[pos++]= pauxframe[8];   //src addr [6]
-	rffbuf[pos++]= pauxframe[9];   //src addr [7]
-	rffbuf[pos++]= pauxframe[10];  //IPHC header [0]
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-
-    openserial_startOutput();
- }
-#endif
+			openserial_startOutput();
+		}
+	}
+	#endif
       // break if wrong length
       if (ieee154e_vars.dataReceived->length<LENGTH_CRC || ieee154e_vars.dataReceived->length>LENGTH_IEEE154_MAX ) {
          // jump to the error code below this do-while loop
@@ -2978,9 +3160,7 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 
       // if CRC doesn't check, stop
       if (ieee154e_vars.dataReceived->l1_crc==FALSE) {
-  	    incroute(0x51);
-
-  	    // jump to the error code below this do-while loop
+  	    incroute(0x55);
          break;
       }
 
@@ -2989,19 +3169,9 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
       // Aqui se for invalido pode ser problema da topologia...entao volto a abrir a janela de RIT...
       ieee802154_retrieveHeader(ieee154e_vars.dataReceived,&ieee802514_header);
 
-
       if (ieee802514_header.valid==FALSE) {
-
-   	    incroute(0x52);
-
-        if (macRITstate == S_RIT_TX_state) {
-
-        	if (activitytx_reopenrxwindow(capturedTime) == 0) {
-		       break;
-	        }
-
-		    return;
-         }
+   	    incroute(0x56);
+        break;
       }
 
       // store header details in packet buffer
@@ -3031,323 +3201,99 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 
       // if I just received an invalid frame, stop
       // só eh valido beacon e data packet - ack nao sera valido!!!!!!
-#if (USE_RITREQ_SHORT == 0)
       if (isValidRxFrame(&ieee802514_header)==FALSE) {
   	    incroute(0x53);
       	  // jump to the error code below this do-while loop
          break;
       }
-#endif
 
        memcpy(&rxaddr_nexthop, &(ieee154e_vars.dataReceived->l2_nextORpreviousHop),sizeof(open_addr_t));
        memcpy(&rxaddr_dst, &(ieee802514_header.dest),sizeof(open_addr_t));
        memcpy(&actualsrcaddr, &(ieee802514_header.src),sizeof(open_addr_t));
 
-       // --------------
-       // -------- TX
+		if ((macRITstate == S_RIT_TX_state) || (macRITstate == S_RIT_multichnhello_state))
+		{
+			reopenwindow=0;
 
-#if 0 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &capturedTime;
-
-	pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
-
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x04;
-	rffbuf[pos++]= ieee802514_header.valid;
-	rffbuf[pos++]= macRITstate;
-	rffbuf[pos++]= ieee154e_vars.dataReceived->length;
-	rffbuf[pos++]= ieee154e_vars.freq;
-	rffbuf[pos++]= pauxframe[1];   //802154.FCF [0]
-	rffbuf[pos++]= pauxframe[2];   //802154.FCF [1]
-	rffbuf[pos++]= pauxframe[6];   //dest addr [6]
-	rffbuf[pos++]= pauxframe[7];   //dest addr [7]
-	rffbuf[pos++]= pauxframe[8];   //src addr [6]
-	rffbuf[pos++]= pauxframe[9];   //src addr [7]
-	rffbuf[pos++]= pauxframe[10];  //IPHC header [0]
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
-#endif
-         if (macRITstate == S_RIT_TX_state) {
-
-        	 reopenwindow=0;
-
-			 //descarto o frame recebido pois nao preciso mais dele
-			 if (ieee154e_vars.dataReceived!=NULL) {
+			//descarto o frame recebido pois nao preciso mais dele
+			if (ieee154e_vars.dataReceived!=NULL) {
 			   openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
 			   ieee154e_vars.dataReceived = NULL;
-			 }
+			}
 
-        	 if (ieee802514_header.frameType == IEEE154_TYPE_OLA) {
-
-#if 1  //teste RFF
-        		 incroute(0x40);
-        		 endSlot();
-#else
-        		 //verifica se existe msg pendente para este endereco de destino ou broadcast
-				#if (USE_RITREQ_SHORT == 0)
-    		 	     actualsrcaddr = rxaddr_nexthop;
-				#endif
-
-        		sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
-
-        		if (sRIT_vars.isBroadcastMulticast){  //FRAME RPL.DIO
-
- 					if (macisThisAddressPendingBroadcast(&actualsrcaddr) == TRUE){
-
- 						incroute(0x40);
-
-						changeState(S_RIT_TXACKOFFSET);
-
-						radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
-					}
-					else {
-						//Aqui eu recebi um outro ola de alguem que ja tinha enviado um broadcast...considero timeout
-						//de quem eu estava aguardando...
-
-						incroute(0x49);
-
-						//changeState(S_RIT_TXMULTICASTTIMEOUT);
-
-						//radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
-						endSlot();
-					}
-
-				}
-				else { //frame eh COAP OU RPL.DAO
-       		 	    elementpos = RITQueue_Get_Pos(&actualsrcaddr);
-
-    				if (elementpos < maxElements)
-    				{
-    					//ieee154e_vars.RITQueue_ElementPending = elementpos;
-    				    incroute(0x41);
-
-    					changeState(S_RIT_TXACKOFFSET);
-
-    					radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
-    				}
-    				else {
-    				    ritstat.rxola.countdatatxerr++;
-    				    incroute(0x48);
-
-					    if (flagreschedule)
-						  flagreschedule = 0;
-
-						changeState(S_RIT_TX_CONTINUEWAIT);
-
-						radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
-    				}
-				}
-#endif
+			if (ieee802514_header.frameType == IEEE154_TYPE_OLA) {
+				tratatxstate(&actualsrcaddr);
 			}
 			else {  //aqui estava esperando um ola mas veio outro frame...devo voltar a esperar um novo frame.
 				//TODO!!! AQUI NAO VAI DAR UM DEADLOCK ? O CARA TAMBEM ESTA ESPERANDO UM OLA...SE EU FICAR ESPERANDO ELE NAO VAI VIR...
 				//MELHOR TALVEZ TERMINAR E ENVIAR UM OLA PARA ELE...E PERDER A MSG...
-			   //reopenwindow = TRUE;
-
-				incroute(0x47);
-
-				endSlot();
+				//reopenwindow = TRUE;
+				incroute(0x44);
+				changeState(S_RIT_TX_CONTINUEWAIT);
+				radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
 			}
 
-		    return;
-	   }
-
-	   //-------------------
-	   //--------RX
-
-	   else if (macRITstate == S_RIT_RX_window_state) {
+			return;
+		}
+	   else { // (macRITstate == S_RIT_RX_state)
 
            //incroute(ieee802514_header.frameType);
-
            if (ieee802514_header.frameType != IEEE154_TYPE_OLA) {
-
-               incroute(0x45);
-  			   discardframe = TRUE;
-#if 0
-   			 //checa se frame é para o mote (mesmo endereco destino ou eh um frame broadcast)
-        	isFrameForMe = 0;
-			if (packetfunctions_isBroadcastMulticast(&rxaddr_dst))
-				isFrameForMe = TRUE;
-			else if  (idmanager_isMyAddress(&rxaddr_dst))
-				isFrameForMe = TRUE;
-
-
-             #if ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-			 {
-				uint8_t   pos=0;
-				uint8_t   mybestfriend=0;
-
-				pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
-
-				mybestfriend = neighbors_isPreferredParent(&(rxaddr_nexthop));
-
-				rffbuf[pos++]= RFF_IEEE802_RX;
-				rffbuf[pos++]= 0x05;
-				rffbuf[pos++]= ieee802514_header.frameType;
-				rffbuf[pos++]= ieee802514_header.ackRequested;
-				rffbuf[pos++]= ieee154e_vars.dataReceived->length;
-				rffbuf[pos++]= ieee154e_vars.dataReceived->l4_protocol;
-				rffbuf[pos++]= isFrameForMe;
-				rffbuf[pos++]= rxaddr_dst.type;
-			    switch (rxaddr_dst.type)
-			    {
-			    	case 0x01:
-						rffbuf[pos++]= rxaddr_dst.addr_16b[0];
-						rffbuf[pos++]= rxaddr_dst.addr_16b[1];
-						break;
-			    	case 0x02:
-						rffbuf[pos++]= rxaddr_dst.addr_64b[6];
-						rffbuf[pos++]= rxaddr_dst.addr_64b[7];
-						break;
-			    	case 0x03:
-						rffbuf[pos++]= rxaddr_dst.addr_128b[14];
-						rffbuf[pos++]= rxaddr_dst.addr_128b[15];
-						break;
-			    	default:
-			    		break;
-			    }
-				rffbuf[pos++]= rxaddr_nexthop.type;
-				rffbuf[pos++]= rxaddr_nexthop.addr_64b[6];
-				rffbuf[pos++]= rxaddr_nexthop.addr_64b[7];
-
-
-				if (pauxframe[22] == 0x78)
-					rffbuf[pos++]= 0xcc;
-				else if (pauxframe[22] == 0x68)
-					rffbuf[pos++]= 0xdd;
-				else
-					rffbuf[pos++]= 0xaa;
-
-				if ((pauxframe[22] == 0x78) || (pauxframe[22] == 0x68))
-				{
-					rffbuf[pos++]= pauxframe[1];   //802154.FCF [0]
-					rffbuf[pos++]= pauxframe[2];   //802154.FCF [1]
-					rffbuf[pos++]= pauxframe[6];   //dest addr [6]
-					rffbuf[pos++]= pauxframe[7];   //dest addr [7]
-					rffbuf[pos++]= pauxframe[14];  //src addr [6]
-					rffbuf[pos++]= pauxframe[15];  //src addr [7]
-					rffbuf[pos++]= pauxframe[22];  //IPHC header [0]
-					rffbuf[pos++]= pauxframe[23];  //IPHC header [1]
-					rffbuf[pos++]= pauxframe[24];  //Next Header
-				}
-
-				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-			 }
-			#endif
-
-			if (isFrameForMe) {
-				// check if ack requested
-				if (ieee802514_header.ackRequested==1)
-				{
-					incroute(0x65);
-					activityrx_preparetxack(capturedTime);
-				}
-				else
-				{
-				   incroute(0x66);
-
-				   radio_rfOff();
-				   ieee154e_vars.radioOnTics+=radio_getTimerValue()-ieee154e_vars.radioOnInit;
-
-				   // indicate reception to upper layer (no ACK asked)
-				   if (ieee154e_vars.dataReceived!=NULL) {
-					   notif_receive(ieee154e_vars.dataReceived);
-				       ieee154e_vars.dataReceived = NULL;
-	               }
-				   endSlot();
-				}
-			}
-			else
-			{
-				//TODO!!!!! aqui eu abri minha janela mas nao era para mim o frame...devo abrir novamente ????
-				//estou ignorando e espero no proximo ciclo.
-				incroute(0x67);
-				discardframe = TRUE;
-			}
-#endif
-		   }
+        	   discardframe = tratarxstate(ieee802514_header.ackRequested,ieee802514_header.frameType, &rxaddr_dst);
+           }
 		   else {
-			   // indicate reception to upper layer (no ACK asked)
-			   //notif_receive(ieee154e_vars.dataReceived);
-			   //TODO!!! AQUI TENHO DUVIDAS SE DEVO OU NAO DESPREZAR O FRAME DO RIT...
-			   //Do jeito que esta a tabela de vizinhos nao esta sendo incrementada pelo nr de anuncios do RIT
-			   //Porem se eu nunca comunicar com ele ele nao vai incrementar...mesmo se ele for um bom vizinho...
-				incroute(0x68);
-				discardframe = TRUE;
+			   discardframe = activityrx_reopenrxwindow(actualsrcaddr);
 		   }
 
-    	   if (discardframe) {
-    			incroute(0x69);
-
-    		   // turn off the radio calcula o tempo do radio ligado e volto a dormir
-    		   ieee154e_vars.radioOnTics+=radio_getTimerValue()-ieee154e_vars.radioOnInit;
+    	   if (discardframe > 0) {
+    			incroute(0x48);
 
     		   // clean up dataReceived
-    		   if (ieee154e_vars.dataReceived!=NULL) {
-      			  openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
-    			  ieee154e_vars.dataReceived = NULL;
-                }
+    		   if (discardframe == DISCARD_YES_ENDSLOT_YES){
+				   if (ieee154e_vars.dataReceived!=NULL) {
+					  openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
+					  ieee154e_vars.dataReceived = NULL;
+					}
+    		   }
 
-    			//descarto o frame recebido pois nao preciso mais dele
-    			endSlot();
+			   endSlot();
     	  }
 
     	  // everything went well, return here not to execute the error code below
     	  return;
 	   }
 
-
    } while(0);
 
-   // free the (invalid) received data so RAM memory can be recycled
-   if (ieee154e_vars.dataReceived!=NULL) {
-	   openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
-
-	   // clear local variable
-	   ieee154e_vars.dataReceived = NULL;
-   }
-
-    //se existe um frame TX pendente..apesar da mensagem ser invalida eu reabro a janela esperando outra msg valida
-    //if (macRITstate == S_RIT_TX_state) {
-    //    activitytx_reopenrxwindow(capturedTime);
-    //}
-
-#if 0 // ((ENABLE_DEBUG_RFF ==1)  && (DBG_RADIO_POWER_CONS == 1))
-	{
-		uint8_t *pucAux = (uint8_t *) &ieee154e_vars.radioOnTics;
-		uint8_t pos=0;
-
-		rffbuf[pos++]= RFF_IEEE802_RX;
-		rffbuf[pos++]= 0x69;
-		rffbuf[pos++]= ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= pauxframe[1];
-		rffbuf[pos++]= pauxframe[2];
-		rffbuf[pos++]= pauxframe[3];
-		rffbuf[pos++]= pauxframe[4];
-		rffbuf[pos++]= pauxframe[5];
-		rffbuf[pos++]= pauxframe[6];
-		rffbuf[pos++]= pauxframe[7];
-		rffbuf[pos++]= pauxframe[8];
-		rffbuf[pos++]= pauxframe[9];
-		rffbuf[pos++]= pauxframe[10];
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-#endif
 
    // free the (invalid) received data so RAM memory can be recycled
    if (ieee154e_vars.dataReceived!=NULL) {
 	   openqueue_freePacketBuffer(ieee154e_vars.dataReceived);
-
-	   // clear local variable
 	   ieee154e_vars.dataReceived = NULL;
    }
 
-#endif
-   // abort
-   endSlot();
+   //Aqui ocorreu erro no frame recebido e volta a escutar a linha para RX.
+   //Porem ele pode ficar travado aqui por algum motivo...entao ele somente vai fazer isso por tres tentativas
+   nrErrorRetries++;
+   if (nrErrorRetries < 5) {
+	   incroute(0x49);
+	   if (macRITstate == S_RIT_RX_state)
+		   activityrx_reopenrxwindow(actualsrcaddr);
+	   else { // (macRITstate == S_RIT_TX_state ou hello
+			changeState(S_RIT_TX_CONTINUEWAIT);
+			radiotimer_schedule(TX_RIT_DELAYCONTWAIT_MS);
+	   }
+   }
+   else {
+	   // no servico hello foi esperado um ola do mote por 4 tentativas e sempre ocorreu a resposta de outros...
+	   // considero entao que ele esta fora da livelist
+	   if (macRITstate == S_RIT_multichnhello_state) {
+		   macneighbors_clearlivelist(ieee154e_vars.targetaddr);
+	   }
+
+	   endSlot();
+   }
+
 
    openserial_startOutput();
 }
@@ -3361,10 +3307,12 @@ port_INLINE void prepare_tx_msg(PORT_RADIOTIMER_WIDTH capturedTime) {
 
     radiotimer_cancel();
 
-   // change state
-   changeState(S_RIT_TXDATAREADY);
+    changeState(S_RIT_TXDATAREADY);
 
-   incroute(0x05);
+    incroute(0x05);
+
+	// record the captured time
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();
 
 	// change owner
 	ieee154e_vars.dataToSend->owner = COMPONENT_IEEE802154E;
@@ -3375,66 +3323,40 @@ port_INLINE void prepare_tx_msg(PORT_RADIOTIMER_WIDTH capturedTime) {
 	//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 	//ieee154e_vars.freq = macneigh_getBChan(sRIT_vars.destaddr);
 
-   // configure the radio for that frequency - a frequencia ja estava setada
-   radio_setFrequency(ieee154e_vars.freq);
+    // configure the radio for that frequency - a frequencia ja estava setada
+    radio_setFrequency(ieee154e_vars.freq);
 
-   ieee154e_vars.lastCapturedTime = capturedTime;
-
-   // load the packet in the radio's Tx buffer
-   //carrega pacote apartir da fila do RIT
-
-#if 1
 	if (ieee154e_vars.RITQueue_ElementPending < maxElements) {
 
-		sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
+		//sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
 		radio_loadPacket(sRIT_vars.msg , sRIT_vars.msglength);
 
-		//free the mensagem in the RIT message pool
-		//vou limpara ela somente depois que foi confirmado o envio
-		//ret = RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
-	    // enable the radio in Tx mode. This does not send the packet.
-	    radio_txEnable();
+		radio_txEnable();
 
-	    //duration = ieee154e_vars.lastCapturedTime + 400; // delay entre Rx e tx de 12,21 ms
-	    //radiotimer_schedule(duration);
-	    //radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
+		radiotimer_schedule(TX_RIT_DELAYRXTX_MS);
 
-	    changeState(S_RIT_TXDATA);
-	    incroute(0x51);
+		#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+		{
+			uint8_t   pos=0;
+			uint8_t *pucAux = (uint8_t *) &capturedTime;
 
-#if 1 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &capturedTime;
+			rffbuf[pos++]= RFF_IEEE802_TX;
+			rffbuf[pos++]= 0x05;
+			rffbuf[pos++]= ieee154e_vars.freq;
+			pos = printvar((uint8_t *)&ieee154e_vars.lastCapturedTime,sizeof(uint32_t),rffbuf,pos);
 
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x05;
-	rffbuf[pos++]= macRITstate;
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-
-    openserial_startOutput();
-  }
-#endif
-	#if (ENABLE_CSMA_CA == 1)
-	    radio_txNow(TX_USE_CSMA_CA);
-	#else
-	    radio_txNow();
-	#endif
-
-	    //duration = ieee154e_vars.lastCapturedTime + RIT_DURATION_tt4;   tt4=500
-	    //duration = ieee154e_vars.lastCapturedTime + 700;
-	    radiotimer_schedule(TX_RIT_TXDATAECHO_MS);
+			openserial_startOutput();
+		}
+		#endif
 
 	}
 	else
 	{
 		endSlot();
 	}
-#else
-    activitytx_senddone(capturedTime);
-#endif
 
 
 }
@@ -3449,7 +3371,7 @@ port_INLINE void activityrx_preparetxack(PORT_RADIOTIMER_WIDTH capturedTime) {
    // change state
    changeState(S_RIT_TXACKPREPARE);
 
-   incroute(0x6);
+   incroute(0x06);
 
    // get a buffer to put the ack to send in
    ieee154e_vars.ackToSend = openqueue_getFreePacketBuffer(COMPONENT_IEEE802154E);
@@ -3535,55 +3457,6 @@ port_INLINE void activityrx_preparetxack(PORT_RADIOTIMER_WIDTH capturedTime) {
    radiotimer_schedule(duration);
 #endif
 
-#if 0 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
-  {
-	uint8_t   pos=0;
-	uint8_t *pucAux = (uint8_t *) &capturedTime;
-	uint8_t *pauxframe;
-
-	pauxframe = (uint8_t *) &ieee154e_vars.ackToSend->packet[0];
-
-	rffbuf[pos++]= RFF_IEEE802_RX;
-	rffbuf[pos++]= 0x06;
-	rffbuf[pos++]= ieee154e_vars.ackToSend->length;
-	rffbuf[pos++]= pauxframe[1];
-	rffbuf[pos++]= pauxframe[2];
-	rffbuf[pos++]= pauxframe[5];
-	rffbuf[pos++]= pauxframe[6];  //dest addr [6]
-	rffbuf[pos++]= pauxframe[7];  //dest addr [7]
-	rffbuf[pos++]= pauxframe[14];  //src addr [6]
-	rffbuf[pos++]= pauxframe[15];  //src addr [7]
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-  }
-#endif
-
-#if ((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_TIMER == 1))
-   {
-       uint8_t pos=0;
-       uint8_t *pucAux = (uint8_t *) &duration;
-
-	    rffbuf[pos++]= RFF_IEEE802_RX;
-		rffbuf[pos++]= 0x07;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataToSend->length;
-		rffbuf[pos++]= (uint8_t) ieee154e_vars.dataReceived->length;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-
-		pucAux = (uint8_t *) &ieee154e_vars.lastCapturedTime;
-		rffbuf[pos++]= 0xcc;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux++;
-		rffbuf[pos++]= *pucAux;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos++);
-
-   }
-#endif
-
 }
 
 port_INLINE void activityrx_senddataack(void) {
@@ -3594,6 +3467,31 @@ port_INLINE void activityrx_senddataack(void) {
   changeState(S_RIT_TXACK);
   incroute(0x07);
 
+#if 0 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+{
+	uint8_t   pos=0;
+	uint8_t   *pauxframe;
+
+	pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
+
+	rffbuf[pos++]= RFF_IEEE802_RX;
+	rffbuf[pos++]= 0x07;
+/*
+	rffbuf[pos++]= pauxframe[75];
+	rffbuf[pos++]= pauxframe[76];
+	rffbuf[pos++]= pauxframe[77];
+	rffbuf[pos++]= pauxframe[78];
+	rffbuf[pos++]= pauxframe[79];
+	rffbuf[pos++]= pauxframe[80];
+	rffbuf[pos++]= pauxframe[81];
+	rffbuf[pos++]= pauxframe[82];
+	rffbuf[pos++]= pauxframe[83];
+	rffbuf[pos++]= pauxframe[84];
+*/
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	openserial_startOutput();
+}
+#endif
 #if (ENABLE_CSMA_CA == 1)
   //ack does not use CSMA-CA - spec
   radio_txNow(TX_NOT_USE_CSMA_CA);
@@ -3622,9 +3520,32 @@ port_INLINE void activityrx_txackok(PORT_RADIOTIMER_WIDTH capturedTime) {
    radio_rfOff();
 
    // compute the duty cycle if radio has been turned on
-   if (ieee154e_vars.radioOnThisSlot==TRUE){
-	  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-   }
+   //if (ieee154e_vars.radioOnThisSlot==TRUE){
+   //  ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
+   //}
+
+	#if 0 //((ENABLE_DEBUG_RFF ==1)  && (DBG_IEEE802_RX == 1))
+	{
+		uint8_t   pos=0;
+		uint8_t   *pauxframe;
+
+		pauxframe = (uint8_t *) &ieee154e_vars.dataReceived->packet[0];
+
+		rffbuf[pos++]= RFF_IEEE802_RX;
+		rffbuf[pos++]= 0x08;
+/*
+		rffbuf[pos++]= pauxframe[84];
+		rffbuf[pos++]= pauxframe[85];
+		rffbuf[pos++]= pauxframe[86];
+		rffbuf[pos++]= pauxframe[87];
+		rffbuf[pos++]= pauxframe[88];
+		rffbuf[pos++]= pauxframe[89];
+		rffbuf[pos++]= pauxframe[90];
+*/
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		openserial_startOutput();
+	}
+	#endif
 
    // free the ack we just sent so corresponding RAM memory can be recycled
    openqueue_freePacketBuffer(ieee154e_vars.ackToSend);
@@ -3647,6 +3568,7 @@ port_INLINE void activityrx_txackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 
    // official end of Rx slot
    endSlot();
+
 }
 
 //======= frame validity check
@@ -3654,9 +3576,9 @@ port_INLINE void activityrx_txackok(PORT_RADIOTIMER_WIDTH capturedTime) {
 /**
 \brief Decides whether the packet I just received is valid received frame.
 
-A valid Rx frame satisfies the following constraints:
+A valid Rx frame satisfies the following constraints: (PARA O AMCA)  TODO!!! PARA O AMAC OU RITMC DEVE ACEITAR O ACK TAMBEM
 - its IEEE802.15.4 header is well formatted
-- it's a DATA of BEACON frame (i.e. not ACK and not COMMAND)
+- it's a DATA or COMMAND (BEACON DO RIT)
 - it's sent on the same PANid as mine
 - it's for me (unicast or broadcast)
 
@@ -3665,10 +3587,12 @@ A valid Rx frame satisfies the following constraints:
 \returns TRUE if packet is valid received frame, FALSE otherwise
 */
 port_INLINE bool isValidRxFrame(ieee802154_header_iht* ieee802514_header) {
+
+
    return ieee802514_header->valid==TRUE                                                           && \
           (
              ieee802514_header->frameType==IEEE154_TYPE_DATA                   ||
-             ieee802514_header->frameType==IEEE154_TYPE_BEACON
+             ieee802514_header->frameType==IEEE154_TYPE_CMD
           )                                                                                        && \
           packetfunctions_sameAddress(&ieee802514_header->panid,idmanager_getMyID(ADDR_PANID))     && \
           (
@@ -3771,20 +3695,25 @@ void changeIsSync(bool newIsSync) {
    ieee154e_vars.isSync = newIsSync;
 
    if (ieee154e_vars.isSync==TRUE) {
-      //leds_sync_on();
       resetStats();
    } else {
-      //leds_sync_off();
       schedule_resetBackoff();
    }
 }
 
-
-//======= notifying upper layer
-
+//
+/*======= notifying upper layer
+ * Agora considero no calculdo do Rank as mensagens do DIO..que antes nao era considerada por causa de ser broadcast...
+ * Como eh necessario enviar um broadcast para cada mote da minha tabela...isso ajuda a aumentar o numero de pacotes enviados...
+ * Para isso eu engano o RPL colocando o endereco do Broadcast, o endereco do endereco que foi enviado.
+ */
 void notif_sendDone(OpenQueueEntry_t* packetSent, owerror_t error) {
+
+	open_addr_t srcaddr;
+
    // record the outcome of the trasmission attempt
    packetSent->l2_sendDoneError   = error;
+
    // record the current ASN
    memcpy(&packetSent->l2_asn,&ieee154e_vars.asn,sizeof(asn_t));
    // associate this packet with the virtual component
@@ -3914,62 +3843,86 @@ void endSlot() {
 
 	radiotimer_cancel();
 
-	//leds_debug_off();
-	//leds_sync_off();
+    // turn off the radio
+    radio_rfOff();
+
+    radio_flushfifos();
+
+    if (macRITstate == S_RIT_TX_state){
+		//leds_debug_off();
+		//leds_sync_off();
+    }
 
 	// record the captured time
-	//ieee154e_vars.lastCapturedTime = capturedTime;
+    ieee154e_vars.lastCapturedTime = getdeltaslotperiod_ms();   //getdeltaTimerValue();
 
-	// turn off the radio
-	radio_rfOff();
+	#if (SINK == 1)
+		//TODO CICLO ABRO A SERIAL PARA ENTRADA
+		openserial_stop();
+		openserial_startInput();
+	#endif
 
-	//TODO!!! PARA QUE ELE USA ISSO
-	// compute the duty cycle if radio has been turned on
-	//if (ieee154e_vars.radioOnThisSlot==TRUE){
-	//   ieee154e_vars.radioOnTics+=(radio_getTimerValue()-ieee154e_vars.radioOnInit);
-	//}
+    //imprimir estatisticas
+	if (macRITstate == S_RIT_RX_state)
+	    ieee154e_dbg.num_rxend++;
+	else
+	    ieee154e_dbg.num_txend++;
 
-	//imprimir estatisticas
-	//resto = ieee154e_dbg.num_newSlot % 50;
-	//if (resto == 0)
-	//	printstat();
-	//else
+	if ((ieee154e_dbg.num_newSlot % 100) == 0) {
+		printstat();
+	}
+	else{
 		printroute();
+	}
 
 	//Limpo a fila de mensagens pendentes
 	RITQueue_cleanupoldmsg();
 	sRIT_vars = RITQueue_Get_Element(ieee154e_vars.RITQueue_ElementPending);
 
-	//macRITstate=S_RIT_sleep_state;
-
    //clear vars for duty cycle on this slot
 	ieee154e_vars.radioOnTics=0;
 	ieee154e_vars.radioOnThisSlot=FALSE;
 
+	frameDioPending = 0;
+
    // clean up dataToSend
    if (ieee154e_vars.dataToSend!=NULL) {
-      // if everything went well, dataToSend was set to NULL in ti9
-      // getting here means transmit failed
 
-      // indicate Tx fail to schedule to update stats
-      schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+	   //Aqui quando eu estou com erro eu nao retransmito o pacote...espero a proxima vez
+		if (sRIT_vars.frameType == IANA_ICMPv6_RPL_DIO)
+		{
+			  if (txpending == FALSE){
+				  RITQueue_Free(ieee154e_vars.RITQueue_ElementPending);
+			  }
 
-      //decrement transmits left counter
-      ieee154e_vars.dataToSend->l2_retriesLeft--;
+			  schedule_indicateTx(&ieee154e_vars.asn,TRUE);
+			  notif_sendDone(ieee154e_vars.dataToSend,E_SUCCESS);
+		}
+		else {
 
-#if 0
-      if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
-         // indicate tx fail if no more retries left
-         notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
-      } else {
-         // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
-         ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-      }
-#else
-      ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
-#endif
-      // reset local variable
-      ieee154e_vars.dataToSend = NULL;
+		  // if everything went well, dataToSend was set to NULL in ti9
+		  // getting here means transmit failed
+
+		  // indicate Tx fail to schedule to update stats
+		  schedule_indicateTx(&ieee154e_vars.asn,FALSE);
+
+		  //decrement transmits left counter
+		  ieee154e_vars.dataToSend->l2_retriesLeft--;
+
+			#if 0
+				  if (ieee154e_vars.dataToSend->l2_retriesLeft==0) {
+					 // indicate tx fail if no more retries left
+					 notif_sendDone(ieee154e_vars.dataToSend,E_FAIL);
+				  } else {
+					 // return packet to the virtual COMPONENT_SIXTOP_TO_IEEE802154E component
+					 ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
+				  }
+			#else
+				  ieee154e_vars.dataToSend->owner = COMPONENT_SIXTOP_TO_IEEE802154E;
+			#endif
+		}
+
+		ieee154e_vars.dataToSend = NULL;
    }
 
 
@@ -3979,8 +3932,6 @@ void endSlot() {
       // would have been set to NULL in ri9.
       // indicate  "received packet" to upper layer since we don't want to loose packets
       notif_receive(ieee154e_vars.dataReceived);
-
-
 
       // reset local variable
       ieee154e_vars.dataReceived = NULL;
@@ -4003,13 +3954,8 @@ void endSlot() {
    }
 
    openserial_startOutput();
-
-#if 0
-   if (macRITstate == S_RIT_TX_state){
-	   //isr_ieee154e_newSlot();
-       radio_setTimerPeriod(TX_RIT_SLEEP_MS);
-   }
-#endif
+   macRITstate = 0;
+   //leds_error_off();
 }
 
 
@@ -4022,7 +3968,6 @@ bool ieee154e_isSynch(){
 This function executes in ISR mode, when the FSM timer fires.
 */
 void isr_ieee154e_timer(void) {
-   uint32_t capturedTime = radio_getTimerValue();
 
    switch (ieee154e_vars.state) {
 	  case S_RIT_TXOLAPREPARE:               //Rx02
@@ -4043,7 +3988,6 @@ void isr_ieee154e_timer(void) {
       case S_RIT_TXACK:                      //Rx88
     	 activityrx_noacktx();
          break;
-	  case S_RIT_TXMULTICAST:                //TxXX
   	  case S_RIT_TXDATAOFFSET:               //Tx02
   		 activitytx_rxolaprepare();
   		 break;
@@ -4052,15 +3996,13 @@ void isr_ieee154e_timer(void) {
 		 break;
   	  case S_RIT_TXMULTICASTTIMEOUT:
  	  case S_RIT_RXOLA:                      //tx84
-		 if (countdebug > 0)
-			countdebug = 0;
  		  activity_txritwindowend();
  		  break;
  	  case S_RIT_TXACKOFFSET:                //tx05
 		  prepare_tx_msg(0);
 		  break;
- 	  case S_RIT_TX_CONTINUEWAIT:            //tx05
- 		  activitytx_reopenrxwindow(0);
+ 	  case S_RIT_TX_CONTINUEWAIT:            //tx45
+ 		  activitytx_reopenrxwindow();
 		  break;
 	  case S_RIT_TXDATAREADY:                //tx06
 	     activitytx_senddata();
@@ -4071,9 +4013,11 @@ void isr_ieee154e_timer(void) {
 	  case S_RIT_RXACK:                      //Tx89
 		 activitytx_rxnoack();
 		 break;
+/*
 	  case S_RIT_SLEEP:
 		 endSlot();
 		 break;
+*/
 	  default:
 		 // log the error
 		 openserial_printError(COMPONENT_IEEE802154E,ERR_WRONG_STATE_IN_TIMERFIRES,
@@ -4104,7 +4048,9 @@ This function executes in ISR mode.
 */
 void ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
 
-   switch (ieee154e_vars.state) {
+	capturedTime = getdeltaslotperiod_ms();
+
+    switch (ieee154e_vars.state) {
      case S_RIT_TXOLA:                             //Rx03
 		  activityrx_dataprepare(capturedTime);
 		 break;
@@ -4115,8 +4061,6 @@ void ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
 		 activityrx_txackok(capturedTime);
 		break;
 	 case S_RIT_RXOLA:                             //Tx04
-		 if (countdebug > 0)
-			countdebug = 0;
 		 activity_rxnewframe(capturedTime);
 		break;
 	 case S_RIT_TXDATA:                            //Tx07
@@ -4125,9 +4069,11 @@ void ieee154e_endOfFrame(PORT_RADIOTIMER_WIDTH capturedTime) {
 	 case S_RIT_RXACK:                             //Tx09
 		 activitytx_rxackok(capturedTime);
 		break;
+/*
 	 case S_RIT_SLEEP:
 		 endSlot();
 		break;
+*/
 	 default:
 		// log the error
 		openserial_printError(COMPONENT_IEEE802154E,ERR_WRONG_STATE_IN_ENDOFFRAME,

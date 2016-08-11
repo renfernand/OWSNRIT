@@ -22,6 +22,8 @@
 //=========================== prototypes ======================================
 
 bool topology_isAcceptablePacket(ieee802154_header_iht* ieee802514_header);
+uint8_t convertaddress16to64 (open_addr_t *dstaddr, open_addr_t *srcaddr);
+uint8_t getaddressMote (open_addr_t *dstaddr,uint8_t addrtype, uint8_t mote);
 
 /**
 \}

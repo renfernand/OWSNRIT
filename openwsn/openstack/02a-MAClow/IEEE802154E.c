@@ -22,9 +22,6 @@ ieee154e_vars_t    ieee154e_vars;
 ieee154e_stats_t   ieee154e_stats;
 ieee154e_dbg_t     ieee154e_dbg;
 
-#if DEBUG_LOG_RIT
-static uint8_t rffbuf[10];
-#endif
 //=========================== prototypes ======================================
 
 // SYNCHRONIZING

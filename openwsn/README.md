@@ -26,6 +26,80 @@ Documentation
 - overview: https://openwsn.atlassian.net/wiki/
 - source code: http://openwsn-berkeley.github.io/firmware/
 
+------------------------------------------------------------------
+Update history
+Version: V8_1_1_5
+Date: 10-08-16
+Remarks:
+    Corrigido o bug #01 e Bug #08 que estava relacionado ao tamanho do STACK... Aumentado o stack de 128 para 512.
+    Esta versao foi implementado o COAP interno, onde nao depende do openvis com config fixa para ate 3 saltos.
+    Testado um e dois saltos automaticos...Tres saltos o SINK nao enviou o comando.   
+
+Bugs Atuais:
+ Bug#10 - Tres saltos nao envia COAP automatico
+ Bug#11 - Travamento da escrita serial apos algum tempo 
+
+------------------------------------------------------------------
+Update history
+Version: V8_1_1_4
+Date: 25-07-16
+Remarks:
+  - Implementado retorno para step anterior quando ocorrer ERRO (RX83),(RX87). Anteriormente estava indo para o EndSlot.
+  - testado o RPL.DAO multicanal
+
+Bugs Atuais: #01, #02.
+------------------------------------------------------------------
+Update history
+Version: V8_1_1_3
+Date: 20-07-16
+Remarks:
+ Testado e validado o DIO com multi-canal. Testado com 5 nós e funcionando OK.
+ Resolvido o BUG03 do Release.
+ Implementado servico de livelist (multi-channel hello). Porem nao foi implementado conforme a norma. nao tem o retorno somente o ola no canal.
+
+Bugs Atuais: #01, #02.
+
+------------------------------------------------------------------
+Update history
+Version: V8_1_1_2
+Date: 17-07-16
+Remarks:
+ Nesta versao somente foi testado o OLA.
+ a) Foi alterado o mecanismo do OLA com uma versao bem mais estavel. Quase todos os Inicio de slot tem um EndSlot.
+    Ainda esta ocorrendo o bug#02.
+ b) Foi alterado o mecanismo de medicao do tempo do slot (getdeltaslotperiod_ms). Testes com osciloscopio OK.
+ c) Tentei validar a versao release para utilizar no firmware com watchdog. Ainda nao funcionou com problema no assembler (BUG#03). 
+
+
+Bugs Atuais: #01, #02, #03.
+
+
+------------------------------------------------------------------
+
+Update history
+Version: V8_1_1_1
+Date: 14-07-16
+Remarks:
+Esta versao foi implementado como remedio tambem o watchdog que eh habilitado no BOARD.H com um define. Fica ruim o debug com o watchdog ligado.
+Tambem foram corrigidos problemas em relacao qdo em txmode nao recebesse olas..
+
+Problema: Ainda esta ocorrendo o travamento do nó quando nao esta usando debug. 
+
+
+------------------------------------------------------------------
+
+Update history
+Version: V8_1_1
+Date: 12-07-16
+Remarks:
+Esta versao ja esta funcionando novamente o RPL-DIO usando a topologia.
+Foi mudado o timer do slottime que agora esta usando o proprio MACTimer (exclusivo para o CSMA) porem somente utiliza ele como freerunning.
+O que da para ver eh que as vezes o timer trava...nao gera mais interrupcao, porem um remedio paleativo foi quando travar a tarefa do schedule
+reseta este timer. Desta forma ele esta funcionando bem.
+Tambem foi feito uma mudanca para sempre a programacao dos timers dentro do slot resultar em um tempo menor que o slot time. Desta forma sempre
+vai ocorrer um endslot.
+
+Problema: Ainda esta ocorrendo o travamento do nó quando nao esta usando debug. 
 
 ------------------------------------------------------------------
 Update history
@@ -50,7 +124,7 @@ Agora o CSMA esta funcionando somente com o MAC timer.
 A tarefa MAC roda em cima do systick programado de acordo com a necessidade.
 A chamada do inicio do slot eh feita pela tarefa geral comum as outras tarefas.
 O actualtime tambem esta funcionando...so que ele eh um incremento desde o inicio do slot.      
-      
+
 Bugs Atuais:
 - As vezes a interrupcao do MAC Timer (CSMA) para de funcionar...apesar de continuar enviar o frame. Mas eu criei um mecanismo de quando travar eu resetar ela.
 
@@ -87,16 +161,16 @@ Bugs Resolvidos:
 #R02 - AMAC - com valores altos de RITwindow comeca a apresentar problemas.
        R.: estou me baseando nos mesmos timer do TSCH. Mas o Schedule_timer eh um timer de 15 bits que vai de 0 a 16500.
 	   Entao para valores de RITWindows acima de 400ms ele vai apresentar problemas...
-
+	   
 #R03 - Hoje nao esta ocorrendo o travamento da comunicacao quando tem TX pendente. por que ?
       e como resolver o caso onde transmissor tem um Tx.dio pendente...porem o receptor esta enviando um Tx.Dao..
       Neste caso o transmissor nao vai aceitar nada alem do Ola...entao ele fica aguardando o ola...
       porem o receptor esta aguardando um ack...ou um ola tambem...
       R.: Quando ocorre o timer principal entao comeca um novo slot...e entao ele fica ciclando entre Tx e Rx ou seja,
 	  se no ultimo ciclo foi Tx entao no proximo eh RX... Nao tem o inverso..
-      
+	   
 Bugs Atuais:
- 
+
 -----------------------------------------------------------------
 Version: V8_0_2
 Date: 16_01_16

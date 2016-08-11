@@ -44,7 +44,7 @@ void openapps_init(void) {
    uecho_init();
 
    //sensor board
-#if (MYLINKXS_SENSORS == 1)
+#if 1 //(MYLINKXS_SENSORS == 1)
    osens_app_init();
 #endif
 

@@ -707,7 +707,6 @@ port_INLINE void radio_off(void){
    /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
    while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
    //CC2538_RF_CSP_ISFLUSHRX();
-   
    /* Don't turn off if we are off as this will trigger a Strobe Error */
    if(HWREG(RFCORE_XREG_RXENABLE) != 0) {
       CC2538_RF_CSP_ISRFOFF();
@@ -715,6 +714,31 @@ port_INLINE void radio_off(void){
       HWREG(RFCORE_SFR_RFIRQF0) = ~(RFCORE_SFR_RFIRQF0_FIFOP|RFCORE_SFR_RFIRQF0_RXPKTDONE);
    }
 }
+
+
+void radio_flushfifos(void){
+	//flush fifos
+	CC2538_RF_CSP_ISFLUSHRX();
+	CC2538_RF_CSP_ISFLUSHTX();
+}
+
+/*
+ *
+ void radio_reset() {
+
+   while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+
+   //flush fifos
+   CC2538_RF_CSP_ISFLUSHRX();
+   CC2538_RF_CSP_ISFLUSHTX();
+
+   if(HWREG(RFCORE_XREG_RXENABLE) != 0) {
+      CC2538_RF_CSP_ISRFOFF();
+   }
+   radio_init();
+}
+ *
+ */
 
 //=========================== callbacks =======================================
 #if (ENABLE_CSMA_CA == 1)
@@ -840,7 +864,7 @@ void macCspTxBusyIsr(PORT_TIMER_WIDTH capturedTime){
 
 		radio_csma_vars.nb++;
 		radio_csma_vars.countBusy++;
-		leds_sync_toggle();
+		//leds_sync_toggle();
 
 		if (radio_csma_vars.nb > maxCsmaBackoffs)
 		{

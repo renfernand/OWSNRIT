@@ -19,7 +19,7 @@
 #include "opentimers.h"
 #include "openhdlc.h"
 #include "debugpins.h"
-
+#include "IEEE802154RIT.h"
 #if (DEBUG_VIA_SERIAL == 1)
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,9 +43,6 @@ uint8_t bufRffTxLen;
 volatile uint8_t bufrffrx[100];
 volatile uint8_t bufrffrxlen;
 
-#if (DEBUG_LOG_RIT  == 1)
-static uint8_t rffbuf[10];
-#endif
 //=========================== prototypes ======================================
 
 owerror_t openserial_printInfoErrorCritical(
@@ -532,6 +529,8 @@ void openserial_stop() {
       openserial_printError(COMPONENT_OPENSERIAL,ERR_BUSY_RECEIVING,
                                   (errorparameter_t)0,
                                   (errorparameter_t)inputBufFill);
+
+      uart_reset();  //teste rff - quando trava a serial eu reseto ela...
    }
    
    if (busyReceiving == FALSE && inputBufFill>0) {

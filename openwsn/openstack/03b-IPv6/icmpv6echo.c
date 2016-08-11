@@ -6,7 +6,7 @@
 #include "packetfunctions.h"
 #include "debugpins.h"
 #include "IEEE802154E.h"
-
+#include "IEEE802154RIT.h"
 //=========================== variables =======================================
 
 icmpv6echo_vars_t icmpv6echo_vars;
@@ -15,7 +15,6 @@ icmpv6echo_vars_t icmpv6echo_vars;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
 #endif
 //=========================== prototypes ======================================
 

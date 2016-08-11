@@ -7,6 +7,9 @@
 #include "openqueue.h"
 #include "leds.h"
 #include "IEEE802154E.h"
+#include "IEEE802154RIT.h"
+#include "neighbors.h"
+#include "topology.h"
 
 //=========================== variables =======================================
 #if (DEBUG_LOG_RIT  == 1)
@@ -14,8 +17,8 @@ extern openserial_vars_t openserial_vars;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-#define TESTE_RIT_GENERATE_DATA_MSG  0
+uint8_t coapcountrx=0;
+RIT_stats_t ritstat;
 
 #endif
 //=========================== prototypes ======================================
@@ -27,71 +30,168 @@ void openbridge_init() {
 }
 
 #if (SINK_SIMULA_COAP == 1)
-void openbridge_simucoap() {
-   uint8_t           input_buffer[136]={0x10, 0x10, 0x00, 0x2B, 0xC0, 0x56, 0x00, 0x20, 0x3E, 0xFA, 0x00, 0x2B, 0x9B, 0x00, 0x3B, 0x6F, 0xDB, 0x68, 0x00, 0x2B, 0x28, 0x00, 0xFF, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0xBB, 0xBB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,0x12, 0x4B, 0x00, 0x04, 0x0E, 0xFC, 0x87, 0x00, 0x02, 0x00, 0x12, 0x4B, 0x00, 0x04, 0x0E, 0xFC, 0x87, 0x51, 0x00, 0x7E, 0x68, 0x7F, 0x00, 0x20, 0x00, 0x05};
-   OpenQueueEntry_t* pkt;
-   uint8_t           numDataBytes;
 
-   numDataBytes = 70;
+#if (MOTE_QTDE_SALTOS == 1)
+/* FRAME COAP 1 SALTO - PARA Nó M1 */
+#define SIMU_COAP_MOTE    MOTE1
+#define SIMU_COAP_LEN     59
+const uint8_t frmsimucoap[SIMU_COAP_LEN] = {
+	0x00,0x12,0x4B,0x00,0x02,0xf4,0xAC,0x09,0x78,0x00,0x11,0x80,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x12,0x4B,0x00,0x02,0xF4,0xAC,0x09,
+	0xDC,0x0E,
+	0x16,0x33,0x00,0x0F,
+	0x3C,0xC9,
+	0x41,0x01,
+	0x5F,0x8A,0x5A,
+	0xB1,0x64
+};
+#elif (MOTE_QTDE_SALTOS == 2)
+#define SIMU_COAP_MOTE    MOTE2
+#define SIMU_COAP_LEN     75
+const uint8_t frmsimucoap[SIMU_COAP_LEN] = {
+	0x00,0x12,0x4B,0x00,0x02,0xf4,0xAC,0x09,0x78,0x00,0x2B,0x80,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x12,0x4B,0x00,0x02,0xF4,0xAC,0x09,
+	0x11,0x01,0x03,0x01,
+	0x88,0x00,0x00,0x00,
+	0x00,0x12,0x4B,0x00,0x02,0xF4,0xAF,0xC0,
+	0xF2,0x38,
+	0x16,0x33,0x00,0x0F,
+	0xFD,0x78,
+	0x41,0x01,
+	0x8C,0xF9,0x52,
+	0xB1,0x64
+};
 
-
-#if (NEW_DAG_BRIDGE == 1)
-   if (idmanager_getIsDAGroot()==TRUE && numDataBytes>0) {
-#else
-   if (idmanager_getIsBridge()==TRUE && numDataBytes>0) {
+#elif (MOTE_QTDE_SALTOS == 3)
+#define SIMU_COAP_MOTE    MOTE3
+#define SIMU_COAP_LEN     83
+const uint8_t frmsimucoap[SIMU_COAP_LEN] = {
+	0x00,0x12,0x4B,0x00,0x02,0xf4,0xAC,0x09,0x78,0x00,0x2B,0x80,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x12,0x4B,0x00,0x02,0xF4,0xAC,0x09,
+	0x11,0x02,0x03,0x02,
+	0x88,0x00,0x00,0x00,
+	0x00,0x12,0x4b,0x00,0x04,0x0e,0xfc,0x87,
+	0x00,0x12,0x4b,0x00,0x02,0xf4,0xaf,0xc0,
+	0xf8,0xb6,
+	0x16,0x33,0x00,0x0f,
+	0xbc,0x27,
+	0x41,0x01,
+	0xa4,0xeb,0x27,
+	0xb1,0x64
+};
+#elif (MOTE_QTDE_SALTOS == 4)
+#define SIMU_COAP_MOTE    MOTE4
+#define SIMU_COAP_LEN     91
+const uint8_t frmsimucoap[SIMU_COAP_LEN] = {
+	0x00,0x12,0x4B,0x00,0x02,0xf4,0xAC,0x09,0x78,0x00,0x2B,0x80,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
+	0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x12,0x4B,0x00,0x02,0xF4,0xAC,0x09,
+	0x11,0x03,0x03,0x03,
+	0x88,0x00,0x00,0x00,
+	0x00,0x12,0x4b,0x00,0x03,0xa6,0x51,0x52,
+	0x00,0x12,0x4b,0x00,0x04,0x0e,0xfc,0x87,
+	0x00,0x12,0x4b,0x00,0x02,0xf4,0xaf,0xc0,
+	0xfa,0x8a,
+	0x16,0x33,0x00,0x0f,
+	0x41,0x52,
+	0x41,0x01,
+	0xf4,0x89,0xfc,
+	0xb1,0x64
+};
 #endif
-#if (SINK == 1)
-	  //leds_debug_toggle();
+
+uint8_t openbridge_simucoap (void) {
+	OpenQueueEntry_t* pkt;
+	uint8_t           numDataBytes=SIMU_COAP_LEN;
+#if 0 //(MOTE_QTDE_SALTOS == 1)
+	uint8_t frmsimucoap[51] = {	0x78,0x00,0x11,0x80,
+								0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x01,
+								0xBB,0xBB,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x12,0x4B,0x00,0x02,0xF4,0xAC,0x09,
+								0xDC,0x0E,0x16,0x33,0x00,0x0F,0x3C,0xC9,0x41,0x01,0x5F,0x8A,0x5A,0xB1,0x64};
+#endif
+	open_addr_t      dstaddr;
+
+	pkt = openqueue_getFreePacketBuffer(COMPONENT_OPENBRIDGE);
+	if (pkt==NULL) {
+	 openserial_printError(COMPONENT_OPENBRIDGE,ERR_NO_FREE_PACKET_BUFFER,
+						   (errorparameter_t)0,
+						   (errorparameter_t)0);
+	 return 0;
+	}
+
+	//admin
+	pkt->creator  = COMPONENT_OPENBRIDGE;
+	pkt->owner    = COMPONENT_OPENBRIDGE;
+
+	//l2
+	pkt->l2_nextORpreviousHop.type = ADDR_64B;
+
+	if (getaddressMote(&dstaddr,ADDR_64B,SIMU_COAP_MOTE) == FALSE){
+		 openserial_printError(COMPONENT_OPENBRIDGE,ERR_NO_FREE_PACKET_BUFFER,
+							   (errorparameter_t)0,
+							   (errorparameter_t)0);
+	     return 0;
+	}
+
+#if (MOTE_QTDE_SALTOS == 1)
+	//memcpy(&(pkt->l2_nextORpreviousHop.addr_64b[0]),&dstaddr.addr_64b[0],8);
+	//packetfunctions_reserveHeaderSize(pkt,numDataBytes-8);
+	//memcpy(pkt->payload,&(frmsimucoap[0]),numDataBytes-8);
+	//memcpy((pkt->payload+28),&(dstaddr.addr_64b[0]),8);
+
+	memcpy(&(pkt->l2_nextORpreviousHop.addr_64b[0]),&(frmsimucoap[0]),8);
+	packetfunctions_reserveHeaderSize(pkt,numDataBytes-8);
+	memcpy(pkt->payload,&(frmsimucoap[8]),numDataBytes-8);
+
 #endif
 
-      pkt = openqueue_getFreePacketBuffer(COMPONENT_OPENBRIDGE);
-      if (pkt==NULL) {
-         openserial_printError(COMPONENT_OPENBRIDGE,ERR_NO_FREE_PACKET_BUFFER,
-                               (errorparameter_t)0,
-                               (errorparameter_t)0);
-         return;
-      }
-      //admin
-      pkt->creator  = COMPONENT_OPENBRIDGE;
-      pkt->owner    = COMPONENT_OPENBRIDGE;
-      //l2
-      pkt->l2_nextORpreviousHop.type = ADDR_64B;
-      memcpy(&(pkt->l2_nextORpreviousHop.addr_64b[0]),&(input_buffer[0]),8);
-      //payload
-      packetfunctions_reserveHeaderSize(pkt,numDataBytes-8);
-      memcpy(pkt->payload,&(input_buffer[8]),numDataBytes-8);
-
-      //this is to catch the too short packet. remove it after fw-103 is solved.
-      if (numDataBytes<16){
-              openserial_printError(COMPONENT_OPENBRIDGE,ERR_INVALIDSERIALFRAME,
-                            (errorparameter_t)0,
-                            (errorparameter_t)0);
-      }
-
-#if ENABLE_DEBUG_RFF
-	   {
- 			uint8_t pos=0;
-
-			 rffbuf[pos++]= 0x75;
-			 rffbuf[pos++]= 0x01;
-			 rffbuf[pos++]= numDataBytes;
-			 rffbuf[pos++]= input_buffer[8];
-			 rffbuf[pos++]= input_buffer[9];
-			 rffbuf[pos++]= input_buffer[10];
-			 rffbuf[pos++]= input_buffer[11];
-			 rffbuf[pos++]= input_buffer[12];
-			 rffbuf[pos++]= input_buffer[13];
-			 rffbuf[pos++]= input_buffer[14];
-			 rffbuf[pos++]= input_buffer[15];
-
-			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	   }
+#if (MOTE_QTDE_SALTOS == 2)
+    memcpy(&(pkt->l2_nextORpreviousHop.addr_64b[0]),&(frmsimucoap[0]),8);
+	packetfunctions_reserveHeaderSize(pkt,numDataBytes-8);
+	memcpy(pkt->payload,&(frmsimucoap[8]),numDataBytes-8);
 #endif
-	   //send
-      if ((iphc_sendFromBridge(pkt))==E_FAIL) {
-         openqueue_freePacketBuffer(pkt);
-      }
-   }
+
+	if ((iphc_sendFromBridge(pkt))==E_FAIL) {
+       openqueue_freePacketBuffer(pkt);
+    }
+
+#if 1 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+  {
+	uint8_t   pos=0;
+
+	rffbuf[pos++]= 0xCA;
+	rffbuf[pos++]= 0xCA;
+	rffbuf[pos++]= 0x10;
+	rffbuf[pos++]= numDataBytes;
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+  }
+#endif
+  coappending = TRUE;
+  ritstat.txcoap.countdata++;
+}
+
+void printdatasimu(uint8_t* buffer, uint8_t length) {
+
+   coapcountrx++;
+
+#if 1 //((ENABLE_DEBUG_RFF == 1) && (DBG_IEEE802_TX == 1))
+  {
+	uint8_t   pos=0;
+
+	rffbuf[pos++]= 0xCA;
+	rffbuf[pos++]= 0x15;
+	rffbuf[pos++]= length;
+	pos = printvar((uint8_t *)&ritstat.txcoap.countdata,sizeof(uint16_t),rffbuf,pos);
+	pos = printvar((uint8_t *)&coapcountrx,sizeof(uint16_t),rffbuf,pos);
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+  }
+#endif
+
 }
 #endif
 
@@ -162,25 +262,34 @@ void openbridge_triggerData() {
 #endif
 	   //send
 	  if (isFramePending == 0) {
-			#if ENABLE_DEBUG_RFF
-				   {
-						uint8_t pos=0;
+		#if ENABLE_DEBUG_RFF
+		   {
+				uint8_t pos=0;
 
-						 rffbuf[pos++]= RFF_OPENBRIDGE_TX;
-						 rffbuf[pos++]= 0x01;
-						 rffbuf[pos++]= numDataBytes;
-						 rffbuf[pos++]= input_buffer[8];
-						 rffbuf[pos++]= input_buffer[9];
-						 rffbuf[pos++]= input_buffer[10];
-						 rffbuf[pos++]= input_buffer[11];
-						 rffbuf[pos++]= input_buffer[12];
-						 rffbuf[pos++]= input_buffer[13];
-						 rffbuf[pos++]= input_buffer[14];
-						 rffbuf[pos++]= input_buffer[15];
+				if (numDataBytes == 0x28) {  //TX FRAME DIO
+					 rffbuf[pos++]= RFF_OPENBRIDGE_TX+1;
+					 rffbuf[pos++]= 0x01;
+				}
+				else{  //TX_COAP
+					 rffbuf[pos++]= RFF_OPENBRIDGE_TX+0x03;
+					 rffbuf[pos++]= 0x03;
+				}
+				 rffbuf[pos++]= numDataBytes;
+				/*
+				 rffbuf[pos++]= input_buffer[8];
+				 rffbuf[pos++]= input_buffer[9];
+				 rffbuf[pos++]= input_buffer[10];
+				 rffbuf[pos++]= input_buffer[11];
+				 rffbuf[pos++]= input_buffer[12];
+				 rffbuf[pos++]= input_buffer[13];
+				 rffbuf[pos++]= input_buffer[14];
+				 rffbuf[pos++]= input_buffer[15];
+				*/
+				openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 
-						openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-				   }
-			#endif
+				openserial_startOutput();
+		   }
+		#endif
 
 		  if ((iphc_sendFromBridge(pkt))==E_FAIL) {
 	         openqueue_freePacketBuffer(pkt);
@@ -221,15 +330,24 @@ void openbridge_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
    }
 
 #if ENABLE_DEBUG_RFF
-	   {
-			uint8_t pos=0;
+   {
+		uint8_t pos=0;
+		if (coappending == TRUE) {
 
-			 rffbuf[pos++]= RFF_OPENBRIDGE_RX;
-			 rffbuf[pos++]= 0x01;
-			 rffbuf[pos++]= msg->length;
+			ritstat.txcoap.countacktxrxok++;
 
-			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	   }
+			rffbuf[pos++]= 0xCA;
+			rffbuf[pos++]= 0x19;
+			rffbuf[pos++]= msg->length;
+		}
+		else {
+			rffbuf[pos++]= RFF_OPENBRIDGE_TX;
+			rffbuf[pos++]= 0x05;
+			rffbuf[pos++]= msg->length;
+		}
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
 #endif
    openqueue_freePacketBuffer(msg);
 }
@@ -252,21 +370,36 @@ void openbridge_receive(OpenQueueEntry_t* msg) {
 {
 	uint8_t pos=0;
 
-	 rffbuf[pos++]= RFF_OPENBRIDGE_RX;
-	 rffbuf[pos++]= 0x01;
+	#if (IEEE802154E_TSCH == 0)
+		 if (msg->length > 69)
+			 coappending = 0;
+	#endif
+	 if (msg->length > 69) {
+		rffbuf[pos++]= 0xCA;
+		rffbuf[pos++]= 0x15;  //COAP RESPONSE
+	 }
+     else {
+   	    rffbuf[pos++]= RFF_OPENBRIDGE_RX;
+ 		rffbuf[pos++]= 0x15;  //DIO  RESPONSE
+     }
 	 rffbuf[pos++]= msg->length;
-
-#if (IEEE802154E_TSCH == 0)
-	 if (msg->length > 69)
-		 coappending = 0;
-#endif
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	 openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 }
 #endif
+
+#if (SINK_SIMULA_COAP == 1)
+	 if (msg->length > 69) { //COAP RESPONSE
+		 printdatasimu((uint8_t*)(msg->payload),msg->length);
+	 }
+	 else {  //DIO RESPONSE
+	   // send packet over serial (will be memcopied into serial buffer)
+	   openserial_printData((uint8_t*)(msg->payload),msg->length);
+	 }
+
+#else
    // send packet over serial (will be memcopied into serial buffer)
    openserial_printData((uint8_t*)(msg->payload),msg->length);
-   
+#endif
    // free packet
    openqueue_freePacketBuffer(msg);
 }

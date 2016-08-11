@@ -649,10 +649,6 @@ port_INLINE void activity_ti1ORri1() {
 			  else {
 				  openserial_stop();
 				  openserial_startInput();
-				#if (SINK_SIMULA_COAP == 1)
-				  //simula coap
-				  openbridge_simucoap();
-				#endif
 			  }
 
 	          macRITPeriod = TICK_MAC_RIT_PERIOD;
@@ -732,7 +728,7 @@ port_INLINE void getRitRequest(void) {
 // Este start eh do proprio RIT entao devo somente aguardar o estouro do timer...
 void activity_RITDoNothing(void){
 	changeState(S_RIT_RXOLAREADY);
-	macRITstate=S_RIT_RX_window_state;
+	macRITstate=S_RIT_RX_state;
 }
 */
 
@@ -749,7 +745,7 @@ port_INLINE void StartRxRITProcedure(void) {
 	uint32_t dur_rt1;
 
 	changeState(S_RIT_TXOLAPREPARE);
-	macRITstate=S_RIT_RX_window_state;
+	macRITstate=S_RIT_RX_state;
 
 	//#################    escolhe o canal
     radiotimer_cancel();
@@ -3319,7 +3315,7 @@ port_INLINE void activity_rxnewframe(PORT_RADIOTIMER_WIDTH capturedTime) {
 	            }
 			}
 	   }
-	   else if (macRITstate == S_RIT_RX_window_state) {
+	   else if (macRITstate == S_RIT_RX_state) {
 
            incroute(ieee802514_header.frameType);
 
@@ -4396,7 +4392,7 @@ void endSlot() {
 	uint8_t pos=0;
 	uint8_t imprimir=0;
 
-		if (macRITstate == S_RIT_RX_window_state){
+		if (macRITstate == S_RIT_RX_state){
 			rffbuf[pos++]= 0x95;
             if (lastpos > 2)
             	imprimir = 1;
@@ -4441,7 +4437,7 @@ void endSlot() {
 
 	//if (imprimir)
 	{
-		if (macRITstate == S_RIT_RX_window_state)
+		if (macRITstate == S_RIT_RX_state)
 			rffbuf[pos++]= 0x95;
 		else
 		    rffbuf[pos++]= 0x99;

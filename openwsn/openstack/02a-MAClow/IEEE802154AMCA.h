@@ -43,7 +43,7 @@
 //----------------RIT stage
 enum RITstate{
 	S_RIT_sleep_state     = 0x00,
-	S_RIT_RX_window_state = 0x01,
+	S_RIT_RX_state        = 0x01,
 	S_RIT_TX_state        = 0x02
 };
 

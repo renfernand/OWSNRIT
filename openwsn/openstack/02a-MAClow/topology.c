@@ -9,7 +9,7 @@
 //=========================== variables =======================================
 extern const forceNeighbor_t tableNeighbor[];
 extern const uint8_t MoteAddrTable_1byte[];
-extern const uint8_t MoteAddrTable_2bytes[];
+extern const uint16_t MoteAddrTable_2bytes[];
 extern const uint8_t MoteBestChanTable[];
 //=========================== prototypes ======================================
 uint8_t getMotePos(uint8_t addr,uint8_t len);
@@ -294,10 +294,10 @@ motes atuais CC2538EM
 
 
 const uint8_t MoteAddrTable_1byte[] = {
- MOTE0,MOTE1,MOTE2,MOTE3,MOTE4,MOTE5,MOTE6
+ MOTE0,MOTE1,MOTE2,MOTE3,MOTE4,MOTE5,MOTE6,MOTELAST
 };
 
-const uint8_t MoteAddrTable_2bytes[] = {
+const uint16_t MoteAddrTable_2bytes[] = {
  ADDR16b_MOTE0, ADDR16b_MOTE1, ADDR16b_MOTE2, ADDR16b_MOTE3, ADDR16b_MOTE4, ADDR16b_MOTE5, ADDR16b_MOTE6,
 };
 
@@ -305,13 +305,114 @@ const uint8_t MoteBestChanTable[] = {
  MOTE0_BC,MOTE1_BC,MOTE2_BC,MOTE3_BC,MOTE4_BC,MOTE5_BC,MOTE6_BC
 };
 
+const uint8_t addr64b_mote[7][8]={
+/* MOTE0 */{0x00,0x12,0x4b,0x00,0x02,0xf4,0xac,MOTE0},
+/* MOTE1 */{0x00,0x12,0x4b,0x00,0x02,0xf4,0xac,MOTE1},
+/* MOTE2 */{0x00,0x12,0x4b,0x00,0x02,0xf4,0xac,MOTE2},
+/* MOTE3 */{0x00,0x12,0x4b,0x00,0x04,0x0e,0xfc,MOTE3},
+/* MOTE4 */{0x00,0x12,0x4b,0x00,0x03,0xa6,0x51,MOTE4},
+/* MOTE5 */{0x00,0x12,0x4b,0x00,0x03,0xa6,0x4c,MOTE5},
+/* MOTE6 */{0x00,0x12,0x4b,0x00,0x02,0xf4,0xaf,MOTE6}
+};
+
+/* SUPORTA NO MAXIMO 5 NOS VIZINHOS */
 const forceNeighbor_t tableNeighbor[] = {
       //{numNeighbor,{{ele[0].addr16b,ele[0].bc},{ele[1].addr16b,ele[1].bc},{ele[2].addr16b,ele[2].bc}}},
-/* MOTE0 */ {2,{{ADDR16b_MOTE1,MOTE1_BC},{ADDR16b_MOTE2,MOTE2_BC},{0,0}}},
-/* MOTE1 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}},
-/* MOTE2 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}},
-/* MOTE3 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}},
-/* MOTE4 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}},
-/* MOTE5 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}},
-/* MOTE6 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0}}}
+#if 0
+/* MOTE0 */ {2,{{ADDR16b_MOTE1,MOTE1_BC},{ADDR16b_MOTE2,MOTE2_BC},{0,0},{0,0},{0,0}}},
+/* MOTE1 */ {3,{{ADDR16b_MOTE0,MOTE0_BC},{ADDR16b_MOTE2,MOTE2_BC},{ADDR16b_MOTE3,MOTE3_BC},{0,0},{0,0}}},
+/* MOTE2 */ {3,{{ADDR16b_MOTE0,MOTE0_BC},{ADDR16b_MOTE1,MOTE1_BC},{ADDR16b_MOTE4,MOTE4_BC},{0,0},{0,0}}},
+/* MOTE3 */ {3,{{ADDR16b_MOTE1,MOTE1_BC},{ADDR16b_MOTE4,MOTE4_BC},{ADDR16b_MOTE5,MOTE5_BC},{0,0},{0,0}}},
+/* MOTE4 */ {3,{{ADDR16b_MOTE2,MOTE2_BC},{ADDR16b_MOTE3,MOTE3_BC},{ADDR16b_MOTE5,MOTE5_BC},{0,0},{0,0}}},
+/* MOTE5 */ {2,{{ADDR16b_MOTE3,MOTE3_BC},{ADDR16b_MOTE4,MOTE4_BC},{0,0},{0,0},{0,0}}},
+/* MOTE6 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0},{0,0},{0,0}}}
+#else
+/* MOTE0 */ {1,{{ADDR16b_MOTE1,MOTE1_BC},{0,0},{0,0},{0,0},{0,0}}},
+/* MOTE1 */ {2,{{ADDR16b_MOTE0,MOTE0_BC},{ADDR16b_MOTE2,MOTE2_BC},{0,0}}},
+/* MOTE2 */ {2,{{ADDR16b_MOTE1,MOTE1_BC},{ADDR16b_MOTE3,MOTE3_BC},{0,0}}},
+/* MOTE3 */ {2,{{ADDR16b_MOTE2,MOTE2_BC},{ADDR16b_MOTE4,MOTE4_BC},{0,0}}},
+/* MOTE4 */ {1,{{ADDR16b_MOTE3,MOTE3_BC},{0,0},{0,0}}},
+/* MOTE5 */ {1,{{ADDR16b_MOTE4,MOTE4_BC},{0,0},{0,0},{0,0}}},
+/* MOTE6 */ {1,{{ADDR16b_MOTE0,MOTE0_BC},{0,0},{0,0},{0,0},{0,0}}}
+#endif
 };
+
+
+uint8_t getaddressMote (open_addr_t *dstaddr,uint8_t addrtype, uint8_t mote){
+
+   bool ret = FALSE;
+   uint8_t i,pos=0;
+
+   dstaddr->type = addrtype;
+
+	//descobre motepos
+	for (pos=0;pos< sizeof(MoteAddrTable_1byte);pos++){
+	   if (mote == MoteAddrTable_1byte[pos]){
+		   break;
+	   }
+	}
+
+	if (pos < sizeof(MoteAddrTable_1byte)) {
+		switch (addrtype){
+			case ADDR_16B:
+			  dstaddr->addr_16b[0] = addr64b_mote[pos][6];
+			  dstaddr->addr_16b[1] = addr64b_mote[pos][7];
+			  ret = TRUE;
+			  break;
+			case ADDR_64B:
+			  for (i=0;i<8;i++)
+				  dstaddr->addr_64b[i] = addr64b_mote[pos][i];
+			  ret = TRUE;
+			  break;
+			case ADDR_128B:
+			  dstaddr->addr_128b[0] = 0xBB;
+			  dstaddr->addr_128b[1] = 0xBB;
+			  dstaddr->addr_128b[2] = 0x00;
+			  dstaddr->addr_128b[3] = 0x00;
+			  dstaddr->addr_128b[4] = 0x00;
+			  dstaddr->addr_128b[5] = 0x00;
+			  dstaddr->addr_128b[6] = 0x00;
+			  dstaddr->addr_128b[7] = 0x00;
+			  for (i=0;i<8;i++)
+				  dstaddr->addr_128b[8+i] = addr64b_mote[pos][i];
+			  ret = TRUE;
+			  break;
+			default:
+				break;
+		}
+	}
+  return ret;
+}
+
+/*
+ * Esta gamba eh somente para testar o RPL.DIO enviando msgs para computar na vizinhanca...PROVISORIO...
+ */
+uint8_t convertaddress16to64 (open_addr_t *dstaddr, open_addr_t *srcaddr) {
+	uint8_t ret=TRUE,i=0, pos=0;
+
+	dstaddr->type = 2;
+	if (srcaddr->type == 1){
+		//descobre motepos
+		for (pos=0;pos<sizeof(MoteAddrTable_1byte);pos++){
+		   if (srcaddr->addr_16b[1] == MoteAddrTable_1byte[pos]){
+			   break;
+		   }
+		}
+
+		if (pos < sizeof(MoteAddrTable_1byte)) {
+		  for (i=0;i<8;i++){
+			  dstaddr->addr_64b[i]=addr64b_mote[pos][i];
+		  }
+		  ret = TRUE;
+		}
+		else
+		  ret = FALSE;
+	}
+	else
+	  ret = FALSE;
+
+	return ret;
+}
+
+
+

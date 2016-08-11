@@ -128,11 +128,6 @@ SysTickIntRegister(void (*pfnHandler)(void))
     HWREG(NVIC_ST_CTRL) |= NVIC_ST_CTRL_INTEN;
 }
 
-
-
-
-
-
 //*****************************************************************************
 //
 //! Unregisters the interrupt handler for the SysTick interrupt

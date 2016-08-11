@@ -15,10 +15,25 @@
 
 /*---------------------------------------------------------------------------
  * RF Config
+ * 0xD5 is equal to +3dBm. You can get the register values according to your desired TX power
+ * with the SmartRF Studio 7: http://www.ti.com/tool/smartrftm-studio&DCMP=hpa_rf_general&HQS=Other+OT+smartrfstudio
+ *
  *---------------------------------------------------------------------------*/
 /* Constants */
+#define POWER_3db   0xD5 //+3dBm - recommended
+#define POWER_1db   0xC5 //+1dBm
+#define POWER_0db   0xB6 //+0dBm
+#define POWER_n1db  0xB0 //-1dBm
+#define POWER_n3db  0xA1 //-3dBm
+#define POWER_n5db  0x91 //-5dBm
+#define POWER_n11db  0x62 //-11dBm
+#define POWER_n15db  0x42 //-15dBm
+#define POWER_n24db  0x00 //-24dBm
+
+#define CC2538_RF_CONF_TX_POWER  POWER_n11db
+
 #define CC2538_RF_CCA_THRES_USER_GUIDE 0xF8
-#define CC2538_RF_TX_POWER_RECOMMENDED 0xD5 /* TODO: Check value */
+#define CC2538_RF_TX_POWER_RECOMMENDED 0xD5
 #define CC2538_RF_CHANNEL_MIN            11 //poipoi -- in fact is sending on 0x17 check that.
 #define CC2538_RF_CHANNEL_MAX            26
 #define CC2538_RF_CHANNEL_SPACING         5

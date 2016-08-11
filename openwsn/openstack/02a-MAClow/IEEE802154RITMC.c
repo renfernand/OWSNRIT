@@ -75,7 +75,6 @@ uint8_t rffstate;
 
 #if 1 //ENABLE_DEBUG_RFF
 #define MAX_ELEM_ROUTE 100
-volatile uint8_t rffbuf[30];
 volatile uint8_t ritroute[MAX_ELEM_ROUTE];
 volatile uint8_t lastritroutepos = 0;
 

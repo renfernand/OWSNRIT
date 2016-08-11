@@ -6,12 +6,15 @@
 #include "idmanager.h"
 #include "openserial.h"
 #include "IEEE802154E.h"
+#include "IEEE802154RIT.h"
 
 //=========================== variables =======================================
 
 neighbors_vars_t neighbors_vars;
 extern const forceNeighbor_t tableNeighbor[];
 extern const uint8_t MoteBestChanTable[];
+extern RIT_stats_t ritstat;
+
 
 #if (IEEE802154E_AMCA == 1)
 //esta tabela de vizinhos eh diferentes do RPL pois o do rpl somente tem os vizinhos que entraram no RPL...
@@ -475,9 +478,7 @@ void neighbors_indicateTx(open_addr_t* l2_dest,
          // handle roll-over case
         
           if (neighbors_vars.neighbors[i].numTx>(0xff-numTxAttempts)) {
-#if (IEEE802154E_AMCA == 0)
         	  neighbors_vars.neighbors[i].numWraps++; //counting the number of times that tx wraps.
-#endif
         	  neighbors_vars.neighbors[i].numTx/=2;
               neighbors_vars.neighbors[i].numTxACK/=2;
            }
@@ -491,6 +492,29 @@ void neighbors_indicateTx(open_addr_t* l2_dest,
         break;
       }
    }
+
+#if 1 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+   {
+	   uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_ICMPv6RPL_TX;
+		rffbuf[pos++]= 0x10;
+		 pos = printvar((uint8_t *)&neighbors_vars.myDAGrank,sizeof(uint16_t),rffbuf,pos);
+		 //pos = printvar((uint8_t *)&neighbors_vars.dio->rank,sizeof(uint16_t),rffbuf,pos);
+
+		for (i=0;i<MAXNUMNEIGHBORS;i++) {
+			 if (neighbors_vars.neighbors[i].used) {
+				 pos = printaddress(neighbors_vars.neighbors[i].addr_64b,&rffbuf[0],pos);
+				 rffbuf[pos++]= neighbors_vars.neighbors[i].parentPreference;
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].DAGrank,sizeof(uint16_t),rffbuf,pos);
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].numTx,sizeof(uint8_t),rffbuf,pos);
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].numRx,sizeof(uint8_t),rffbuf,pos);
+			}
+		}
+
+	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
+#endif
 }
 
 /**
@@ -534,6 +558,30 @@ void neighbors_indicateRxDIO(OpenQueueEntry_t* msg) {
    } 
    // update my routing information
    neighbors_updateMyDAGrankAndNeighborPreference(); 
+
+#if 1
+   {
+	   uint8_t pos=0;
+
+		rffbuf[pos++]= RFF_ICMPv6RPL_RX;
+		rffbuf[pos++]= 0x20;
+		 pos = printvar((uint8_t *)&neighbors_vars.myDAGrank,sizeof(uint16_t),rffbuf,pos);
+		 //pos = printvar((uint8_t *)&neighbors_vars.dio->rank,sizeof(uint16_t),rffbuf,pos);
+
+		for (i=0;i<MAXNUMNEIGHBORS;i++) {
+			 if (neighbors_vars.neighbors[i].used) {
+				 pos = printaddress(neighbors_vars.neighbors[i].addr_64b,&rffbuf[0],pos);
+				 rffbuf[pos++]= neighbors_vars.neighbors[i].parentPreference;
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].DAGrank,sizeof(uint16_t),rffbuf,pos);
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].numTx,sizeof(uint8_t),rffbuf,pos);
+				 pos = printvar((uint8_t *)&neighbors_vars.neighbors[i].numRx,sizeof(uint8_t),rffbuf,pos);
+			}
+		}
+
+		 openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
+#endif
+
 }
 
 //===== write addresses
@@ -778,15 +826,21 @@ void forceNeighborhood(uint8_t myaddr){
 			bc = tableNeighbor[pos].ele[i].bc;
 			macneighbors_vars.neighbors[i].used                   = TRUE;
 			macneighbors_vars.neighbors[i].parentPreference       = 0;
-			macneighbors_vars.neighbors[i].stableNeighbor         = TRUE;
+			macneighbors_vars.neighbors[i].stableNeighbor         = 0;
 			macneighbors_vars.neighbors[i].switchStabilityCounter = 0;
 			macneighbors_vars.neighbors[i].addr_16b.type = 1;
 			macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] = *((uint8_t *)&addr16b);
 			macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] = *(((uint8_t *)&addr16b)+1);
 			//memcpy(&neighbors_vars.neighbors[i].addr_64b,address,sizeof(open_addr_t));
-			macneighbors_vars.neighbors[i].numRx                  = 1;
-			macneighbors_vars.neighbors[i].numTx                  = 0;
-			macneighbors_vars.neighbors[i].numTxACK               = 0;
+			//macneighbors_vars.neighbors[i].numRx                  = 1;
+			macneighbors_vars.neighbors[i].numTxErr               = 0;
+			macneighbors_vars.neighbors[i].numTxDIO               = 0;
+			macneighbors_vars.neighbors[i].numTxDIOErr            = 0;
+			macneighbors_vars.neighbors[i].numTxDAO               = 0;
+			macneighbors_vars.neighbors[i].numTxDAOErr            = 0;
+			macneighbors_vars.neighbors[i].numTxCOAP              = 0;
+			macneighbors_vars.neighbors[i].numTxCOAPErr           = 0;
+			macneighbors_vars.neighbors[i].numTxHello             = 0;
 			macneighbors_vars.neighbors[i].bestchan               = bc;
 			macneighbors_vars.neighbors[i].broadcastPending       = 0;
 		}
@@ -842,6 +896,11 @@ uint8_t macneigh_getBChan(open_addr_t* address){
 			  temp_addr_16b.addr_16b[1] = *((uint8_t *)&addr16b);
 			  temp_addr_16b.addr_16b[0] = *(((uint8_t *)&addr16b)+1);
 		  }
+		  else{
+			  temp_addr_16b.addr_16b[0] = address->addr_128b[14];
+			  temp_addr_16b.addr_16b[1] = address->addr_128b[15];
+		  }
+
 		  break;
 	  default:
 		 return returnVal;
@@ -857,23 +916,43 @@ uint8_t macneigh_getBChan(open_addr_t* address){
    return (returnVal);
 }
 
-void macneigh_getBChanMultiCast(uint8_t *bestchannel,open_addr_t* targetaddr){
+uint8_t macneigh_getBChanMultiCast(uint8_t *bestchannel,open_addr_t* targetaddr,uint8_t useLiveList){
    uint8_t     i;
    open_addr_t temp_addr_16b;
    uint8_t     returnVal=0;
+   uint8_t     ret = FALSE;
 
-   //Descubro um vizinho que ainda esta pendente o broadcast...entao seleciono o canal dele...
-   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
-	  if ((macneighbors_vars.neighbors[i].used == TRUE) &&
-		  (macneighbors_vars.neighbors[i].broadcastPending)) {
-	     *bestchannel  = macneighbors_vars.neighbors[i].bestchan;
-		 targetaddr->type = macneighbors_vars.neighbors[i].addr_16b.type;
-		 targetaddr->addr_16b[0] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[0];
-		 targetaddr->addr_16b[1] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[1];
-		 break;
-	  }
+   if (useLiveList == TRUE) {
+	   //Descubro um vizinho que ainda esta pendente o broadcast...entao seleciono o canal dele...
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+		  if ((macneighbors_vars.neighbors[i].used == TRUE) &&
+			  (macneighbors_vars.neighbors[i].stableNeighbor == TRUE) &&
+			  (macneighbors_vars.neighbors[i].broadcastPending)) {
+		     *bestchannel  = macneighbors_vars.neighbors[i].bestchan;
+			 targetaddr->type = macneighbors_vars.neighbors[i].addr_16b.type;
+			 targetaddr->addr_16b[0] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[0];
+			 targetaddr->addr_16b[1] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[1];
+			 ret = TRUE;
+			 break;
+		  }
+	   }
+   }
+   else{
+	   //Descubro um vizinho que ainda esta pendente o broadcast...entao seleciono o canal dele...
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+		  if ((macneighbors_vars.neighbors[i].used == TRUE) &&
+			  (macneighbors_vars.neighbors[i].broadcastPending)) {
+		     *bestchannel  = macneighbors_vars.neighbors[i].bestchan;
+			 targetaddr->type = macneighbors_vars.neighbors[i].addr_16b.type;
+			 targetaddr->addr_16b[0] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[0];
+			 targetaddr->addr_16b[1] = macneighbors_vars.neighbors[i].addr_16b.addr_16b[1];
+			 ret = TRUE;
+			 break;
+		  }
+	   }
    }
 
+   return ret;
 }
 
 bool macisThisAddressPendingBroadcast(open_addr_t* address) {
@@ -927,20 +1006,37 @@ uint8_t macneighbors_getNumNeighbors() {
 
 /**
 \brief Retrieve the number of neighbors this mote's currently knows of.
+       Esta funcao é utilizada no inicio de um slot de Tx.
+       Entao ele considera o numero de vizinhos baseado no criterio da livelist do slot anterior.
+
+ inputs useStableNeighbor indica se vou considerar a livelist ou nao...
 
 \returns The number of neighbors this mote's currently knows of.
 */
-uint8_t macneighbors_setBroadCastPending(void) {
+uint8_t macneighbors_setBroadCastPending(uint8_t useStableNeighbor) {
    uint8_t i;
    uint8_t returnVal;
 
    returnVal=0;
-   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
-      if (macneighbors_vars.neighbors[i].used==TRUE) {
-    	  macneighbors_vars.neighbors[i].broadcastPending = TRUE;
-         returnVal++;
-      }
+   if (useStableNeighbor == TRUE) {
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+	    		  (macneighbors_vars.neighbors[i].stableNeighbor == TRUE))  {
+	    	  macneighbors_vars.neighbors[i].broadcastPending = TRUE;
+	         returnVal++;
+	      }
+	   }
    }
+   else {
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	      if (macneighbors_vars.neighbors[i].used==TRUE)  {
+	    	  macneighbors_vars.neighbors[i].broadcastPending = TRUE;
+	         returnVal++;
+	      }
+	   }
+
+   }
+
    return returnVal;
 }
 
@@ -962,6 +1058,169 @@ uint8_t macneighbors_clearBroadcastPending(open_addr_t actualsrcaddr) {
       }
    }
    return FALSE;
+}
+
+/*
+ * Calcula o numero de frameDIO (broadcast) que foi enviado para cada nó
+ */
+uint8_t macneighbors_calcbroadcastsent(void) {
+#if 0
+	uint8_t i;
+	uint8_t count=0;
+
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+    	  (macneighbors_vars.neighbors[i].stableNeighbor == TRUE) &&
+       	  (macneighbors_vars.neighbors[i].broadcastPending == 0)) {
+            count++;
+   	   }
+   }
+
+   return count;
+
+#else
+   return 0;
+#endif
+}
+
+uint8_t macneighbors_getaddrbroadcastsent(open_addr_t *address) {
+   uint8_t i;
+
+   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+    	  (macneighbors_vars.neighbors[i].stableNeighbor == TRUE) &&
+       	  (macneighbors_vars.neighbors[i].broadcastPending == 0)) {
+    	  //TODO!!!! Este campo pode ser modificado incluindo isso diretamente na tabela da topologia...
+    	  convertaddress16to64(address,&macneighbors_vars.neighbors[i].addr_16b);
+    	  return TRUE;
+   	   }
+   }
+
+   return FALSE;
+}
+void macneighbors_updtlivelist(open_addr_t actualsrcaddr) {
+	   uint8_t i;
+
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+	       	  (macneighbors_vars.neighbors[i].addr_16b.type == actualsrcaddr.type) &&
+	    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == actualsrcaddr.addr_16b[0]) &&
+	    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == actualsrcaddr.addr_16b[1])){
+#if (MULTI_CHANNEL_HELLO_ENABLE == 0)
+				  macneighbors_vars.neighbors[i].numTx++;
+
+				  if ( macneighbors_vars.neighbors[i].numTx > 10) {
+					  macneighbors_vars.neighbors[i].stableNeighbor = TRUE;
+		    	  }
+#else
+	    		  macneighbors_vars.neighbors[i].switchStabilityCounter = 0;
+		    	  macneighbors_vars.neighbors[i].stableNeighbor = TRUE;
+#endif
+
+	    	  break;
+
+	      }
+	   }
+}
+
+void macneighbors_updtstatistics(open_addr_t address, uint8_t frameType,uint8_t status) {
+	   uint8_t i;
+	   open_addr_t addr16b;
+
+	   switch (address.type) {
+		  case ADDR_16B:
+			 memcpy((void *)&addr16b,(void *) &address,sizeof(open_addr_t));
+			 break;
+		  case ADDR_64B:
+			  addr16b.type = ADDR_16B;
+			  addr16b.addr_16b[0] = address.addr_64b[6];
+			  addr16b.addr_16b[1] = address.addr_64b[7];
+			  break;
+		  case ADDR_128B:
+			  addr16b.type = ADDR_16B;
+			  addr16b.addr_16b[0] = address.addr_128b[14];
+			  addr16b.addr_16b[1] = address.addr_128b[15];
+
+			  break;
+		  default:
+			  addr16b.type = 0;
+			  break;
+	   }
+
+	   if ((status == E_SUCCESS) && (addr16b.type == ADDR_16B)) {
+		   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+		      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+		    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == addr16b.addr_16b[0]) &&
+		    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == addr16b.addr_16b[1])){
+
+		    	  switch (frameType) {
+					  case IANA_ICMPv6_RPL_DIO:
+						 macneighbors_vars.neighbors[i].numTxDIO++;
+						 break;
+					  case IANA_ICMPv6_RPL_DAO:
+						 macneighbors_vars.neighbors[i].numTxDAO++;
+						 break;
+					  case IANA_UDP:
+						 macneighbors_vars.neighbors[i].numTxCOAP++;
+						 break;
+					  case IANA_ICMPv6_RA_PREFIX_INFORMATION:
+						 macneighbors_vars.neighbors[i].numTxHello++;
+						 break;
+					  default:
+						 macneighbors_vars.neighbors[i].numTxErr++;
+						 break;
+		    	  }
+		    	  break;
+		      }
+		   }
+	   }
+	   else{  //E_FAIL
+		   if (addr16b.type == ADDR_16B) {
+			   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+				  if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+					  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == addr16b.addr_16b[0]) &&
+					  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == addr16b.addr_16b[1])){
+
+					  switch (frameType){
+						  case IANA_ICMPv6_RPL_DIO:
+							 macneighbors_vars.neighbors[i].numTxDIOErr++;
+							 break;
+						  case IANA_ICMPv6_RPL_DAO:
+							 macneighbors_vars.neighbors[i].numTxDAOErr++;
+							 break;
+						  case IANA_UDP:
+							 macneighbors_vars.neighbors[i].numTxCOAPErr++;
+							 break;
+						  default:
+							 macneighbors_vars.neighbors[i].numTxErr++;
+							 break;
+					  }
+
+					  break;
+				  }
+			   }
+		   }
+	   }
+ }
+
+void macneighbors_clearlivelist(open_addr_t actualsrcaddr) {
+	   uint8_t i;
+
+	   for (i=0;i<MAXNUMMACNEIGHBORS;i++) {
+	      if ((macneighbors_vars.neighbors[i].used==TRUE) &&
+	       	  (macneighbors_vars.neighbors[i].addr_16b.type == actualsrcaddr.type) &&
+	    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[0] == actualsrcaddr.addr_16b[0]) &&
+	    	  (macneighbors_vars.neighbors[i].addr_16b.addr_16b[1] == actualsrcaddr.addr_16b[1])){
+
+	    	  macneighbors_vars.neighbors[i].switchStabilityCounter++;
+
+	    	  if (macneighbors_vars.neighbors[i].switchStabilityCounter >= 2) {
+	    		  macneighbors_vars.neighbors[i].switchStabilityCounter  = 0;
+	    	      macneighbors_vars.neighbors[i].stableNeighbor          = 0;
+	    	      break;
+              }
+	      }
+	   }
 }
 
 #endif

@@ -18,10 +18,7 @@
 
 #define TRACE_ON 0
 
-#if DEBUG_LOG_RIT
-static uint8_t rffbuf[10];
-#endif
-
+extern uint8_t rffpasshere;
 owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_header, coap_option_iht*  coap_options);
 void osens_desc_sendDone(OpenQueueEntry_t* msg, owerror_t error);
 owerror_t osens_val_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_header, coap_option_iht*  coap_options);
@@ -75,9 +72,13 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
     static uint8_t buf[128];
     uint8_t *pbuf = &buf[0];
 
+    rffpasshere = 1;
+
+#if 1
     switch (coap_header->Code)
     {
     case COAP_CODE_REQ_GET:
+        rffpasshere = 2;
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
@@ -150,6 +151,7 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
         break;
 
     case COAP_CODE_REQ_PUT:
+        rffpasshere = 3;
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
@@ -161,10 +163,11 @@ owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_heade
         break;
 
     default:
+        rffpasshere = 4;
         outcome = E_FAIL;
         break;
     }
-
+#endif
     return outcome;
 }
 
@@ -384,8 +387,11 @@ owerror_t osens_val_receive(
     static uint8_t buf[128];
     uint8_t *pbuf = &buf[0];
 
+    rffpasshere = 10;
+
     switch (coap_header->Code) {
     case COAP_CODE_REQ_GET:
+        rffpasshere = 11;
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
@@ -531,74 +537,52 @@ owerror_t osens_val_receive(
     uint8_t index;
 
     switch (coap_header->Code) {
+
     case COAP_CODE_REQ_GET:
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
         // /s
 		if (((coap_options[1].length == 0) && (coap_options[1].type == COAP_OPTION_NUM_URIPATH)) ||
-				(coap_options[1].type != COAP_OPTION_NUM_URIPATH))
-		{
+				(coap_options[1].type != COAP_OPTION_NUM_URIPATH)) {
 		} // /s/1 or /s/12
 		else if(((coap_options[1].length == 1 || coap_options[1].length == 2)) &&
-				(coap_options[1].type == COAP_OPTION_NUM_URIPATH))
-		{
-
+				(coap_options[1].type == COAP_OPTION_NUM_URIPATH)) {
 			osens_point_t pt;
-#if (MYLINKXS_LIGHT_CONTROL == 0)
-			if(coap_options[1].length == 2)
-				index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
-			else
-				index = coap_options[1].pValue[0] - 0x30;
+
+			#if (MYLINKXS_LIGHT_CONTROL == 0)
+				if(coap_options[1].length == 2)
+					index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
+				else
+					index = coap_options[1].pValue[0] - 0x30;
 
 
-			if(osens_get_point(index,&pt))
-			{
+				if(osens_get_point(index,&pt))
+				{
+					pbuf = insert_str(pbuf,(uint8_t*)"{\"v\":",5,0);
+					pbuf = insert_point_val(pbuf,&pt);
+					pbuf = insert_str(pbuf,(uint8_t*)"}",1,0);
+				}
+				else
+					pbuf = insert_str(pbuf,(uint8_t*)"{}",2,0);
+			#else
+				//QUANDO TRABALHANDO COM A LAMPADA ESTAVA ESTE OUTRO CODIGO
+				//TODO!!! DEIXAR O CODIGO UNICO
+				pt.type = OSENS_DT_U8;
+				#if 0
+						pt.value.u8 =  light_get_value();
+				#else
+						pt.value.u8 =  0;
+				#endif
 				pbuf = insert_str(pbuf,(uint8_t*)"{\"v\":",5,0);
 				pbuf = insert_point_val(pbuf,&pt);
 				pbuf = insert_str(pbuf,(uint8_t*)"}",1,0);
-
-
-#if (ENABLE_DEBUG_RFF == 1) && (DBG_APP_1 == 1)
-	 uint8_t pos=0;
-	 uint8_t *paux;
-
-	 rffbuf[pos++]= 0x85;
-	 rffbuf[pos++]= index;
-	 paux  = (uint8_t*) &pt.value.fp32;
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-	 paux = (uint8_t*) &pbuf[0];
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-	 rffbuf[pos++]= *paux++;
-
-     openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-#endif
-			}
-			else
-				pbuf = insert_str(pbuf,(uint8_t*)"{}",2,0);
-#else
-	//QUANDO TRABALHANDO COM A LAMPADA ESTAVA ESTE OUTRO CODIGO
-    //TODO!!! DEIXAR O CODIGO UNICO
-    pt.type = OSENS_DT_U8;
-    pt.value.u8 = light_get_value();
-
-	pbuf = insert_str(pbuf,(uint8_t*)"{\"v\":",5,0);
-	pbuf = insert_point_val(pbuf,&pt);
-	pbuf = insert_str(pbuf,(uint8_t*)"}",1,0);
-
-
-#endif
-			outcome = E_SUCCESS;
+			#endif
+            outcome = E_SUCCESS;
 
 		}
 
-		if(outcome == E_SUCCESS)
-		{
+		if (outcome == E_SUCCESS) {
 			n = ((uint32_t)pbuf - (uint32_t)buf);
 			packetfunctions_reserveHeaderSize(msg, 1 + n);
 			msg->payload[0] = COAP_PAYLOAD_MARKER;
@@ -606,28 +590,38 @@ owerror_t osens_val_receive(
 			coap_header->Code = COAP_CODE_RESP_CONTENT;
 		}
 
-        break;
+		#if 0 //(ENABLE_DEBUG_RFF == 1) && (DBG_APP_1 == 1)
+			uint8_t pos=0;
+
+			rffbuf[pos++]= RFF_COMPONENT_STORMCOAP_RX;
+			rffbuf[pos++]= 0x01;
+			rffbuf[pos++]= outcome;
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		#endif
+
+		break;
 
     case COAP_CODE_REQ_PUT:
         // reset packet payload
         msg->payload = &(msg->packet[127]);
         msg->length = 0;
 
-#if (DEBUG_LOG_RIT  == 1)
-   {
-   	 uint8_t   pos=0;
+		#if 0 // (DEBUG_LOG_RIT  == 1)
+		{
+			uint8_t   pos=0;
 
-	rffbuf[pos++]= RFF_COMPONENT_STORMCOAP_TX;
-	rffbuf[pos++]= 0x01;
-	rffbuf[pos++]= coap_options[1].length;
-	rffbuf[pos++]= coap_options[2].length;
-	rffbuf[pos++]= coap_options[1].type;
-	rffbuf[pos++]= coap_options[2].type;
-	//rffbuf[pos++]= sensor_points.points[0].value.value.u8;
+			rffbuf[pos++]= RFF_COMPONENT_STORMCOAP_TX;
+			rffbuf[pos++]= 0x01;
+			rffbuf[pos++]= coap_options[1].length;
+			rffbuf[pos++]= coap_options[2].length;
+			rffbuf[pos++]= coap_options[1].type;
+			rffbuf[pos++]= coap_options[2].type;
+			//rffbuf[pos++]= sensor_points.points[0].value.value.u8;
 
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		}
+		#endif
 
         // /s/2/-12.45 or /s/12/12.45
 		if((coap_options[1].length == 1 || coap_options[1].length == 2) &&
@@ -635,40 +629,51 @@ owerror_t osens_val_receive(
 				(coap_options[1].type == COAP_OPTION_NUM_URIPATH) &&
 				(coap_options[2].type == COAP_OPTION_NUM_URIPATH))
 		{
-#if 0
-			uint8_t index;
-			double number;
-			osens_point_t pt;
+			#if 0
+				uint8_t index;
+				double number;
+				osens_point_t pt;
 
-			if(coap_options[1].length == 2)
-				index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
-			else
-				index = coap_options[1].pValue[0] - 0x30;
+				if(coap_options[1].length == 2)
+					index = (coap_options[1].pValue[0] - 0x30) * 10 + (coap_options[1].pValue[1] - 0x30);
+				else
+					index = coap_options[1].pValue[0] - 0x30;
 
-			number = decode_number(coap_options[2].pValue,coap_options[2].length);
-			pt.type = osens_get_ptype(index);
+				number = decode_number(coap_options[2].pValue,coap_options[2].length);
+				pt.type = osens_get_ptype(index);
 
-			if(pt.type >= 0)
-			{
-				set_point_val(&pt,number);
-				if(osens_set_pvalue(index,&pt))
+				if(pt.type >= 0)
 				{
-					// set the CoAP header
-					coap_header->Code = COAP_CODE_RESP_CHANGED;
-					outcome = E_SUCCESS;
+					set_point_val(&pt,number);
+					if(osens_set_pvalue(index,&pt))
+					{
+						// set the CoAP header
+						coap_header->Code = COAP_CODE_RESP_CHANGED;
+						outcome = E_SUCCESS;
+					}
 				}
-			}
-#else
-		      // switch on the light pulse (50 ms)
-		      light_on();
+			#else
+				  // switch on the light pulse (50 ms)
+				  light_on();
 
-		      opentimers_start(1000,TIMER_ONESHOT,TIME_MS,light_timer);
-#endif
-
+				  opentimers_start(1000,TIMER_ONESHOT,TIME_MS,light_timer);
+			#endif
 		}
         break;
 
     default:
+		#if 0   //(ENABLE_DEBUG_RFF == 1) && (DBG_APP_1 == 1)
+    	 {
+			uint8_t pos=0;
+
+			rffbuf[pos++]= RFF_COMPONENT_STORMCOAP_RX;
+			rffbuf[pos++]= 0xFE;
+			rffbuf[pos++]= outcome;
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+    	 }
+		#endif
+
         outcome = E_FAIL;
         break;
     }

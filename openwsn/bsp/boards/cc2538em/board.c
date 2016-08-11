@@ -26,7 +26,9 @@
 #include "hw_ints.h"
 #include  "uarthal.h"
 #include  "gptimer.h"
-
+#if (WATCHDOG_CONF_ENABLE == 1)
+#include "watchdog.h"
+#endif
 //=========================== variables =======================================
 
 #define BSP_RADIO_BASE              ( GPIO_D_BASE )
@@ -84,6 +86,9 @@ void board_init() {
 #endif
    radio_init();
   // leds_debug_on();
+#if (WATCHDOG_CONF_ENABLE == 1)
+   WatchdogEnable(WATCHDOG_INTERVAL_32768);  //watchdogtimer de 1seg
+#endif
 }
 
 /**

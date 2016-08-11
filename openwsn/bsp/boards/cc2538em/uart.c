@@ -118,6 +118,59 @@ void uart_init() {
    IntEnable(INT_UART0);
 }
 
+
+
+void uart_reset(void) {
+   register uint32_t i;
+
+   // reset local variables
+   memset(&uart_vars,0,sizeof(uart_vars_t));
+
+   // Disable UART function
+   UARTDisable(UART0_BASE);
+
+   // Disable all UART module interrupts
+   UARTIntDisable(UART0_BASE, 0x1FFF);
+
+   // Set IO clock as UART clock source
+   UARTClockSourceSet(UART0_BASE, UART_CLOCK_PIOSC);
+
+   // Map UART signals to the correct GPIO pins and configure them as
+   // hardware controlled. GPIO-A pin 0 and 1
+   IOCPinConfigPeriphOutput(GPIO_A_BASE, PIN_UART_TXD, IOC_MUX_OUT_SEL_UART0_TXD);
+   GPIOPinTypeUARTOutput(GPIO_A_BASE, PIN_UART_TXD);
+   IOCPinConfigPeriphInput(GPIO_A_BASE, PIN_UART_RXD, IOC_UARTRXD_UART0);
+   GPIOPinTypeUARTInput(GPIO_A_BASE, PIN_UART_RXD);
+
+   // Configure the UART for 115,200, 8-N-1 operation.
+   // This function uses SysCtrlClockGet() to get the system clock
+   // frequency.  This could be also be a variable or hard coded value
+   // instead of a function call.
+#if (DEBUG_VIA_SERIAL == 1)
+   UARTConfigSetExpClk(UART0_BASE, SysCtrlIOClockGet(), 9600,
+                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                       UART_CONFIG_PAR_NONE));
+#else
+   UARTConfigSetExpClk(UART0_BASE, SysCtrlIOClockGet(), 115200,
+                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                       UART_CONFIG_PAR_NONE));
+#endif
+   // Enable UART hardware
+   UARTEnable(UART0_BASE);
+
+   // Disable FIFO as we only one 1byte buffer
+   UARTFIFODisable(UART0_BASE);
+
+   // Raise interrupt at end of tx (not by fifo)
+   UARTTxIntModeSet(UART0_BASE, UART_TXINT_MODE_EOT);
+
+   // Register isr in the nvic and enable isr at the nvic
+   UARTIntRegister(UART0_BASE, uart_isr_private);
+
+   // Enable the UART0 interrupt
+   IntEnable(INT_UART0);
+}
+
 void uart_setCallbacks(uart_tx_cbt txCb, uart_rx_cbt rxCb) {
     uart_vars.txCb = txCb;
     uart_vars.rxCb = rxCb;

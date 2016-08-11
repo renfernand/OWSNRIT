@@ -170,16 +170,16 @@ bit after the start of the packet.
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
    S_RIT_SLEEP                   = 0x00,   // ready for next slot
-   S_RIT_SLEEP_WINDOW            = 0x01,   // Finish the tx Message
+   S_RIT_RXSLEEP                 = 0x01,   // Finish the rx Message
    // TX
    S_RIT_TXDATAOFFSET            = 0x02,   // waiting to prepare for Tx data
    //S_RIT_TXDATAPREPARE           = 0x05,   // preparing for Tx data
    S_RIT_TXDATAREADY             = 0x03,   // ready to Tx data, waiting for 'go'
-   //S_RIT_TXDATADELAY             = 0x07,   // 'go' signal given, waiting for SFD Tx data
+   S_RIT_TXSLEEP                 = 0x07,   // Finish the tx Message
    S_RIT_TXDATA                  = 0x04,   // Tx data SFD received, sending bytes
 
    S_RIT_RXACKOFFSET             = 0x05,   // Tx data done, waiting to prepare for Rx ACK
-   //S_RIT_RXACKPREPARE            = 0x0a,   // preparing for Rx ACK
+   S_RIT_RXNEWFRM                = 0x0a,   // RX new frame - usando tanto pelo TX quanto pelo RX
 
    //S_RIT_RXACKREADY              = 0x0b,   // ready to Rx ACK, waiting for 'go'
    //S_RIT_RXACKLISTEN             = 0x0c,   // idle listening for ACK
@@ -394,6 +394,10 @@ typedef struct {
    PORT_RADIOTIMER_WIDTH     num_timer;
    PORT_RADIOTIMER_WIDTH     num_startOfFrame;
    PORT_RADIOTIMER_WIDTH     num_endOfFrame;
+   PORT_RADIOTIMER_WIDTH     num_txslot;
+   PORT_RADIOTIMER_WIDTH     num_rxslot;
+   PORT_RADIOTIMER_WIDTH     num_txend;
+   PORT_RADIOTIMER_WIDTH     num_rxend;
 } ieee154e_dbg_t;
 
 //=========================== prototypes ======================================

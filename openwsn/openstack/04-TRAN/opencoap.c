@@ -9,6 +9,7 @@
 #include "opentimers.h"
 #include "scheduler.h"
 #include "IEEE802154E.h"
+#include "IEEE802154RIT.h"
 
 //=========================== defines =========================================
 
@@ -22,8 +23,7 @@ opencoap_vars_t opencoap_vars;
 //extern ieee154e_vars_t    ieee154e_vars;
 //extern ieee154e_stats_t   ieee154e_stats;
 //extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-
+uint8_t rffpasshere;
 #endif
 extern uint8_t testrff_isforwarding;
 
@@ -42,6 +42,7 @@ void opencoap_init() {
    
    // initialize the messageID
    opencoap_vars.messageID     = openrandom_get16b();
+   rffpasshere = 0;
 }
 
 /**
@@ -82,19 +83,25 @@ void opencoap_receive(OpenQueueEntry_t* msg) {
    coap_header.messageID     = msg->payload[index]*256+msg->payload[index+1];
    index+=2;
 
-#if (DEBUG_LOG_RIT == 1)
-	   {
-		 uint8_t pos=0;
+	#if 0 //(DEBUG_LOG_RIT == 1)
+	{
+		uint8_t pos=0;
 
-		   rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_RX;
-		   rffbuf[pos++]= 0x01;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-		   rffbuf[pos++]= (uint8_t) coap_header.Ver;
-		   rffbuf[pos++]= (uint8_t) coap_header.TKL;
+		rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_RX;
+		rffbuf[pos++]= 0x01;
+		rffbuf[pos++]= (uint8_t) msg->l4_protocol;
+		rffbuf[pos++]= (uint8_t) coap_header.Ver;
+		rffbuf[pos++]= (uint8_t) coap_header.TKL;
+		rffbuf[pos++]= (uint8_t) coap_header.Code;
+		pos = printvar((uint8_t *)&coap_header.messageID,sizeof(uint16_t),rffbuf,pos);
 
-		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	   }
-#endif
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		openserial_startOutput();
+
+		openqueue_freePacketBuffer(msg);
+	    return;
+	}
+	#endif
 
    // reject unsupported header
    if (coap_header.Ver!=COAP_VERSION || coap_header.TKL>COAP_MAX_TKL) {
@@ -237,9 +244,8 @@ void opencoap_receive(OpenQueueEntry_t* msg) {
    }
    
    //=== step 3. ask the resource to prepare response
-   
    if (found==TRUE) {
-      
+
       // call the resource's callback
       outcome = temp_desc->callbackRx(msg,&coap_header,&coap_options[0]);
    } else {
@@ -286,28 +292,23 @@ void opencoap_receive(OpenQueueEntry_t* msg) {
    msg->payload[2]                  = coap_header.messageID/256;
    msg->payload[3]                  = coap_header.messageID%256;
    memcpy(&msg->payload[4], &coap_header.token[0], coap_header.TKL);
-   
+
    if ((openudp_send(msg))==E_FAIL) {
       openqueue_freePacketBuffer(msg);
    }
-   else
-   {
-#if (DEBUG_LOG_RIT == 1)
-	   {
-		 uint8_t pos=0;
 
-		   rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
-		   rffbuf[pos++]= 0x01;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-		   rffbuf[pos++]= (uint8_t) msg->l4_sourcePortORicmpv6Type;
-		   rffbuf[pos++]= (uint8_t) msg->creator;
+#if 1 //(DEBUG_LOG_RIT == 1)
+{
+	uint8_t pos=0;
 
-		    testrff_isforwarding = TRUE;
+	rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
+	rffbuf[pos++]= 0x60;
+	rffbuf[pos++]= outcome;
+	rffbuf[pos++]= rffpasshere;
 
-		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	   }
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+}
 #endif
-   }
 }
 
 /**

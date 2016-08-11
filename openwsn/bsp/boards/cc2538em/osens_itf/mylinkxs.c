@@ -17,15 +17,12 @@
 #include "leds.h"
 #include "hw_ints.h"
 #include "interrupt.h"
+#include "IEEE802154RIT.h"
 
 extern osens_point_ctrl_t sensor_points;
 static volatile bool g_bGPIOIntFlag = false;
 static volatile uint8_t g_Lightchange;
 void bspLedToggle(uint8_t ui8Leds);
-
-#if DEBUG_LOG_RIT
-static uint8_t rffbuf[10];
-#endif
 
 void light_mote_sm(void)
 {

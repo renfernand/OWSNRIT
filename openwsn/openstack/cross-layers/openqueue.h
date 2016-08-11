@@ -15,7 +15,7 @@
 
 #define QUEUELENGTH  10
 
-#define MAX_RIT_LIST_ELEM 5
+#define MAX_RIT_LIST_ELEM 1
 #define MAX_RIT_MSG_LEN   130
 
 
