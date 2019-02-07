@@ -1,3 +1,4 @@
+#include "board.h"
 #include "opendefs.h"
 #include "icmpv6rpl.h"
 #include "icmpv6.h"
@@ -9,9 +10,23 @@
 #include "scheduler.h"
 #include "idmanager.h"
 #include "opentimers.h"
-#include "IEEE802154E.h"
-#include "board.h"
 #include "leds.h"
+#if (IEEE802154E_TSCH == 1)
+#include "IEEE802154E.h"
+#endif
+#if (IEEE802154E_AMCA == 1)
+#include "IEEE802154AMCA.h"
+#endif
+#if (IEEE802154E_RITMC == 1)
+#include "IEEE802154RITMC.h"
+#endif
+#if (IEEE802154E_ARM == 1)
+#include "IEEE802154ARM.h"
+#endif
+#if (IEEE802154E_AMAC == 1)
+#include "IEEE802154AMAC.h"
+#endif
+#include "debug.h"
 
 //=========================== variables =======================================
 extern neighbors_vars_t neighbors_vars;
@@ -19,14 +34,6 @@ icmpv6rpl_vars_t             icmpv6rpl_vars;
 extern scheduler_vars_t scheduler_vars;
 extern scheduler_dbg_t  scheduler_dbg;
 
-#if (DEBUG_LOG_RIT == 1)
-extern ieee154e_vars_t    ieee154e_vars;
-extern ieee154e_stats_t   ieee154e_stats;
-extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-open_addr_t         dao_address;
-
-#endif
 //=========================== prototypes ======================================
 
 // DIO-related
@@ -37,6 +44,8 @@ void sendDIO(void);
 void icmpv6rpl_timer_DAO_cb(void);
 void icmpv6rpl_timer_DAO_task(void);
 void sendDAO(void);
+
+uint8_t frameDioPending = 0;
 
 //=========================== public ==========================================
 
@@ -60,6 +69,7 @@ void icmpv6rpl_init() {
    icmpv6rpl_vars.fDodagidWritten           = 0;
    
    //=== DIO
+   frameDioPending  = 0x00;
    
    icmpv6rpl_vars.dio.rplinstanceId         = 0x00;        ///< TODO: put correct value
    icmpv6rpl_vars.dio.verNumb               = 0x00;        ///< TODO: put correct value
@@ -276,7 +286,7 @@ void icmpv6rpl_sendDone(OpenQueueEntry_t* msg, owerror_t error) {
 	   rffbuf[ucPos++]= RFF_ICMPv6RPL_TX;
 	   rffbuf[ucPos++]= 0xFE;
 	   rffbuf[ucPos++]= (uint8_t) msg->creator;
-	   rffbuf[ucPos++]= (uint8_t) msg->creator;
+	   rffbuf[ucPos++]= error;
 	   //rffbuf[ucPos++]= (uint8_t) msg->owner;
 	   //rffbuf[ucPos++]= (uint8_t) msg->length;
 	   //rffbuf[ucPos++]= (uint8_t) msg->l2_frameType;
@@ -321,7 +331,7 @@ void icmpv6rpl_receive(OpenQueueEntry_t* msg) {
    //leds_error_toggle();
    //teste rff
 
-#if (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if 1 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
 	   uint8_t ucPos=0;
 
@@ -420,6 +430,8 @@ void icmpv6rpl_receive(OpenQueueEntry_t* msg) {
 		}
 
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+		//openserial_startOutput();
    }
 #endif
 
@@ -503,26 +515,48 @@ void icmpv6rpl_timer_DIO_cb() {
 \note This function is executed in task context, called by the scheduler.
 */
 void icmpv6rpl_timer_DIO_task() {
-   uint8_t           isFramePending=0;
+  // uint8_t           isFramePending=0;
 
    // update the delayDIO
    icmpv6rpl_vars.delayDIO = (icmpv6rpl_vars.delayDIO+1)%5;
 
+#if 0 //(SINK == 0) // (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+   {
+	   uint8_t pos = 0;
+
+	    rffbuf[pos++]= RFF_ICMPv6RPL_TX;
+	    rffbuf[pos++]= 0x01;
+	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
+	    rffbuf[pos++]= icmpv6rpl_vars.CountSendingDAO;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+		//openserial_startOutput();
+   }
+#endif
    // check whether we need to send DIO
    if (icmpv6rpl_vars.delayDIO==0) {
 #if (IEEE802154E_TSCH == 0)
-	  isFramePending = RITQueue_ExistFramePending();
+	  //isFramePending = RITQueue_ExistFramePending();
+/*
+#if (SINK == 0)
+	   frameDioPending = TRUE;
+#endif
+*/
 
-	  if (isFramePending == 0)
+#if (TESTRIT_ONLY_OLA == 0)
+	  if (frameDioPending == 0)
 	  {
 		  //leds_debug_toggle();
 	      // send DIO
 	      sendDIO();
 	  }
+#endif
+
 #else
       sendDIO();
 #endif
-      
+
       // pick a new pseudo-random periodDIO
       icmpv6rpl_vars.periodDIO = TIMER_DIO_TIMEOUT+(openrandom_get16b()&0xff);
       
@@ -586,7 +620,9 @@ void sendDIO() {
    
    // I'm now busy sending
    icmpv6rpl_vars.busySending = TRUE;
-   
+   frameDioPending = TRUE;
+
+
    // reserve a free packet buffer for DIO
    msg = openqueue_getFreePacketBuffer(COMPONENT_ICMPv6RPL);
    if (msg==NULL) {
@@ -633,11 +669,11 @@ void sendDIO() {
       icmpv6rpl_vars.busySending = FALSE; 
    }
 
-#if (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if ((ENABLE_DEBUG_RFF == 1) && (DBG_RPL == 1))
    {
 	   uint8_t pos = 0;
 
-	    rffbuf[pos++]= RFF_ICMPv6RPL_TX;
+	    rffbuf[pos++]= RFF_ICMPv6RPL_TX+1;
 	    rffbuf[pos++]= 0x01;
 	    rffbuf[pos++]= msg->l4_protocol;
 	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
@@ -650,7 +686,6 @@ void sendDIO() {
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numRx;
 		rffbuf[pos++]= neighbors_vars.neighbors[0].numTxACK;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numWraps;
 
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
    }
@@ -683,9 +718,10 @@ void icmpv6rpl_timer_DAO_task() {
    // check whether we need to send DAO
    if (icmpv6rpl_vars.delayDAO==0) {
       
-      // send DAO
+#if ( (TESTRIT_ONLY_DIO == 0) && (TESTRIT_ONLY_OLA == 0))
+	   // send DAO
       sendDAO();
-      
+#endif
       // pick a new pseudo-random periodDAO
       icmpv6rpl_vars.periodDAO = TIMER_DAO_TIMEOUT+(openrandom_get16b()&0xff);
       
@@ -732,7 +768,7 @@ void sendDAO() {
    }
    #endif
 
-#if 0 //(DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
+#if 0// (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
    {
 		uint8_t pos=0;
 
@@ -758,11 +794,7 @@ void sendDAO() {
       return;
    }
    
-#if (IEEE802154E_RIT == 1)
-   // if you get here, you start construct DAO
-   icmpv6rpl_vars.busySendingDAO =TRUE;
-#endif
-   
+
    // reserve a free packet buffer for DAO
    msg = openqueue_getFreePacketBuffer(COMPONENT_ICMPv6RPL);
    if (msg==NULL) {
@@ -854,7 +886,36 @@ void sendDAO() {
       if (numTargetParents>=MAX_TARGET_PARENTS) break;
    }
    
+    //teste rff  DBGRPL - Aqui ele envia um DAO
+ #if ((ENABLE_DEBUG_RFF == 1) && (DBG_RPL == 1))
+    {
+ 		uint8_t pos=0;
+
+ 		rffbuf[pos++]= RFF_ICMPv6RPL_TX+2;
+ 		rffbuf[pos++]= 0x02;
+ 		rffbuf[pos++]= msg->l2_frameType;
+ 		rffbuf[pos++]= msg->length;
+ 	    rffbuf[pos++]= msg->l4_sourcePortORicmpv6Type;
+ 	    rffbuf[pos++]= numTargetParents;
+ 		rffbuf[pos++]= numTransitParents;
+ 		rffbuf[pos++]= icmpv6rpl_vars.dao_transit.PathSequence;
+ 		rffbuf[pos++]= neighbors_vars.neighbors[0].addr_64b.addr_64b[6];
+ 		rffbuf[pos++]= neighbors_vars.neighbors[0].addr_64b.addr_64b[7];
+ 		//rffbuf[pos++]= neighbors_vars.neighbors[0].numTx;
+ 		//rffbuf[pos++]= neighbors_vars.neighbors[0].numRx;
+ 		//rffbuf[pos++]= neighbors_vars.neighbors[0].numTxACK;
+ 		rffbuf[pos++]= msg->l3_destinationAdd.type;
+ 		if (msg->l3_destinationAdd.type == 3)
+ 		{
+ 			rffbuf[pos++]= msg->l3_destinationAdd.addr_128b[14];
+ 			rffbuf[pos++]= msg->l3_destinationAdd.addr_128b[15];
+ 		}
+
+ 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+ 	}
+ #endif
    
+
    // stop here if no parents found
    if (numTransitParents==0) {
       openqueue_freePacketBuffer(msg);
@@ -879,61 +940,6 @@ void sendDAO() {
    ((ICMPv6_ht*)(msg->payload))->code       = IANA_ICMPv6_RPL_DAO;
    packetfunctions_calculateChecksum(msg,(uint8_t*)&(((ICMPv6_ht*)(msg->payload))->checksum)); //call last
 
-   //teste rff  DBGRPL - Aqui ele envia um DAO
-#if (DEBUG_LOG_RIT  == 1) && (DBG_RPL == 1)
-   {
-		uint8_t pos=0;
-
-		rffbuf[pos++]= RFF_ICMPv6RPL_TX;
-		rffbuf[pos++]= 0x03;
-		rffbuf[pos++]= msg->l2_frameType;
-	    rffbuf[pos++]= icmpv6rpl_vars.busySendingDAO;
-	    rffbuf[pos++]= icmpv6rpl_vars.CountSendingDAO;
-		rffbuf[pos++]= 0xcc;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].addr_64b.addr_64b[6];
-		rffbuf[pos++]= neighbors_vars.neighbors[0].addr_64b.addr_64b[7];
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numTx;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numRx;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numTxACK;
-		rffbuf[pos++]= neighbors_vars.neighbors[0].numWraps;
-		/*
-		rffbuf[pos++]= msg->l3_destinationAdd.type;
-		if (msg->l3_destinationAdd.type == 3)
-		{
-			rffbuf[pos++]= msg->l3_destinationAdd.addr_128b[14];
-			rffbuf[pos++]= msg->l3_destinationAdd.addr_128b[15];
-		}
-
-		if (numTargetParents > 0)
-        {
-       	 uint8_t address_length=0;
-
-            switch (address.type)
-            {
-               case ADDR_16B:
-               case ADDR_PANID:
-                  address_length = 2;
-                  break;
-               case ADDR_64B:
-               case ADDR_PREFIX:
-                  address_length = 8;
-                  break;
-               case ADDR_128B:
-               case ADDR_ANYCAST:
-                  address_length = 16;
-                  break;
-            }
-
-            memcpy(&dao_address,&address,address_length);
-        } */
-        //teste rff
-
-
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-	}
-   #endif
-   //teste rff
 
    //===== send
    if (icmpv6_send(msg)==E_SUCCESS) {

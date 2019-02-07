@@ -3,30 +3,29 @@
 #include "openserial.h"
 #include "packetfunctions.h"
 #include "IEEE802154E.h"
+#include "leds.h"
 #include "radio.h"
+#include "neighbors.h"
 //=========================== variables =======================================
 
 openqueue_vars_t openqueue_vars;
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
+#if (IEEE802154E_TSCH == 0)
 OpenQueueEntry_t advRIT;
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt);
 sRITqueue pvObjList[MAX_RIT_LIST_ELEM];
+#endif
 
-#endif
-#if ENABLE_DEBUG_RFF
-static uint8_t rffbuf[30];
-#endif
 
 //support variable for RIT procedure
-extern uint8_t     coappending;
+uint8_t     coappending;
 
 
 uint8_t u8NrMsgQueue;          // numero de posicoes utilizadas na queue de RIT Pending Msg to TX
 uint8_t numAvailableElements;  // numero de lugares ocupados no pool de mensagem
 uint8_t maxElements;
 uint8_t macRITActualPos;           //tem a informacao da posicao do atual Tx Msg Pending (antes do ola)
-uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
+//uint8_t RITQueue_ElementPending;   //salvo o elemento que acabou de enviar uma msg - para retornar apos o envio (apos o ola)
 uint32_t numOfQueueInsertionErrors;
 
 //=========================== prototypes ======================================
@@ -47,7 +46,7 @@ void openqueue_init() {
    }
 
 
-#if (IEEE802154E_RIT == 1)
+#if (IEEE802154E_TSCH == 0)
    // Inicializa a area de memoria do frame do RIT
    //TODO!!! Foi criado como global mas nao sei se ocupa muito espaco.
    openqueue_freePacketRITBuffer(&(advRIT));
@@ -93,11 +92,12 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
    DISABLE_INTERRUPTS();
    
    // refuse to allocate if we're not in sync
+#if (IEEE802154E_TSCH == 1)
    if (ieee154e_isSynch()==FALSE && creator > COMPONENT_IEEE802154E){
      ENABLE_INTERRUPTS();
      return NULL;
    }
-   
+#endif
    // if you get here, I will try to allocate a buffer for you
    
    // walk through queue and find free entry
@@ -133,6 +133,23 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
    return NULL;
 }
 
+/* teste rff
+ * Descubro qtos elementos estao ocupados na fila...
+ * SOMENTE PARA DEBUG
+ * */
+
+uint8_t openqueue_getNrBusyPacketBuffer(uint8_t creator) {
+   uint8_t i;
+
+   for (i=0;i<QUEUELENGTH;i++) {
+      if (openqueue_vars.queue[i].owner==COMPONENT_NULL) {
+    	  break;
+      }
+   }
+
+   return i;
+}
+
 
 /**
 \brief Free a previously-allocated packet buffer.
@@ -144,7 +161,7 @@ OpenQueueEntry_t* openqueue_getFreePacketBuffer(uint8_t creator) {
 */
 owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
    uint8_t i;
-   uint8_t *pucAux = (uint8_t *) pkt;
+   //uint8_t *pucAux = (uint8_t *) pkt;
    uint8_t  creator;
 
    INTERRUPT_DECLARATION();
@@ -158,7 +175,8 @@ owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
                                   (errorparameter_t)0);
          }
          creator = openqueue_vars.queue[i].creator;
-
+         //avoid warning
+         //creator = creator;
          openqueue_reset_entry(&(openqueue_vars.queue[i]));
          ENABLE_INTERRUPTS();
 
@@ -189,7 +207,7 @@ owerror_t openqueue_freePacketBuffer(OpenQueueEntry_t* pkt) {
    return E_FAIL;
 }
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
+#if (IEEE802154E_TSCH == 0)
 // Inicializa a area de memoria do frame do RIT
 owerror_t openqueue_freePacketRITBuffer(OpenQueueEntry_t* pkt) {
 
@@ -307,14 +325,14 @@ OpenQueueEntry_t* openqueue_sixtopGetReceivedPacket() {
 
 OpenQueueEntry_t* openqueue_macGetDataPacket(open_addr_t* toNeighbor) {
    uint8_t i;
-   INTERRUPT_DECLARATION();
-   DISABLE_INTERRUPTS();
+   //INTERRUPT_DECLARATION();
+   // DISABLE_INTERRUPTS();
    if (toNeighbor->type==ADDR_64B) {
       // a neighbor is specified, look for a packet unicast to that neigbhbor
       for (i=0;i<QUEUELENGTH;i++) {
          if (openqueue_vars.queue[i].owner==COMPONENT_SIXTOP_TO_IEEE802154E &&
             packetfunctions_sameAddress(toNeighbor,&openqueue_vars.queue[i].l2_nextORpreviousHop)) {
-            ENABLE_INTERRUPTS();
+            // ENABLE_INTERRUPTS();
             return &openqueue_vars.queue[i];
          }
       }
@@ -330,12 +348,12 @@ OpenQueueEntry_t* openqueue_macGetDataPacket(open_addr_t* toNeighbor) {
                 )
              )
             ) {
-            ENABLE_INTERRUPTS();
+            // ENABLE_INTERRUPTS();
             return &openqueue_vars.queue[i];
          }
       }
    }
-   ENABLE_INTERRUPTS();
+   // ENABLE_INTERRUPTS();
    return NULL;
 }
 
@@ -374,10 +392,17 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 
 	uint8_t i, nroctets = 0;
 
-    if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
-    { //if address is broadcast then send for anyone.
-        return true;
+    //if ((addr1->type == 0x02) && (addr1->addr_64b[6] == 0xFF) && (addr1->addr_64b[7] == 0xFF))
+    //{ //if address is broadcast then check the neighbor list
+    //	return true;
+    //}
+#if (USE_RITREQ_SHORT == 1)
+    if ((addr1->type == 0x02) && (addr2->type == 0x01))
+    { // o addr2 é um olá request...neste caso somente comparo o final do frame
+    	if ((addr1->addr_64b[6] == addr2->addr_16b[0]) && (addr1->addr_64b[7] == addr2->addr_16b[1]))
+            return TRUE;
     }
+#endif
     else if (addr1->type == addr2->type)
 	{
 		switch (addr1->type)
@@ -403,34 +428,55 @@ bool  RITQueue_AddrIsTheSame(open_addr_t* addr1, open_addr_t* addr2){
 					return false;
 				}
 			}
-			return true;
+			return TRUE;
 		}
 		else
 			return false;
 
 	}
-    else if ((addr1->type == 0x03) &&  (addr2->type == 0x02))
+#if (USE_RITREQ_SHORT == 1)
+    else if ((addr1->type == 0x03) &&  (addr2->type == 0x01))
     {
 		//AQUI TEM DOIS CASOS
 		// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
 		// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
 
-		if ((addr1->addr_64b[0] == 0xFF) &&
-			(addr1->addr_64b[1] == 0x02) &&
-			(addr1->addr_64b[14] == 0x00) &&
-			(addr1->addr_64b[15] == 0x02)) {
-			return true;
+		if ((addr1->addr_128b[0] == 0xFF) &&
+			(addr1->addr_128b[1] == 0x02) &&
+			(addr1->addr_128b[14] == 0x00) &&
+			(addr1->addr_128b[15] == 0x02)) {
+			return TRUE;
 		}
-		else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
-				 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
-				 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
-				 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
-				 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
-				 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
-				 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
-				 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
-			return true;
+		else if ((addr1->addr_128b[14] == addr2->addr_16b[0]) &&
+				 (addr1->addr_128b[15] == addr2->addr_64b[1])) {
+			return TRUE;
 		}
+
+
+#else
+	    else if ((addr1->type == 0x03) &&  (addr2->type == 0x01))
+	    {
+			//AQUI TEM DOIS CASOS
+			// SE O ADDRESS 1  (TRANSMISSOR) eh o SINK... (FF 02 ...00 02) entao eu envio...sem pensar...(DIO)
+			// pode ser que seja DAO FORWARDING...ai somente comparo o final do endereco do Transmissor com o frame do ola
+
+			if ((addr1->addr_64b[0] == 0xFF) &&
+				(addr1->addr_64b[1] == 0x02) &&
+				(addr1->addr_64b[14] == 0x00) &&
+				(addr1->addr_64b[15] == 0x02)) {
+				return TRUE;
+			}
+			else if ((addr1->addr_128b[8] == addr2->addr_64b[0]) &&
+					 (addr1->addr_128b[9] == addr2->addr_64b[1]) &&
+					 (addr1->addr_128b[10] == addr2->addr_64b[2]) &&
+					 (addr1->addr_128b[11] == addr2->addr_64b[3]) &&
+					 (addr1->addr_128b[12] == addr2->addr_64b[4]) &&
+					 (addr1->addr_128b[13] == addr2->addr_64b[5]) &&
+					 (addr1->addr_128b[14] == addr2->addr_64b[6]) &&
+					 (addr1->addr_128b[15] == addr2->addr_64b[7])) {
+				return TRUE;
+			}
+#endif
 	}
 
 	return false;
@@ -543,10 +589,7 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 	if (psEle == NULL)
 		return maxElements; //msg invalida
 
-	//EnterCriticalSection
-	INTERRUPT_DECLARATION();
-	DISABLE_INTERRUPTS();
-
+#if 0 // AQUI EU NAO ESTOU USANDO MAIS A FILA..COLOCO SEMPRE NO PRIMEIRO ELEMENTO SOMENTE
 	if (RITQueue_IsFull() == false)
 	{
 		//procuro o primeiro elemento da fila disponivel
@@ -575,12 +618,32 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 				break;
 			}
 		}
-
 	}
+#else
+	//Agora nao uso mais a fila...sempre somente guardo uma posicao...
+	i=0;
+	//if ((pvObjList[i].frameType == 0) && (pvObjList[i].msglength == 0))
+	{
+		/* Insert msg into the queue. */
+		pvObjList[i].destaddr = psEle->destaddr;
+		pvObjList[i].timestamp = psEle->timestamp;
+		pvObjList[i].msglength = psEle->msglength;
+		pvObjList[i].frameType = psEle->frameType;
+		pvObjList[i].isBroadcastMulticast = psEle->isBroadcastMulticast;
+		memcpy(pvObjList[i].msg, psEle->msg, psEle->msglength);
+		pvObjList[i].pending = pending;
+		pvObjList[i].numTargetParents = numTargetParents;
 
+		if (psEle->frameType == IANA_UDP)
+			coappending = true;
 
-	//LeaveCriticalSection
-	ENABLE_INTERRUPTS();
+		if (psEle->frameType != IANA_ICMPv6_RPL_DIO) {
+			pvObjList[i].countretry++;
+		}
+
+		//numAvailableElements++;
+	}
+#endif
 
 	return i;
 }
@@ -618,6 +681,34 @@ void RITQueue_update_element (uint8_t pos)
 
 }
 
+
+uint8_t RITQueue_getNrPendingParents (uint8_t pos)
+{
+    if (pos < maxElements)
+	  return (pvObjList[pos].numTargetParents);
+
+    return 0;
+}
+
+uint8_t RITQueue_Clear_Pending(uint8_t pos,open_addr_t actualsrcaddr)
+{
+	uint8_t  elem=0;
+
+	if ( pos < maxElements)
+	{
+		if (macneighbors_clearBroadcastPending(actualsrcaddr) == TRUE) {
+			if (pvObjList[pos].numTargetParents > 0)
+				pvObjList[pos].numTargetParents--;
+
+			elem = TRUE;
+		}
+	}
+
+	return elem;
+}
+
+
+#if 0
 sRITqueue RITQueue_Get_Element(uint8_t pos)
 {
 	sRITqueue  elem;
@@ -649,30 +740,48 @@ sRITqueue RITQueue_Get_Element(uint8_t pos)
 
 	return elem;
 }
-
-uint8_t RITQueue_Get_Pos(open_addr_t *paddr)
+#else
+sRITqueue RITQueue_Get_Element(uint8_t pos)
 {
-	uint8_t i=maxElements;
+	sRITqueue  elem;
 
-	//EnterCriticalSection
-	INTERRUPT_DECLARATION();
-	DISABLE_INTERRUPTS();
+	//INTERRUPT_DECLARATION();
+	//DISABLE_INTERRUPTS();
 
-	if (RITQueue_IsEmpty() == false)
+	if ( pos < maxElements)
 	{
-		for (i = 0; i < maxElements; i++)
-		{
-			if (RITQueue_AddrIsTheSame(&pvObjList[i].destaddr, paddr) == true)
-			{
-				break;
-			}
-		}
+		elem = pvObjList[pos];
+	}
+	else
+	{
+		elem.frameType = 0;
+		RITQueue_ClearAddress(&elem.destaddr);
 	}
 
 	//LeaveCriticalSection
-	ENABLE_INTERRUPTS();
+	//ENABLE_INTERRUPTS();
 
-	return i;
+	return elem;
+}
+#endif
+uint8_t RITQueue_Get_Pos(open_addr_t *paddr)
+{
+	uint8_t i,ret=maxElements;
+	//uint8_t broadcast=0;
+
+	//if (RITQueue_IsEmpty() == false)
+	//{
+		for (i = 0; i < maxElements; i++)
+		{
+			if (RITQueue_AddrIsTheSame(&pvObjList[i].destaddr, paddr) == TRUE)
+			{
+				ret = i;
+				break;
+			}
+		}
+	//}
+
+	return ret;
 }
 
 
@@ -692,13 +801,13 @@ bool  RITQueue_ClearAddress(open_addr_t* addr){
 bool RITQueue_PutPending(uint8_t elementpos)
 {
 	bool ret = false;
-	uint8_t  i;
+	//uint8_t  i;
 
 	//EnterCriticalSection
 	INTERRUPT_DECLARATION();
 	DISABLE_INTERRUPTS();
 
-	if (RITQueue_IsEmpty() == false)
+	//if (RITQueue_IsEmpty() == false)
 	{
 		if (elementpos < maxElements)
 		{
@@ -707,11 +816,6 @@ bool RITQueue_PutPending(uint8_t elementpos)
 			ret = true;
 		}
 	}
-	else
-	{
-		//printf("LISTA VAZIA!!!!! \n");
-	}
-
 
 	//LeaveCriticalSection
 	ENABLE_INTERRUPTS();
@@ -770,7 +874,7 @@ uint8_t RITQueue_GetPending(void)
 	INTERRUPT_DECLARATION();
 	DISABLE_INTERRUPTS();
 
-	if (RITQueue_IsEmpty() == false)
+	//if (RITQueue_IsEmpty() == false)
 	{
 		for (i = 0; i < maxElements; i++)
 		{
@@ -788,11 +892,6 @@ uint8_t RITQueue_GetPending(void)
 			}
 		}
 	}
-	else
-	{
-		//printf("LISTA VAZIA!!!!! \n");
-	}
-
 
 	//LeaveCriticalSection
 	ENABLE_INTERRUPTS();
@@ -803,7 +902,7 @@ uint8_t RITQueue_GetPending(void)
 bool RITQueue_Free(uint8_t elementpos)
 {
 	bool ret = false;
-	uint8_t  i;
+	//uint8_t  i;
 
 	//EnterCriticalSection
 	INTERRUPT_DECLARATION();
@@ -845,16 +944,16 @@ bool RITQueue_Free(uint8_t elementpos)
 #define TIMEOUT_2SEC 65530
 uint8_t RITQueue_cleanupoldmsg(void){
 	uint32_t actualtime;
-	uint32_t timeout;
+	//uint32_t timeout;
 	uint8_t i;
 	uint8_t count = 0;
-	uint8_t pos=0;
-	bool imprimir = false;
+	//uint8_t pos=0;
+	//bool imprimir = false;
 
 	//get actualtime
 	actualtime = radio_getTimerValue();
 
-	if (RITQueue_IsEmpty() == false)
+	//if (RITQueue_IsEmpty() == false)
 	{
 		for (i = 0; i < maxElements; i++)
 		{
@@ -871,6 +970,8 @@ uint8_t RITQueue_cleanupoldmsg(void){
 		}
 
 	}
+
+
 
 
 	return count;
@@ -909,3 +1010,5 @@ void openqueue_reset_entry(OpenQueueEntry_t* entry) {
    entry->l2_retriesLeft               = 0;
    entry->l2_IEListPresent             = 0;
 }
+
+

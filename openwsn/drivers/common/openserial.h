@@ -2,6 +2,7 @@
 \brief Declaration of the "openserial" driver.
 
 \author Fabien Chraim <chraim@eecs.berkeley.edu>, March 2012.
+\author Thomas Watteyne <thomas.watteyne@inria.fr>, August 2016.
 */
 
 #ifndef __OPENSERIAL_H
@@ -48,22 +49,56 @@ enum {
 #define SERFRAME_MOTE2PC_ERROR              ((uint8_t)'E')
 #define SERFRAME_MOTE2PC_CRITICAL           ((uint8_t)'C')
 #define SERFRAME_MOTE2PC_REQUEST            ((uint8_t)'R')
+#define SERFRAME_MOTE2PC_SNIFFED_PACKET     ((uint8_t)'P')
 
 // frames sent PC->mote
 #define SERFRAME_PC2MOTE_SETROOT            ((uint8_t)'R')
-#define SERFRAME_PC2MOTE_SETBRIDGE          ((uint8_t)'B')
-#define SERFRAME_PC2MOTE_SETROOTBRIDGE      ((uint8_t)'Z')
+#define SERFRAME_PC2MOTE_RESET                   ((uint8_t)'Q')
 #define SERFRAME_PC2MOTE_DATA               ((uint8_t)'D')
 #define SERFRAME_PC2MOTE_TRIGGERSERIALECHO  ((uint8_t)'S')
+#define SERFRAME_PC2MOTE_COMMAND                 ((uint8_t)'C')
+#define SERFRAME_PC2MOTE_TRIGGERUSERIALBRIDGE    ((uint8_t)'B')
 
 //=========================== typedef =========================================
 
-//=========================== module variables ================================
+enum {
+    COMMAND_SET_EBPERIOD          =  0,
+    COMMAND_SET_CHANNEL           =  1,
+    COMMAND_SET_KAPERIOD          =  2,
+    COMMAND_SET_DIOPERIOD         =  3,
+    COMMAND_SET_DAOPERIOD         =  4,
+    COMMAND_SET_DAGRANK           =  5,
+    COMMAND_SET_SECURITY_STATUS   =  6,
+    COMMAND_SET_SLOTFRAMELENGTH   =  7,
+    COMMAND_SET_ACK_STATUS        =  8,
+    COMMAND_SET_6P_ADD            =  9,
+    COMMAND_SET_6P_DELETE         = 10,
+    COMMAND_SET_6P_COUNT          = 11,
+    COMMAND_SET_6P_LIST           = 12,
+    COMMAND_SET_6P_CLEAR          = 13,
+    COMMAND_SET_SLOTDURATION      = 14,
+    COMMAND_SET_6PRESPONSE        = 15,
+    COMMAND_SET_UINJECTPERIOD     = 16,
+    COMMAND_MAX                   = 17,
+};
+
+//=========================== variables =======================================
+
+//=========================== prototypes ======================================
+
+typedef void (*openserial_cbt)(void);
+
+typedef struct _openserial_rsvpt {
+    uint8_t                       cmdId; ///< serial command (e.g. 'B')
+    openserial_cbt                cb;    ///< handler of that command
+    struct _openserial_rsvpt*     next;  ///< pointer to the next registered command
+} openserial_rsvpt;
 
 typedef struct {
    // admin
    uint8_t    mode;
    uint8_t    debugPrintCounter;
+    openserial_rsvpt*   registeredCmd;
    // input
    uint8_t    reqFrame[1+1+2+1]; // flag (1B), command (2B), CRC (2B), flag (1B)
    uint8_t    reqFrameIdx;
@@ -81,27 +116,48 @@ typedef struct {
    uint8_t    outputBuf[SERIAL_OUTPUT_BUFFER_SIZE];
 } openserial_vars_t;
 
-//=========================== prototypes ======================================
+// admin
+void      openserial_init(void);
+void      openserial_register(openserial_rsvpt* rsvp);
 
-void    openserial_init(void);
-owerror_t openserial_printStatus(uint8_t statusElement, uint8_t* buffer, uint8_t length);
-owerror_t openserial_printInfo(uint8_t calling_component, uint8_t error_code,
+// printing
+owerror_t openserial_printStatus(
+    uint8_t             statusElement,
+    uint8_t*            buffer,
+    uint8_t             length
+);
+owerror_t openserial_printInfo(
+    uint8_t             calling_component,
+    uint8_t             error_code,
                               errorparameter_t arg1,
-                              errorparameter_t arg2);
-owerror_t openserial_printError(uint8_t calling_component, uint8_t error_code,
+    errorparameter_t    arg2
+);
+owerror_t openserial_printError(
+    uint8_t             calling_component,
+    uint8_t             error_code,
                               errorparameter_t arg1,
-                              errorparameter_t arg2);
-owerror_t openserial_printCritical(uint8_t calling_component, uint8_t error_code,
+    errorparameter_t    arg2
+);
+owerror_t openserial_printCritical(
+    uint8_t             calling_component,
+    uint8_t             error_code,
                               errorparameter_t arg1,
-                              errorparameter_t arg2);
+    errorparameter_t    arg2
+);
 owerror_t openserial_printData(uint8_t* buffer, uint8_t length);
-uint8_t openserial_getNumDataBytes(void);
+owerror_t openserial_printSniffedPacket(uint8_t* buffer, uint8_t length, uint8_t channel);
+
+// retrieving inputBuffer
+uint8_t   openserial_getInputBufferFilllevel(void);
 uint8_t openserial_getInputBuffer(uint8_t* bufferToWrite, uint8_t maxNumBytes);
+
+// scheduling
 void    openserial_startInput(void);
 void    openserial_startOutput(void);
 void    openserial_stop(void);
+
+// debugprint
 bool    debugPrint_outBufferIndexes(void);
-void    openserial_echo(uint8_t* but, uint8_t bufLen);
 
 // interrupt handlers
 void    isr_openserial_rx(void);

@@ -9,6 +9,7 @@
 #include "board.h"
 #include "debugpins.h"
 #include "leds.h"
+#include "radiotimer.h"
 
 //=========================== variables =======================================
 
@@ -55,6 +56,7 @@ void scheduler_start() {
       debugpins_task_clr();
       board_sleep();
       debugpins_task_set();                      // IAR should halt here if nothing to do
+      checkinterrupt();
    }
 }
 
@@ -65,21 +67,6 @@ void scheduler_start() {
    
    DISABLE_INTERRUPTS();
    
-#if 0 //(SINK == 0)
-   {
-	//uint8_t *pucAux01 = (uint8_t *) &ieee154e_vars.asn.bytes0and1;
-	//uint8_t *pucAux23 = (uint8_t *) &ieee154e_vars.asn.bytes2and3;
-    uint8_t pos=0;
-
-	rffbuf[pos++]= 0x55;
-	rffbuf[pos++]= scheduler_dbg.numTasksCur;
-	rffbuf[pos++]= scheduler_dbg.numTasksMax;
-	rffbuf[pos++]= (uint8_t) prio;
-
-	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
-
    // find an empty task container
    taskContainer = &scheduler_vars.taskBuf[0];
    while (taskContainer->cb!=NULL &&

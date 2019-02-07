@@ -16,7 +16,17 @@
 #include "IEEE802154.h"
 #include "idmanager.h"
 #include "schedule.h"
-
+#include "IEEE802154E.h"
+#if IEEE802154E_RITMC == 1
+#include "IEEE802154RITMC.h"
+#elif IEEE802154E_AMAC == 1
+#include "IEEE802154AMAC.h"
+#elif IEEE802154E_AMCA == 1
+#include "IEEE802154AMCA.h"
+#elif IEEE802154E_RIT == 1
+#include "IEEE802154RIT.h"
+#endif
+#include "debug.h"
 //=========================== variables =======================================
 
 sixtop_vars_t sixtop_vars;
@@ -26,7 +36,7 @@ sixtop_vars_t sixtop_vars;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
+
 #define TESTE_RIT_GENERATE_DATA_MSG  0
 
 #endif
@@ -325,33 +335,11 @@ void sixtop_removeCell(open_addr_t* neighbor){
 //======= from upper layer
 
 owerror_t sixtop_send(OpenQueueEntry_t *msg) {
-   
+
    // set metadata
    msg->owner        = COMPONENT_SIXTOP;
    msg->l2_frameType = IEEE154_TYPE_DATA;
    
-#if 0 //ENABLE_DEBUG_RFF
-   {
-		//uint32_t capturetime;
-		//uint8_t *pucAux = (uint8_t *) &capturetime;
-		uint8_t pos=0;
-
-		//capturetime=radio_getTimerValue();
-
-		 rffbuf[pos++]= RFF_SIXTOP_TX;
-		 rffbuf[pos++]= 0x01;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux++;
-		 //rffbuf[pos++]= *pucAux;
-		 rffbuf[pos++]= msg->l2_IEListPresent;
-
-		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
-
-
-
    if (msg->l2_IEListPresent == IEEE154_IELIST_NO) {
       return sixtop_send_internal(
          msg,
@@ -445,7 +433,7 @@ void task_sixtopNotifSendDone() {
 void task_sixtopNotifReceive() {
    OpenQueueEntry_t* msg;
    uint16_t          lenIE;
-   
+
    // get received packet from openqueue
    msg = openqueue_sixtopGetReceivedPacket();
    if (msg==NULL) {
@@ -492,21 +480,9 @@ void task_sixtopNotifReceive() {
 		rffbuf[pos++]= msg->l4_protocol;
 		rffbuf[pos++]= msg->l4_length;
 
-/*
-  	    rffbuf[pos++]= address->type;
-
-  	    if (address->type == 3)
-		{
-			rffbuf[pos++]= address->addr_128b[14];
-			rffbuf[pos++]= address->addr_128b[15];
-		}
-		else //considero igual a 2
-		{
-			rffbuf[pos++]= address->addr_64b[6];
-			rffbuf[pos++]= address->addr_64b[7];
-		}
-*/
 		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		openserial_startOutput();
+
    }
 #endif
 
@@ -522,7 +498,7 @@ void task_sixtopNotifReceive() {
    // reset it to avoid race conditions with this var.
    msg->l2_joinPriorityPresent = FALSE; 
    
-   // send the packet up the stack, if it qualifies
+     // send the packet up the stack, if it qualifies
    switch (msg->l2_frameType) {
       case IEEE154_TYPE_BEACON:
       case IEEE154_TYPE_DATA:
@@ -612,7 +588,8 @@ owerror_t sixtop_send_internal(
    OpenQueueEntry_t* msg, 
    uint8_t iePresent, 
    uint8_t frameVersion) {
-
+   //uint32_t Address = (uint32_t ) &aux;
+  // uint8_t *pucAux = (uint8_t *) &Address;
 
    // assign a number of retries
    if (
@@ -796,7 +773,9 @@ port_INLINE void sixtop_sendKA() {
    }
    
    // if I get here, I will send a KA
-   
+   //EU ACREDITO QUE NAO EH IMPORTANTE ESTE KA pois ele tem a ver com o sincronismo da rede...
+   //ESTOU DELABILITANDO O ENVIO DESTE FRAME NA REDE...
+#if 0
    // get a free packet buffer
    kaPkt = openqueue_getFreePacketBuffer(COMPONENT_SIXTOP);
    if (kaPkt==NULL) {
@@ -814,9 +793,25 @@ port_INLINE void sixtop_sendKA() {
    kaPkt->l2_frameType = IEEE154_TYPE_DATA;
    memcpy(&(kaPkt->l2_nextORpreviousHop),kaNeighAddr,sizeof(open_addr_t));
    
+#if 0 //((ENABLE_DEBUG_RFF == 1) && (DBG_RPL == 1))
+   {
+	   uint8_t pos=0;
+	   uint8_t aux=0;
+
+		rffbuf[pos++]= RFF_SIXTOP_TX;
+		rffbuf[pos++]= 0x60;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+
+	   aux++;
+   }
+#endif
+
+
    // put in queue for MAC to handle
    sixtop_send_internal(kaPkt,IEEE154_IELIST_NO,IEEE154_FRAMEVERSION_2006);
    
+
    // I'm now busy sending a KA
    sixtop_vars.busySendingKA = TRUE;
 
@@ -824,6 +819,9 @@ port_INLINE void sixtop_sendKA() {
    debugpins_ka_set();
    debugpins_ka_clr();
 #endif
+
+#endif
+
 }
 
 //======= six2six task
@@ -883,7 +881,6 @@ void sixtop_six2six_sendDone(OpenQueueEntry_t* msg, owerror_t error){
             );
          }
          sixtop_vars.six2six_state = SIX_IDLE;
-         leds_debug_off();
          break;
       default:
          //log error
@@ -1173,7 +1170,7 @@ void sixtop_notifyReceiveLinkResponse(
       // link request success,inform uplayer
       }
    }
-   leds_debug_off();
+
    sixtop_vars.six2six_state = SIX_IDLE;
   
    opentimers_stop(sixtop_vars.timeoutTimerId);
@@ -1190,8 +1187,6 @@ void sixtop_notifyReceiveRemoveLinkRequest(
    frameID = schedule_ie->frameID;
    cellList = schedule_ie->cellList;
    
-   leds_debug_on();
-   
    sixtop_removeCellsByState(frameID,numOfCells,cellList,addr);
    
    // notify OTF
@@ -1199,7 +1194,6 @@ void sixtop_notifyReceiveRemoveLinkRequest(
    
    sixtop_vars.six2six_state = SIX_IDLE;
 
-   leds_debug_off();
 }
 
 //======= helper functions

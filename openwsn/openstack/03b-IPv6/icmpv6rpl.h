@@ -12,8 +12,8 @@
 
 //=========================== define ==========================================
 
-#define TIMER_DIO_TIMEOUT         3400   // RFF ALTEREI ERA 1700
-#define TIMER_DAO_TIMEOUT         10000
+#define TIMER_DIO_TIMEOUT          1700   // RFF ALTEREI ERA 1700  - dando 10s    6000 - 30 s.
+#define TIMER_DAO_TIMEOUT         11000   // RFF ALTEREI ERA 10000 - dando 50s
 
 #define MOP_DIO_A                 1<<5
 #define MOP_DIO_B                 1<<4

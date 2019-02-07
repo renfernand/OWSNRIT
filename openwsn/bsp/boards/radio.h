@@ -13,6 +13,7 @@
 */
 
 #include "radiotimer.h"
+#include "board.h"
 
 //=========================== define ==========================================
 
@@ -40,6 +41,8 @@ typedef enum {
    RADIOSTATE_RECEIVING           = 0x0b,   ///< Busy receiving bytes.
    RADIOSTATE_TXRX_DONE           = 0x0c,   ///< Frame has been sent/received completely.
    RADIOSTATE_TURNING_OFF         = 0x0d,   ///< Turning the RF chain off.
+   RADIOSTATE_TX_DONE             = 0x0e,   ///< Turning the RF chain off.
+   RADIOSTATE_RX_DONE             = 0x0f,   ///< Turning the RF chain off.
 } radio_state_t;
 
 //=========================== typedef =========================================
@@ -48,6 +51,8 @@ typedef struct {
    radiotimer_capture_cbt    startFrame_cb;
    radiotimer_capture_cbt    endFrame_cb;
    radio_state_t             state;
+   uint8_t                   filter_en;
+   uint8_t                   filter_matched;
 } radio_vars_t;
 
 
@@ -72,12 +77,22 @@ PORT_TIMER_WIDTH radio_getTimerPeriod(void);
 void     radio_setFrequency(uint8_t frequency);
 void     radio_rfOn(void);
 void     radio_rfOff(void);
+void     radio_rfOffAckDisable(void);
+
 // TX
 void     radio_loadPacket(uint8_t* packet, uint8_t len);
 void     radio_txEnable(void);
+#if (ENABLE_CSMA_CA == 1)
+void     radio_txNow(uint8_t flagUseCsma);
+void      macCspTxBusyIsr(PORT_TIMER_WIDTH capturedTime);
+#else
 void     radio_txNow(void);
+#endif
 // RX
+void     radio_flushfifos(void);
 void     radio_rxEnable(void);
+void     radio_rxEnableANDFilter(uint16_t srcaddr,uint16_t destaddr,uint16_t panID);
+void     radio_rxEnable3(void);
 void     radio_rxNow(void);
 void     radio_getReceivedFrame(uint8_t* bufRead,
                                 uint8_t* lenRead,
@@ -86,6 +101,15 @@ void     radio_getReceivedFrame(uint8_t* bufRead,
                                 uint8_t* lqi,
                                    bool* crc);
 
+void radio_autoackenable (void);
+void radio_autoackdisable (void);
+void radio_rxNowAutoAck (void);
+void radio_rxNowANDTxAutoAck (void);
+void radio_rxNowAckOnly(void);
+void radio_rxNowCmdOnly(void);
+void radio_txNowAndWaitAck(void);
+uint8_t radio_getrxfilterstatus(void);
+void radio_rxEnableAndNowCmdOnly ( uint16_t srcaddr,uint16_t dstaddr, uint16_t panID );
 // interrupt handlers
 kick_scheduler_t   radio_isr(void);
 

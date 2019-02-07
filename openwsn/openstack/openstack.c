@@ -35,7 +35,7 @@
 #include "opencoap.h"
 //===== applications
 #include "openapps.h"
-
+#include "leds.h"
 //=========================== variables =======================================
 
 //=========================== prototypes ======================================
@@ -79,7 +79,7 @@ void openstack_init(void) {
    
    //===== applications
    openapps_init();
-   
+
    openserial_printInfo(
       COMPONENT_OPENWSN,ERR_BOOTED,
       (errorparameter_t)0,

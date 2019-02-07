@@ -13,20 +13,21 @@
 #include "debugpins.h"
 #include "scheduler.h"
 #include "IEEE802154E.h"
-
+//#include "IEEE802154RIT.h"
+#include "debug.h"
+#include "leds.h"
 //=========================== variables =======================================
 #if (DEBUG_LOG_RIT  == 1)
 //extern ieee154e_vars_t    ieee154e_vars;
 //extern ieee154e_stats_t   ieee154e_stats;
 //extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-
 #endif
 
 uint8_t ucFlagForwarding =0;
-
+extern uint8_t rffpasshere;
 
 //=========================== prototypes ======================================
+uint8_t convertaddress16to64 (open_addr_t *dstaddr, open_addr_t *srcaddr);
 
 void      forwarding_getNextHop(
    open_addr_t*         destination,
@@ -74,6 +75,29 @@ owerror_t forwarding_send(OpenQueueEntry_t* msg) {
    open_addr_t*         myadd64;
    uint32_t             flow_label = 0;
    
+#if 0 //(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+   {
+		if (rffpasshere) {
+			 uint8_t pos=0;
+			 uint32_t auxaddr1 = (uint32_t) &msg->packet[0];
+			 uint32_t auxaddr2 = (uint32_t) &rpl_option;
+			 uint32_t auxaddr3 = (uint32_t) &flow_label;
+
+			rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+			rffbuf[pos++]= 0x60;
+			rffbuf[pos++]= msg->length;
+			pos = printvar((uint8_t *)&auxaddr1,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&auxaddr2,sizeof(uint32_t),rffbuf,pos);
+			pos = printvar((uint8_t *)&auxaddr3,sizeof(uint32_t),rffbuf,pos);
+
+			openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+			openserial_startOutput();
+			rffpasshere = 0;
+			return E_FAIL;
+		}
+
+   }
+#endif
    // take ownership over the packet
    msg->owner                = COMPONENT_FORWARDING;
    
@@ -225,20 +249,35 @@ void forwarding_receive(
       ) {
       // this packet is for me, no source routing header.
 
-#if (DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+#if 1//(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
 	   {
 		 uint8_t pos=0;
 
 		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
 		   rffbuf[pos++]= 0x01;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-		   rffbuf[pos++]= (uint8_t) msg->l4_destination_port;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol_compressed;
-		   rffbuf[pos++]= (uint8_t) msg->length;
-		   rffbuf[pos++]= (uint8_t) msg->l2_frameType;
-		   rffbuf[pos++]= idmanager_isMyAddress(&ipv6_header->dest);
-		   rffbuf[pos++]= packetfunctions_isBroadcastMulticast(&ipv6_header->dest);
-		   rffbuf[pos++]= ipv6_header->next_header;
+		   if (msg->l4_protocol == 0x11) { //COAP FOR ME
+			  rffbuf[pos++]= 0xC0;
+			  rffbuf[pos++]= 0xAA;
+			  rffbuf[pos++]= 0xC0;
+			  rffbuf[pos++]= 0xAA;
+		   }
+		   /*
+		   else if (msg->l4_protocol == 0x3a) { //DAO FOR ME
+				  rffbuf[pos++]= 0xDA;
+				  rffbuf[pos++]= 0xA0;
+				  rffbuf[pos++]= 0xDA;
+				  rffbuf[pos++]= 0xA0;
+			} */
+		   else {
+			   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
+			   rffbuf[pos++]= (uint8_t) msg->l4_destination_port;
+			   rffbuf[pos++]= (uint8_t) msg->l4_protocol_compressed;
+			   rffbuf[pos++]= (uint8_t) msg->length;
+			   rffbuf[pos++]= (uint8_t) msg->l2_frameType;
+			   rffbuf[pos++]= idmanager_isMyAddress(&ipv6_header->dest);
+			   rffbuf[pos++]= packetfunctions_isBroadcastMulticast(&ipv6_header->dest);
+			   rffbuf[pos++]= ipv6_header->next_header;
+		   }
 
 		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 	   }
@@ -319,23 +358,42 @@ void forwarding_receive(
 
          forwarding_createRplOption(rpl_option, rpl_option->flags);
 
-#if (DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
-   {
-	 uint8_t pos=0;
+		#if (DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+		   {
+			 uint8_t pos=0;
 
-	   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
-	   rffbuf[pos++]= 0x02;
-	   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-	   rffbuf[pos++]= (uint8_t) msg->length;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.type;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[15];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[15];
-	   ucFlagForwarding = TRUE;
-	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
-   }
-#endif
+			   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+			   rffbuf[pos++]= 0x02;
+			   if (msg->l4_protocol == 0x3A) {  //COAP
+				   rffbuf[pos++]= 0xFF;
+				   rffbuf[pos++]= 0xDA;
+				   rffbuf[pos++]= 0xA0;
+				   rffbuf[pos++]= 0xFF;
+				   rffbuf[pos++]= 0xDA;
+				   rffbuf[pos++]= 0xA0;
+			   }
+			   else if (msg->l4_protocol == 0x11) {  //COAP
+				   rffbuf[pos++]= 0xFF;
+				   rffbuf[pos++]= 0xC0;
+				   rffbuf[pos++]= 0xAA;
+				   rffbuf[pos++]= 0xFF;
+				   rffbuf[pos++]= 0xC0;
+				   rffbuf[pos++]= 0xAA;
+			   }
+			   else {
+				   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
+				   rffbuf[pos++]= (uint8_t) msg->length;
+				   rffbuf[pos++]= (uint8_t) ipv6_header->src.type;
+				   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[14];
+				   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[15];
+				   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[14];
+				   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[15];
+			   }
+
+			   ucFlagForwarding = TRUE;
+			   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   }
+		#endif
 
          #ifdef FLOW_LABEL_RPL_DOMAIN
          // do not recreate flow label, relay the same but adding current flags
@@ -408,7 +466,7 @@ void forwarding_getNextHop(open_addr_t* destination128b, open_addr_t* addressToW
 \param[in]     flow_label      The flowlabel to add in the 6LoWPAN header.
 \param[in]     fw_SendOrfw_Rcv The packet is originating from this mote
    (PCKTSEND), or forwarded (PCKTFORWARD).
-   RFF - AQUI EH O FORWARDING DE UM DAO...
+   RFF - AQUI EH O FORWARDING DE UM DAO OU COAP...
 */
 owerror_t forwarding_send_internal_RoutingTable(
       OpenQueueEntry_t*      msg,
@@ -417,7 +475,6 @@ owerror_t forwarding_send_internal_RoutingTable(
       uint32_t*              flow_label,
       uint8_t                fw_SendOrfw_Rcv
    ) {
-   
 
    // retrieve the next hop from the routing table
    forwarding_getNextHop(&(msg->l3_destinationAdd),&(msg->l2_nextORpreviousHop));
@@ -431,21 +488,29 @@ owerror_t forwarding_send_internal_RoutingTable(
       return E_FAIL;
    }
 
-#if (DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+#if 0 //(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
    {
 	 uint8_t pos=0;
+	 uint32_t auxaddr1 = (uint32_t) &msg->packet[0];
+	 uint32_t auxaddr2 = (uint32_t) rpl_option;
+	 uint32_t auxaddr3 = (uint32_t) flow_label;
 
-	   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
-	   rffbuf[pos++]= 0x03;
-	   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-	   rffbuf[pos++]= (uint8_t) msg->length;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.type;
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->src.addr_128b[15];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[14];
-	   rffbuf[pos++]= (uint8_t) ipv6_header->dest.addr_128b[15];
 
-	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	   if (rffpasshere) {
+		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= msg->length;
+		   rffbuf[pos++]= fw_SendOrfw_Rcv;
+		   pos = printvar((uint8_t *)&auxaddr1,sizeof(uint32_t),rffbuf,pos);
+		   pos = printvar((uint8_t *)&auxaddr2,sizeof(uint32_t),rffbuf,pos);
+		   pos = printvar((uint8_t *)&auxaddr3,sizeof(uint32_t),rffbuf,pos);
+
+		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   openserial_startOutput();
+		   rffpasshere = 0;
+		   return E_FAIL;
+	   }
+
    }
 #endif
 
@@ -485,6 +550,11 @@ owerror_t forwarding_send_internal_SourceRouting(
    open_addr_t*         prefix;
    rpl_routing_ht*      rpl_routing_hdr;
    rpl_option_ht        rpl_option;
+#if (TSTRFF_STOREMODE == 1)
+   open_addr_t          address64;
+   open_addr_t          address16;
+   uint8_t              auxaddress16[2];
+#endif
    
    // reset hop-by-hop option
    memset(&rpl_option,0,sizeof(rpl_option_ht));
@@ -511,20 +581,29 @@ owerror_t forwarding_send_internal_SourceRouting(
    
    numAddr              = (((rpl_routing_hdr->HdrExtLen*8)-rpl_routing_hdr->PadRes-(16-local_CmprE))/(16-local_CmprI))+1;
    
-#if (DEBUG_LOG_RIT == 1)
-	   {
-		 uint8_t pos=0;
+#if 0 // (DEBUG_LOG_RIT == 1)
+   {
+	 uint8_t pos=0;
 
-		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
-		   rffbuf[pos++]= 0x04;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
-		   rffbuf[pos++]= (uint8_t) msg->l4_destination_port;
-		   rffbuf[pos++]= (uint8_t) msg->l4_protocol_compressed;
-		   rffbuf[pos++]= (uint8_t) msg->length;
-		   rffbuf[pos++]= (uint8_t) msg->l2_frameType;
-
-		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+	   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+	   rffbuf[pos++]= 0x04;
+	   if ((rpl_routing_hdr->SegmentsLeft == 0) &&
+		   (rpl_routing_hdr->nextHeader == 0x11)) { //COAP FOR ME INTERNAl...qdo esta mais de um salto (m3-AFC0)
+		  rffbuf[pos++]= 0xC0;
+		  rffbuf[pos++]= 0xAA;
+		  rffbuf[pos++]= 0xC0;
+		  rffbuf[pos++]= 0xAA;
 	   }
+	   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
+	   //rffbuf[pos++]= (uint8_t) msg->l4_destination_port;
+	   rffbuf[pos++]= (uint8_t) msg->l4_protocol_compressed;
+	   rffbuf[pos++]= (uint8_t) msg->length;
+	   rffbuf[pos++]= rpl_routing_hdr->SegmentsLeft;
+	   rffbuf[pos++]= rpl_routing_hdr->nextHeader;
+	   rffbuf[pos++]= rpl_routing_hdr->HdrExtLen;
+
+	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
 #endif
 
 
@@ -606,7 +685,30 @@ owerror_t forwarding_send_internal_SourceRouting(
          switch(octetsAddressSize) {
             
             case LENGTH_ADDR16b:
-               
+            {
+#if (TSTRFF_STOREMODE == 1)
+               /* quando em storemode, o openvisualizer manda a rota de forma compactada com ADDR16b e nao ADDR64b.
+                * Porem todo o codigo do openvisualizer esta preparado para tratar somente ADDR64b.
+                * Entao o que eh feito eh transformar o address 16B em 64B baseado no conhecimento da topologia (FIXED_TOPOLOGY)!!!!
+                */
+               address16.type = ADDR_16B;
+               memcpy(&auxaddress16[0],runningPointer+((addressposition)*octetsAddressSize),octetsAddressSize);
+               address16.addr_16b[1] = auxaddress16[0];
+               address16.addr_16b[0] = auxaddress16[1];
+          	   convertaddress16to64(&address64,&address16);
+
+               // write previous hop
+               msg->l2_nextORpreviousHop.type    = ADDR_64B;
+               memcpy(&(msg->l2_nextORpreviousHop.addr_64b),&address64.addr_64b[0],LENGTH_ADDR64b);
+
+               //this is 128b address as send from forwarding function
+               //takes care of reducing it if needed.
+
+               //write next hop
+               msg->l3_destinationAdd.type       = ADDR_128B;
+               memcpy(&(msg->l3_destinationAdd.addr_128b[0]),prefix->prefix,LENGTH_ADDR64b);
+               memcpy(&(msg->l3_destinationAdd.addr_128b[8]),&address64.addr_64b[0],LENGTH_ADDR64b);
+#else
                // write previous hop
                msg->l2_nextORpreviousHop.type    = ADDR_16B;
                memcpy(
@@ -622,9 +724,9 @@ owerror_t forwarding_send_internal_SourceRouting(
                   runningPointer+((addressposition)*octetsAddressSize),
                   octetsAddressSize
                );
-               
+#endif
                break;
-            
+            }
             case LENGTH_ADDR64b:
                
                // write previous hop
@@ -686,6 +788,29 @@ owerror_t forwarding_send_internal_SourceRouting(
                openqueue_freePacketBuffer(msg);
                return E_FAIL;
          }
+
+
+#if 1 // (DEBUG_LOG_RIT == 1)
+   {
+	 uint8_t pos=0;
+
+	   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+	   rffbuf[pos++]= 0x04;
+	   rffbuf[pos++]= (uint8_t) msg->l4_protocol;
+	   rffbuf[pos++]= (uint8_t) msg->l4_protocol_compressed;
+	   rffbuf[pos++]= (uint8_t) msg->length;
+	   rffbuf[pos++]= rpl_routing_hdr->SegmentsLeft;
+	   rffbuf[pos++]= rpl_routing_hdr->nextHeader;
+	   rffbuf[pos++]= rpl_routing_hdr->HdrExtLen;
+	   rffbuf[pos++]= 0xAA;
+	   rffbuf[pos++]= msg->l2_nextORpreviousHop.type;
+	   rffbuf[pos++]= msg->l2_nextORpreviousHop.addr_16b[0];
+	   rffbuf[pos++]= msg->l2_nextORpreviousHop.addr_16b[1];
+
+	   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+   }
+#endif
+
       }
    }
    

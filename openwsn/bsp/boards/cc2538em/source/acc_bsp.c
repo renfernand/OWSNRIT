@@ -125,8 +125,6 @@ static uint8_t osens_mote_sm_func_pt_val_ans(osens_mote_sm_state_t *st)
     st->retries = 0;
     st->point_index++;
 
-	leds_debug_toggle();  //LED3
-
 #endif
 
     return OSENS_STATE_EXEC_OK;

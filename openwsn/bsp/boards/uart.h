@@ -79,11 +79,13 @@ typedef void (*uart_rx_cbt)(void);
 //=========================== prototypes ======================================
 
 void    uart_init(void);
+void    uart_reset(void);
 void    uart_setCallbacks(uart_tx_cbt txCb, uart_rx_cbt rxCb);
 void    uart_enableInterrupts(void);
 void    uart_disableInterrupts(void);
 void    uart_clearRxInterrupts(void);
 void    uart_clearTxInterrupts(void);
+void    uart_clearErrorInterrupts(void);
 void    uart_writeByte(uint8_t byteToWrite);
 uint8_t uart_readByte(void);
 
@@ -91,6 +93,7 @@ uint8_t uart_readByte(void);
 // interrupt handlers
 kick_scheduler_t uart_tx_isr(void);
 kick_scheduler_t uart_rx_isr(void);
+kick_scheduler_t uart_error_isr(void);
 
 #if 1 // (DBG_USING_UART1 == 1)
 void    uart1_setCallbacks(uart_tx_cbt txCb, uart_rx_cbt rxCb);

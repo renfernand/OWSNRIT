@@ -16,17 +16,25 @@ Authors: Xavier Vilajosana
   */
 ENTRY(ResetISR)
 
+
+
 /*
  *   RAM is 16KB retention and 16kb no retention
  *   NOW we are using 32KB as retention which is not right.
  *   NON-RETENTION RAM starts at 0x20000000 with length 0x00004000 
  *   RETENTION RAM starts at  0x20004000 with length 0x00004000
+     512KBytes Flash :
+      FLASH (rx) : ORIGIN = 0x200000, LENGTH = 0x0007FFD4
+      FLASH_CCA (RX) : ORIGIN = 0x0027FFD4, LENGTH = 12
+     256KBytes Flash :
+      FLASH (rx) : ORIGIN = 0x200000, LENGTH = 0x0003FFD4
+      FLASH_CCA (RX) : ORIGIN = 0x0023FFD4, LENGTH = 12
  */
 MEMORY
 {
     FLASH (rx) : ORIGIN = 0x200000, LENGTH = 0x0007FFD4
     FLASH_CCA (RX) : ORIGIN = 0x0027FFD4, LENGTH = 12
-    SRAM (RWX) : ORIGIN = 0x20004000, LENGTH = 0x00006000
+    SRAM (RWX) : ORIGIN = 0x20004000, LENGTH = 0x00004000
 }
 
 SECTIONS

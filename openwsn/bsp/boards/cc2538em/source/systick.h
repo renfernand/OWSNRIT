@@ -54,7 +54,21 @@ extern "C"
 #endif
 
 #include "hw_types.h"
-  
+
+//escolhe entre systick de 1ms ou 100us
+#define SYSTICK_1MS   1
+
+#if SYSTICK_1MS
+#define SYSTICK 1000 /* 1 millisecond = 1/SYSTICK */
+#define SYSTICK_MS 32000 /* 1 millisecond = 32MHZ/1000 = 32000 */
+#define SYSTICK_US 32   /* 1 microsecond = 1/SYSTICK */
+
+#define TICK_IN_MS 1  /* 1 millisecond */
+#else
+//systick_100us
+#define SYSTICK 10000 /* 100 microsecond = 1/SYSTICK */
+#define TICK_IN_MS 0.1  /* 1 millisecond */
+#endif
 //*****************************************************************************
 //
 // Prototypes for the APIs.
@@ -66,10 +80,12 @@ extern void SysTickIntRegister(void (*pfnHandler)(void));
 extern void SysTickIntUnregister(void);
 extern void SysTickIntEnable(void);
 extern void SysTickIntDisable(void);
+extern void SysTickPeriodClear(void);
 extern void SysTickPeriodSet(uint32_t ui32Period);
 extern uint32_t SysTickPeriodGet(void);
 extern uint32_t SysTickValueGet(void);
-
+void SysTickSetup(void);
+void SysTickIntHandler(void);
 //*****************************************************************************
 //
 // Mark the end of the C bindings section for C++ compilers.

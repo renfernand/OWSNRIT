@@ -5,6 +5,17 @@
 #include "packetfunctions.h"
 #include "sixtop.h"
 #include "IEEE802154E.h"
+#include "leds.h"
+#if IEEE802154E_RITMC == 1
+#include "IEEE802154RITMC.h"
+#elif IEEE802154E_AMAC == 1
+#include "IEEE802154AMAC.h"
+#elif IEEE802154E_AMCA == 1
+#include "IEEE802154AMCA.h"
+#elif IEEE802154E_RIT == 1
+#include "IEEE802154RIT.h"
+#endif
+#include "debug.h"
 
 //=========================== variables =======================================
 
@@ -507,12 +518,21 @@ void schedule_getNeighbor(open_addr_t* addrToWrite) {
 
 /* esta rotina eh usada para pegar o endereco atual do visiinho baseado no slot
  * como no rit nao tem a ideia de slot vou varrer todos os slots por um vizinho
- * TODO!!!! AQUI NO FUTURO NAO SEI COMO FAZER PARA DETERMINAR O MELHOR VIZINHO
+ * TODO!!!! O CRITERIO ADOTADO EH OLHANDO FIXO QUEM EH O MELHOR VIZINHO DE ACORDO COM A TABELA...
+ * MAS DEVE SER FEITO DE ACORDO COM O CRITERIO DO RANK...
  */
 
 void schedule_getNeighbor(open_addr_t* addrToWrite) {
+	//open_addr_t address;
+
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
+
+// TESTE RFF- COLOCO O VIZINHO CORRENTE DO Nó
+#if 0// (IEEE802154E_TSCH == 0)
+   neighbors_getPreferredParentEui64(&address);
+   memcpy(&(schedule_vars.currentScheduleEntry->neighbor),&address,sizeof(open_addr_t));
+#endif
 
    memcpy(addrToWrite,&(schedule_vars.currentScheduleEntry->neighbor),sizeof(open_addr_t));
 
@@ -551,8 +571,9 @@ Note that the backoff counter is global, not per slot.
 \returns TRUE if it is OK to send on this slot, FALSE otherwise.
 */
 bool schedule_getOkToSend() {
-   bool returnVal;
-   
+   bool returnVal=FALSE;
+
+#if 0
    INTERRUPT_DECLARATION();
    DISABLE_INTERRUPTS();
    
@@ -577,7 +598,7 @@ bool schedule_getOkToSend() {
    }
    
    ENABLE_INTERRUPTS();
-   
+#endif
    return returnVal;
 }
 

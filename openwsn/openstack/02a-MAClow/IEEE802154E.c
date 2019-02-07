@@ -22,9 +22,6 @@ ieee154e_vars_t    ieee154e_vars;
 ieee154e_stats_t   ieee154e_stats;
 ieee154e_dbg_t     ieee154e_dbg;
 
-#if DEBUG_LOG_RIT
-static uint8_t rffbuf[10];
-#endif
 //=========================== prototypes ======================================
 
 // SYNCHRONIZING
@@ -1862,10 +1859,10 @@ void changeIsSync(bool newIsSync) {
    ieee154e_vars.isSync = newIsSync;
    
    if (ieee154e_vars.isSync==TRUE) {
-      leds_sync_on();
+      //leds_sync_on();
       resetStats();
    } else {
-      leds_sync_off();
+      //leds_sync_off();
       schedule_resetBackoff();
    }
 }

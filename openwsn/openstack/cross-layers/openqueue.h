@@ -15,7 +15,7 @@
 
 #define QUEUELENGTH  10
 
-#define MAX_RIT_LIST_ELEM 5
+#define MAX_RIT_LIST_ELEM 1
 #define MAX_RIT_MSG_LEN   130
 
 
@@ -29,6 +29,7 @@ typedef struct RIT_Queue {
 	uint64_t    timestamp;
 	uint32_t    lasttxduration;
 	open_addr_t destaddr;
+	uint8_t     livelistasn;
 	uint8_t     msg[MAX_RIT_MSG_LEN];
 } sRITqueue;
 
@@ -62,6 +63,8 @@ bool               debugPrint_queue(void);
 // called by any component
 OpenQueueEntry_t*  openqueue_getFreePacketBuffer(uint8_t creator);
 owerror_t         openqueue_freePacketBuffer(OpenQueueEntry_t* pkt);
+uint8_t           openqueue_getNrBusyPacketBuffer(uint8_t creator);
+
 void               openqueue_removeAllCreatedBy(uint8_t creator);
 void               openqueue_removeAllOwnedBy(uint8_t owner);
 // called by res
@@ -71,7 +74,7 @@ OpenQueueEntry_t*  openqueue_sixtopGetReceivedPacket(void);
 OpenQueueEntry_t*  openqueue_macGetDataPacket(open_addr_t* toNeighbor);
 OpenQueueEntry_t*  openqueue_macGetAdvPacket(void);
 
-
+void RITQueue_update_element (uint8_t pos);
 bool  RITQueue_ClearAddress(open_addr_t* addr);
 bool  RITQueue_copyaddress(open_addr_t* addr1, open_addr_t* addr2);
 uint8_t RITQueue_cleanupoldmsg(void);
@@ -82,7 +85,9 @@ uint8_t RITQueue_Put(sRITelement *psEle,uint8_t pending, uint8_t numTargetParent
 sRITqueue RITQueue_Dequeue_byaddr(open_addr_t addr);
 void RITQueue_Init(void);
 bool RITQueue_Enqueue(sRITqueue *pmsg);
-
+uint8_t RITQueue_Clear_Pending(uint8_t pos,open_addr_t actualsrcaddr);
+uint8_t RITQueue_getNrPendingParents (uint8_t pos);
+uint8_t RITQueue_Get_Pos(open_addr_t *paddr);
 /**
 \}
 \}

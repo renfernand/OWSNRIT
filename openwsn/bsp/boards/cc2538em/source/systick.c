@@ -49,6 +49,9 @@
 #include "debug.h"
 #include "interrupt.h"
 #include "systick.h"
+#include "leds.h"
+#include "sys_ctrl.h"
+
 
 //*****************************************************************************
 //
@@ -227,6 +230,23 @@ SysTickPeriodSet(uint32_t ui32Period)
     HWREG(NVIC_ST_RELOAD) = ui32Period - 1;
 }
 
+
+//*****************************************************************************
+//
+//! Sets the clear the current value of the systick
+//! If an immediate reload is required, the \b NVIC_ST_CURRENT register must be written.
+//! Any write to this register clears the SysTick
+//! \return None
+//
+//*****************************************************************************
+void
+SysTickPeriodClear(void)
+{
+    //
+    // Clear the period of the SysTick counter.
+    //
+    HWREG(NVIC_ST_CURRENT) = 0;
+}
 //*****************************************************************************
 //
 //! Gets the period of the SysTick counter
@@ -264,6 +284,38 @@ SysTickValueGet(void)
     //
     return(HWREG(NVIC_ST_CURRENT));
 }
+
+
+/***************************************************************************************************
+ * @fn      SysTickSetup
+ *
+ * @brief   Setup the Systick module
+ *
+ * @param   None
+ *
+ * @return  None
+ ***************************************************************************************************/
+void SysTickSetup(void)
+{
+  uint32_t clockval;
+
+  clockval = SysCtrlClockGet();
+  clockval /= SYSTICK;
+
+  /* 1ms period for systick */
+  SysTickPeriodClear();
+  //SysTickPeriodSet(1);
+  /* Enable SysTick */
+  //SysTickEnable();
+
+  SysTickIntRegister(SysTickIntHandler);
+
+  /* Enable Systick interrupt */
+  SysTickIntEnable();
+
+
+}
+
 
 //*****************************************************************************
 //

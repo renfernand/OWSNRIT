@@ -18,6 +18,7 @@
 #include "leds.h"
 #include "uart.h"
 #include "debugpins.h"
+#include "IEEE802154RIT.h"
 #if MYLINKXS_SENSORS
 #include "mylinkxs.h"
 #if SONOMA14
@@ -34,9 +35,6 @@
 
 #define DBG_READ  0
 #define DBG_WRITE 1
-#if (ENABLE_DEBUG_RFF == 1) && (DBG_APP_1 == 1)
-static uint8_t rffbuf[30];
-#endif
 
 #if (MYLINKXS_REMOTE_CONTROL == 1)
 uint8_t flagwriteenable=0;
@@ -438,8 +436,6 @@ static uint8_t osens_mote_sm_func_wr_pt(osens_mote_sm_state_t *st)
 	uint8_t p = schedule.write.prod;
 	uint8_t size;
 
-	leds_debug_toggle();
-
     //DBG_LOG(0,("WrReq0=%x %x %x\n",c,p,st->retries));
  	// end of point writing
 	if(c == p)
@@ -528,8 +524,6 @@ static uint8_t osens_mote_sm_func_run_sch(osens_mote_sm_state_t *st) {
 #endif
 
 #if (SONOMA14 == 1)
-
-    leds_debug_toggle();
 
 #if 1
     param[0] = read_reg(SONOMA_ADDR_VA_RMS);
@@ -1088,6 +1082,8 @@ const osens_mote_sm_table_t osens_mote_sm_table[] =
 
 
 #if MYLINKXS_LIGHT_CONTROL
+#define BOARD_MODEL "CC2538 "
+
 uint8_t osens_init(void)
 {
 	//configura os ios do sensor
@@ -1102,9 +1098,9 @@ uint8_t osens_init(void)
 	memset(&board_info, 0, sizeof(board_info));
 	memset(&schedule, 0, sizeof(schedule));
 
-    strcpy((void *)board_info.model, (void *) "CC2538 ");
+    strcpy((void *)board_info.model, (void *) BUILD_VER);
     board_info.model[OSENS_MODEL_NAME_SIZE-1] = 0;
-    strcpy((void *)board_info.manufactor,(void *) "TexasI ");
+    strcpy((void *)board_info.manufactor,(void *) BOARD_MODEL);
     board_info.model[OSENS_MANUF_NAME_SIZE-1] = 0;
     board_info.sensor_id = 0x1;
     board_info.hardware_revision = 0x01;
@@ -1185,8 +1181,9 @@ uint8_t osens_liga_lampada_local(void)
 
 uint8_t osens_init(void)
 {
+#if  (MYLINKXS_SENSORS == 1)
 	osens_mote_init();
-
+#endif
 
 	return 0;
 }

@@ -25,8 +25,10 @@
 #include "hw_memmap.h"
 #include "hw_ints.h"
 #include  "uarthal.h"
-
-
+#include  "gptimer.h"
+#if (WATCHDOG_CONF_ENABLE == 1)
+#include "watchdog.h"
+#endif
 //=========================== variables =======================================
 
 #define BSP_RADIO_BASE              ( GPIO_D_BASE )
@@ -66,7 +68,7 @@ int main(void) {
 //=========================== public ==========================================
 
 void board_init() {
-   gpio_init();
+	gpio_init();
    clock_init();
 
    antenna_init();
@@ -74,17 +76,21 @@ void board_init() {
 
    leds_init();
    debugpins_init();
-   button_init();
-   bsp_timer_init();
-   radiotimer_init();
+   leds_all_on();
+
+//   button_init();
+   bsp_timer_init();   //timer usado pelas tarefas das camadas superiores..
+   radiotimer_init();  //usado pela RIT para enviar msg com CSMA/CA
    uart_init();
    uart1_init();    //sens_itf or DBG_USING_UART1
 #if (USE_SPI_INTERFACE == 1)
    bspSpiInit();
 #endif
    radio_init();
-
   // leds_debug_on();
+#if (WATCHDOG_CONF_ENABLE == 1)
+   WatchdogEnable(WATCHDOG_INTERVAL_32768);  //watchdogtimer de 1seg
+#endif
 }
 
 /**

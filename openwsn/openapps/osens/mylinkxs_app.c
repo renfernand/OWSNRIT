@@ -12,6 +12,8 @@
 #include "mylinkxs_app.h"
 #include "..\..\bsp\boards\cc2538em\osens_itf\mylinkxs.h"
 
+#if 0
+
 #define TRACE_ON 0
 
 owerror_t osens_desc_receive(OpenQueueEntry_t* msg, coap_header_iht*  coap_header, coap_option_iht*  coap_options);
@@ -484,4 +486,5 @@ void light_timer() {
    light_off();
 }
 
+#endif
 

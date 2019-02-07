@@ -12,6 +12,7 @@
 #include "radiotimer.h"
 #include "debugpins.h"
 #include "hw_rfcore_sfr.h"
+#include "hw_rfcore_ffsm.h"
 #include "interrupt.h"
 #include "sys_ctrl.h"
 #include "hw_ints.h"
@@ -23,38 +24,59 @@
 #include "hw_ana_regs.h"
 #include "IEEE802154E.h"
 #if ( ENABLE_CSMA_CA == 1)
+#include "hw_sys_ctrl.h"
 #include "mac_csp_tx.h"
 #include "aes.h"
+#include "neighbors.h"
+#include "idmanager.h"
 #endif
 //=========================== defines =========================================
 /* Bit Masks for the last byte in the RX FIFO */
 #define CRC_BIT_MASK 0x80
 #define LQI_BIT_MASK 0x7F
-/* RSSI Offset */
-#define RSSI_OFFSET 73
 #define CHECKSUM_LEN 2
 
+#define CHK_RSSI_LQI 1    //habilita a checagem do RSSI e calculo do LQI
+/* RSSI Offset */
+uint32_t rssivalue;
+#define RSSI_OFFSET 73
+
 //=========================== variables =======================================
-
-
 radio_vars_t radio_vars;
-#if ( ENABLE_CSMA_CA == 1)
+uint8_t macRxOnFlag;
+uint8_t macRxEnableFlags;
+uint8_t macRxOutgoingAckFlag;
+uint8_t dbgTimeMesureCount=0;
+uint8_t rff_status0[10];
+uint8_t rff_status1;
+uint8_t rffcount=0;
+uint8_t srcresmask0;
+uint8_t srcresindex;
+
+uint8_t rffcountframeaccepted=0;
+
+#if (ENABLE_CSMA_CA == 1)
+uint8_t randomSeed[MAC_RANDOM_SEED_LEN];
 extern radio_csma_vars_t radio_csma_vars;
+
 #endif
+extern uint8_t flag_rx02;
 //=========================== prototypes ======================================
 
 port_INLINE void     enable_radio_interrupts(void);
 port_INLINE void     disable_radio_interrupts(void);
+port_INLINE void     enable_radio_interruptsfilter(void);
 
 port_INLINE void     radio_on(void);
 port_INLINE void     radio_off(void);
 
 port_INLINE void     radio_error_isr(void);
 port_INLINE void     radio_isr_internal(void);
-
+void radio_cleartimerovf(void);
 //=========================== public ==========================================
 
 //===== admin
+
 #if (ENABLE_CSMA_CA == 0)
 void radio_init() {
    
@@ -152,14 +174,32 @@ void radio_init() {
    // change state
    radio_vars.state               = RADIOSTATE_RFOFF;
 }
+
 #else
-void radio_init() {
+
+void radio_init(void) {
+	uint8_t i,j;
+	uint16_t rndSeed;
+	uint8_t rndByte = 0;
 
    // clear variables
    memset(&radio_vars,0,sizeof(radio_vars_t));
 
+   radio_csma_vars.countBusy = 0;
+   radio_csma_vars.counterr = 0;
+   radio_csma_vars.countok = 0;
+
+   radio_csma_vars.rfftxendok = 0;
+   radio_csma_vars.rfftxbusy  = 0;
+   radio_csma_vars.rfftxwait  = 0;
+   radio_csma_vars.rfftxstop2 = 0;
+   radio_csma_vars.nb = 0;
+   radio_csma_vars.countBusy =0 ;
+   radio_csma_vars.counterr=0;
+
    // change state
-   radio_vars.state          = RADIOSTATE_STOPPED;
+   radio_vars.state = RADIOSTATE_STOPPED;
+
    //flush fifos
    CC2538_RF_CSP_ISFLUSHRX();
    CC2538_RF_CSP_ISFLUSHTX();
@@ -176,72 +216,70 @@ void radio_init() {
    above the correlation threshold, and make sync word detection less likely by raising the
    correlation threshold.
    */
-   HWREG(RFCORE_XREG_MDMCTRL1)    = 0x14;
+   HWREG(RFCORE_XREG_MDMCTRL1)    = 0x14; 
    /* tuning adjustments for optimal radio performance; details available in datasheet */
 
-   HWREG(RFCORE_XREG_RXCTRL)      = 0x3F;
-   /* Adjust current in synthesizer; details available in datasheet. */
-   HWREG(RFCORE_XREG_FSCTRL)      = 0x55;
-
-     /* Makes sync word detection less likely by requiring two zero symbols before the sync word.
-      * details available in datasheet.
-      */
-   HWREG(RFCORE_XREG_MDMCTRL0)    = 0x85;
+   HWREG(RFCORE_XREG_RXCTRL)      = 0x3F;  
+  /* Adjust current in synthesizer; details available in datasheet. */
+   HWREG(RFCORE_XREG_FSCTRL)      = 0x55; 
 
 //TODO!!! VERIFICAR SE PRECISA DISSO
 //#if !(defined HAL_PA_LNA || defined HAL_PA_LNA_CC2590 ||  defined HAL_PA_LNA_CC2592)
   /* Raises the CCA threshold from about -108 dBm to about -80 dBm input level.
    */
-   HWREG(RFCORE_XREG_CCACTRL0) = CCA_THR;  //OK
+ //  HWREG(RFCORE_XREG_CCACTRL0) = CCA_THR;  //OK
 //#endif
 
+  /* Makes sync word detection less likely by requiring two zero symbols before the sync word.
+   * details available in datasheet.
+   */
+   HWREG(RFCORE_XREG_MDMCTRL0)    = 0x85;   //C
+   //update CCA register to -81db as indicated by manual.. won't be used..
+   //HWREG(RFCORE_XREG_CCACTRL0)    = 0xF8;
+
    /* Adjust current in VCO; details available in datasheet. */
-   HWREG(RFCORE_XREG_FSCAL1)      = 0x01;
+   HWREG(RFCORE_XREG_FSCAL1)      = 0x01;  
+
    /* Adjust target value for AGC control loop; details available in datasheet. */
-   HWREG(RFCORE_XREG_AGCCTRL1)    = 0x15;
+   HWREG(RFCORE_XREG_AGCCTRL1)    = 0x15;   
+
+  /* Disable source address matching an autopend for now */
+   HWREG(RFCORE_XREG_SRCMATCH) = 0;
 
    /* Tune ADC performance, details available in datasheet. */
-   HWREG(RFCORE_XREG_ADCTEST0)    = 0x10;
-   HWREG(RFCORE_XREG_ADCTEST1)    = 0x0E;
-   HWREG(RFCORE_XREG_ADCTEST2)    = 0x03;
+   HWREG(RFCORE_XREG_ADCTEST0)    = 0x10;   
+   HWREG(RFCORE_XREG_ADCTEST1)    = 0x0E;  
+   HWREG(RFCORE_XREG_ADCTEST2)    = 0x03;  
 
-   //update CCA register to -81db as indicated by manual.. won't be used..
-   HWREG(RFCORE_XREG_CCACTRL0)    = 0xF8;
    /*
-    * Changes from default values
-    * See User Guide, section "Register Settings Update"
-    */
-   HWREG(RFCORE_XREG_TXFILTCFG)   = 0x09;    /** TX anti-aliasing filter bandwidth */
+	* Changes from default values
+	* See User Guide, section "Register Settings Update"
+	*/
+  /* Sets TX anti-aliasing filter to appropriate bandwidth.
+   * Reduces spurious emissions close to signal.
+   */
+   HWREG(RFCORE_XREG_TXFILTCFG)   = 0x09; 
 
-   HWREG(RFCORE_XREG_AGCCTRL1)    = 0x15;     /** AGC target value */
-   HWREG(ANA_REGS_O_IVCTRL)       = 0x0B;        /** Bias currents */
+   /*Controls bias currents */
+   HWREG(ANA_REGS_O_IVCTRL)       = 0x0B;  
 
    /* disable the CSPT register compare function */
    HWREG(RFCORE_XREG_CSPT)        = 0xFFUL;
 
-   //TODO!!!! ATE AQUI FOI CHECADO...
-
    /*
-    * Defaults:
-    * Auto CRC; Append RSSI, CRC-OK and Corr. Val.; CRC calculation;
-    * RX and TX modes with FIFOs
-    */
-   HWREG(RFCORE_XREG_FRMCTRL0)    = RFCORE_XREG_FRMCTRL0_AUTOCRC;
-
+	* Defaults:
+	* Auto CRC; Append RSSI, CRC-OK and Corr. Val.; CRC calculation;
+	* RX and TX modes with FIFOs 
+	*/
    //poipoi disable frame filtering by now.. sniffer mode.
    HWREG(RFCORE_XREG_FRMFILT0)   &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
 
-   /* Disable source address matching and autopend */
-   HWREG(RFCORE_XREG_SRCMATCH)    = 0;
-
    /* MAX FIFOP threshold */
    HWREG(RFCORE_XREG_FIFOPCTRL)   = CC2538_RF_MAX_PACKET_LEN;
-
    HWREG(RFCORE_XREG_TXPOWER)     = CC2538_RF_TX_POWER;
    HWREG(RFCORE_XREG_FREQCTRL)    = CC2538_RF_CHANNEL_MIN;
 
-   /* Enable RF interrupts  see page 751  */
-   // enable_radio_interrupts();
+   // END ????????????????
 
    //register interrupt
    IntRegister(INT_RFCORERTX, radio_isr_internal);    // OK
@@ -260,8 +298,103 @@ void radio_init() {
    // change state
    radio_vars.state               = RADIOSTATE_RFOFF;
 
-   radio_csma_init();
+    csmavarsinit();
+	//errorcount =0;
+	//macTxBe = radio_csma_vars.minBe;
 
+	 /*----------------------------------------------------------------------------------------------
+	  *  Initialize random seed value.
+	  */
+
+	  /*
+	   *  Set radio for infinite reception.  Once radio reaches this state,Auto CRC;
+	   *  it will stay in receive mode regardless RF activity.
+	   */
+	  HWREG(RFCORE_XREG_FRMCTRL0) = FRMCTRL0_RESET_VALUE | RX_MODE_INFINITE_RECEPTION | RFCORE_XREG_FRMCTRL0_AUTOCRC;
+
+	  /* turn on the receiver */
+	  //macRxOn();
+	  MAC_RADIO_RX_ON;
+
+	  /*
+	   *  Wait for radio to reach infinite reception state by checking RSSI valid flag.
+	   *  Once it does, the least significant bit of ADTSTH should be pretty random.
+	   */
+	  while (!(HWREG(RFCORE_XREG_RSSISTAT) & 0x01));
+
+	  /* put 16 random bits into the seed value */
+
+	  /* Read MAC_RANDOM_SEED_LEN*8 random bits and store them in flash for
+	   * future use in random key generation for CBKE key establishment
+	   */
+	  {
+		rndSeed = 0;
+
+		for(i=0; i<16; i++)
+		{
+		  /* use most random bit of analog to digital receive conversion to populate the random seed */
+		  rndSeed = (rndSeed << 1) | (HWREG(RFCORE_XREG_RFRND) & 0x01);
+		}
+
+		/*
+		 *  The seed value must not be zero or 0x0380 (0x8003 in the polynomial).  If it is, the psuedo
+		 *  random sequence won’t be random.  There is an extremely small chance this seed could randomly
+		 *  be zero or 0x0380.  The following check makes sure this does not happen.
+		 */
+		if (rndSeed == 0x0000 || rndSeed == 0x0380)
+		{
+		  rndSeed = 0xBABE; /* completely arbitrary "random" value */
+		}
+
+		/*
+		 *  Two writes to RNDL will set the random seed.  A write to RNDL copies current contents
+		 *  of RNDL to RNDH before writing new the value to RNDL.
+		 */
+		HWREG(SOC_ADC_RNDL) = rndSeed & 0xFF;
+		HWREG(SOC_ADC_RNDL) = rndSeed >> 8;
+	  }
+
+		for(i = 0; i < MAC_RANDOM_SEED_LEN; i++)
+		{
+		  for(j = 0; j < 8; j++)
+		  {
+			/* use most random bit of analog to digital receive conversion to
+			   populate the random seed */
+			rndByte = (rndByte << 1) | (HWREG(RFCORE_XREG_RFRND) & 0x01);
+		  }
+		  randomSeed[i] = rndByte;
+
+		}
+
+		//TODO!!!! AQUI ELE SALVA EM AREA NV
+		//pRandomSeedCB( randomSeed );
+
+	  /* turn off the receiver */
+	  //macRxOff();
+	  RFST = ISRFOFF;
+
+	  /* take receiver out of infinite reception mode; set back to normal operation */
+	  HWREG(RFCORE_XREG_FRMCTRL0) = FRMCTRL0_RESET_VALUE | RX_MODE_NORMAL_OPERATION;
+
+	  /* Turn on autoack ??????*/
+	  //HWREG(RFCORE_XREG_FRMCTRL0) |= AUTOACK;    //MAC_RADIO_TURN_ON_AUTO_ACK();
+/*
+	  //MAC_RADIO_SRC_MATCH_INIT_EXTPENDEN();
+	  HWREG(RFCORE_FFSM_SRCEXTPENDEN0) = 0;
+	  HWREG(RFCORE_FFSM_SRCEXTPENDEN1) = 0;
+	  HWREG(RFCORE_FFSM_SRCEXTPENDEN2) = 0;
+
+	  //MAC_RADIO_SRC_MATCH_INIT_SHORTPENDEN();
+	  HWREG(RFCORE_FFSM_SRCSHORTPENDEN0) = 0;
+	  HWREG(RFCORE_FFSM_SRCSHORTPENDEN1) = 0;
+	  HWREG(RFCORE_FFSM_SRCSHORTPENDEN2) = 0;
+
+	   HWREG(RFCORE_XREG_RFERRM)      = RFCORE_XREG_RFERRM_RFERRM_M; //all errors
+	   IntEnable(INT_RFCOREERR);
+
+*/
+	   //SET_RXENMASK_ON_TX = 0x01
+	   HWREG(RFCORE_XREG_FRMCTRL1) = 0;
 }
 
 #endif
@@ -349,13 +482,37 @@ void radio_rfOff() {
    
    // change state
    radio_vars.state = RADIOSTATE_TURNING_OFF;
+
+   radio_off();
+
+   debugpins_radio_clr();
+
+#if  (TESTE_AUTOACK == 1)
+   radio_autoackdisable();
+#endif
+
+   disable_radio_interrupts();
+
+   macRxOnFlag = 0;
+   // change state
+   radio_vars.state = RADIOSTATE_RFOFF;
+}
+
+void radio_rfOffAckDisable(void) {
+
+   // change state
+   radio_vars.state = RADIOSTATE_TURNING_OFF;
    radio_off();
    // wiggle debug pin
    debugpins_radio_clr();
-   //leds_radio_off();
+
+#if  (TESTE_AUTOACK == 1)
+   radio_autoackdisable();
+#endif
    //enable radio interrupts
    disable_radio_interrupts();
-   
+
+   macRxOnFlag = 0;
    // change state
    radio_vars.state = RADIOSTATE_RFOFF;
 }
@@ -395,7 +552,6 @@ void radio_txEnable() {
    
    // wiggle debug pin
    debugpins_radio_set();
-   //leds_radio_on();
    
    //do nothing -- radio is activated by the strobe on rx or tx
    //radio_rfOn();
@@ -409,14 +565,69 @@ void radio_txEnable() {
  * quando usando CSMA_CA tenho que esperar a linha estar desocupada...
  * aqui ja considero que carreguei o frame e ja liguei o mecanismo do csma em load_packet
  */
-void radio_txNow() {
+void radio_txNow(uint8_t flagUseCsma) {
    PORT_TIMER_WIDTH count;
-   
+
    // change state
    radio_vars.state = RADIOSTATE_TRANSMITTING;
 
-   //enable radio interrupts
-   //enable_radio_interrupts();
+   if (flagUseCsma == 0)
+   {
+	   //enable radio interrupts
+	   enable_radio_interrupts();
+
+	   //make sure we are not transmitting already
+	   while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+
+	   // send packet by STON strobe see pag 669
+	   CC2538_RF_CSP_ISTXON();
+	   //wait 192uS
+
+	   //radio_rxNowAckOnly();
+
+	   count=0;
+	   while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE))){
+	      count++; //debug
+	   }
+   }
+   else
+   {
+	   // leds_debug_on();
+	   radio_csma_vars.capturedTime0 = radiotimer_getCapturedTime();
+
+	   radio_csma_vars.nb = 0;   //contador de retries
+	   radio_csma_vars.macTxBe = 3;
+	   //leds_debug_on();
+
+	   // Prepare for transmit. unslotted csma_ca
+	   txCsmaPrep();
+
+	   // Run previously loaded CSP program for CSMA transmit.
+	   macCspTxGoCsma();
+   }
+   //leds_radio_off();
+
+}
+
+void radio_txNowAndWaitAck(void) {
+//   PORT_TIMER_WIDTH count;
+   int i;
+
+   //Flags de teste PROVISORIO
+	for (i=0;i<10;i++){
+	   rff_status0[i] = 0;
+	}
+	rffcount = 0;
+	srcresmask0 = 0;
+	srcresindex = 0;
+
+   // change state
+   radio_vars.state = RADIOSTATE_TRANSMITTING;
+
+   radio_csma_vars.capturedTime0 = radiotimer_getCapturedTime();
+
+   radio_csma_vars.nb = 0;   //contador de retries
+   radio_csma_vars.macTxBe = 3;
 
    // Prepare for transmit. unslotted csma_ca
    txCsmaPrep();
@@ -425,6 +636,37 @@ void radio_txNow() {
    macCspTxGoCsma();
 
 }
+
+
+#if 0   //PREPARA_SE PARA RECEBER UM HARD ACK
+void RxAckEnable(void){
+
+   //Flags de teste PROVISORIO
+	for (i=0;i<10;i++){
+	   rff_status0[i] = 0;
+	}
+	rffcount = 0;
+	srcresmask0 = 0;
+	srcresindex = 0;
+
+    //clear fifo isr flag
+    CC2538_RF_CSP_ISRFOFF();
+    HWREG(RFCORE_SFR_RFIRQF0) = ~(RFCORE_SFR_RFIRQF0_FIFOP|RFCORE_SFR_RFIRQF0_RXPKTDONE);
+    //Enable Filter = Rx Ack Only
+     HWREG(RFCORE_XREG_FRMFILT0) = (RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN_M | RFCORE_XREG_FRMFILT0_MAX_FRAME_VERSION_M);
+    // HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK;
+     HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK | RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD | RFCORE_XREG_FRMFILT1_ACCEPT_FT_1_DATA;
+
+    //Enable Interrupts
+ 	HWREG(RFCORE_XREG_RFIRQM0) |= RFCORE_SFR_RFIRQF0_SFD | RFCORE_SFR_RFIRQF0_FIFOP | RFCORE_SFR_RFIRQF0_FRAME_ACCEPTED | RFCORE_SFR_RFIRQF0_RXPKTDONE | RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE;
+ 	HWREG(RFCORE_XREG_RFIRQM1) |= ((0x02) << RFCORE_XREG_RFIRQM1_RFIRQM_S) & RFCORE_XREG_RFIRQM1_RFIRQM_M;
+
+	//HWREG(RFCORE_XREG_FRMCTRL1) |= RFCORE_XREG_FRMCTRL1_SET_RXENMASK_ON_TX;
+
+}
+#endif
+
+
 #else
 void radio_txNow() {
    PORT_TIMER_WIDTH count;
@@ -451,28 +693,14 @@ void radio_txNow() {
 #endif
 //===== RX
 
-void radio_rxEnable() {
-   
-   // change state
-   radio_vars.state = RADIOSTATE_ENABLING_RX;
-   
-   //enable radio interrupts
-   
-   // do nothing as we do not want to receive anything yet.
-   // wiggle debug pin
-   debugpins_radio_set();
-   //leds_radio_on();
-   
-   // change state
-   radio_vars.state = RADIOSTATE_LISTENING;
-}
+
 
 void radio_rxNow() {
-   //empty buffer before receiving
-   //CC2538_RF_CSP_ISFLUSHRX();
-   
-   //enable radio interrupts
+
+	//empty buffer before receiving
    CC2538_RF_CSP_ISFLUSHRX();
+
+   //enable radio interrupts
    enable_radio_interrupts();
    
    CC2538_RF_CSP_ISRXON();
@@ -480,14 +708,212 @@ void radio_rxNow() {
    while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
 }
 
+
+/*
+ * retorna se foi utilizado filtro de pacotes no hardware (DATA=COAP OR DIO, CMD=OLA ou ACK)
+ * se o pacote recebido é valido ou não.
+ *  return TRUE = Pacote é valido
+ *  return FALSE = Pacote nao eh valido
+ */
+uint8_t radio_getrxfilterstatus(void){
+
+	if (radio_vars.filter_en == TRUE){
+       return (radio_vars.filter_matched);
+	}
+
+	return TRUE;
+}
+/*********************************************************************
+ */
+void radio_rxEnable() {
+
+   // change state
+   radio_vars.state = RADIOSTATE_ENABLING_RX;
+   radio_vars.filter_en = FALSE;
+	radio_vars.filter_matched = FALSE;
+
+   // do nothing as we do not want to receive anything yet.
+   // wiggle debug pin
+   debugpins_radio_set();
+
+   // change state
+   radio_vars.state = RADIOSTATE_LISTENING;
+}
+
+
+void radio_rxEnableANDFilter(uint16_t srcaddr,uint16_t destaddr,uint16_t panID) {
+
+   // change state
+   radio_vars.state = RADIOSTATE_ENABLING_RX;
+
+   //enable radio interrupts
+
+   // do nothing as we do not want to receive anything yet.
+   // wiggle debug pin
+   debugpins_radio_set();
+
+#if TESTE_AUTOACK == 1
+	MAC_SrcMatchEnable();
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	MAC_SrcMatchAddEntry( srcaddr, destaddr, panID  );
+#endif
+
+   // change state
+   radio_vars.state = RADIOSTATE_LISTENING;
+}
+
+#if 0
+void radio_rxEnableANDFilter2(uint16_t srcaddr,uint16_t destaddr,uint16_t panID) {
+
+   // change state
+   radio_vars.state = RADIOSTATE_ENABLING_RX;
+
+   //enable radio interrupts
+
+   // do nothing as we do not want to receive anything yet.
+   // wiggle debug pin
+   debugpins_radio_set();
+
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	MAC_SrcMatchAddEntry( srcaddr, destaddr, panID  );
+
+   // change state
+   radio_vars.state = RADIOSTATE_LISTENING;
+}
+#endif
+
+
+void radio_rxNowAckOnly(void) {
+
+	// change state
+	radio_vars.state = RADIOSTATE_ENABLING_RX;
+
+	//empty buffer before receiving
+	CC2538_RF_CSP_ISFLUSHRX();
+
+	//Enable Filter = Rx Ack Only
+	HWREG(RFCORE_XREG_FRMFILT0) = (RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN_M | RFCORE_XREG_FRMFILT0_MAX_FRAME_VERSION_M);
+	//  HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK | RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD | RFCORE_XREG_FRMFILT1_ACCEPT_FT_1_DATA;
+	HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK;
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	HWREG(RFCORE_XREG_SRCMATCH) |= RFCORE_XREG_SRCMATCH_SRC_MATCH_EN_M;
+
+	//enable radio interrupts with packet filters
+	enable_radio_interruptsfilter();
+
+	// HWREG(RFCORE_XREG_FRMCTRL1) |= RFCORE_XREG_FRMCTRL1_SET_RXENMASK_ON_TX;
+
+	// change state
+	radio_vars.state = RADIOSTATE_LISTENING;
+
+	CC2538_RF_CSP_ISRXON();
+	// busy wait until radio really listening
+	while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
+}
+
+void radio_rxNowCmdOnly(void) {
+
+	// change state
+	radio_vars.state = RADIOSTATE_ENABLING_RX;
+
+	//empty buffer before receiving
+	CC2538_RF_CSP_ISFLUSHRX();
+
+	//Enable Filter = Rx Ack Only
+	HWREG(RFCORE_XREG_FRMFILT0) = (RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN_M | RFCORE_XREG_FRMFILT0_MAX_FRAME_VERSION_M | RFCORE_XREG_FRMFILT0_PAN_COORDINATOR);
+	//  HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK | RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD | RFCORE_XREG_FRMFILT1_ACCEPT_FT_1_DATA;
+	HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD;
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	HWREG(RFCORE_XREG_SRCMATCH) |= RFCORE_XREG_SRCMATCH_SRC_MATCH_EN_M;
+
+	//enable radio interrupts with packet filters
+	enable_radio_interruptsfilter();
+
+	// HWREG(RFCORE_XREG_FRMCTRL1) |= RFCORE_XREG_FRMCTRL1_SET_RXENMASK_ON_TX;
+
+	// change state
+	radio_vars.state = RADIOSTATE_LISTENING;
+
+	CC2538_RF_CSP_ISRXON();
+	// busy wait until radio really listening
+	while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
+}
+
+void radio_rxEnableAndNowCmdOnly ( uint16_t srcaddr,uint16_t dstaddr, uint16_t panID ) {
+
+	// change state
+	radio_vars.state = RADIOSTATE_ENABLING_RX;
+
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	MAC_SrcMatchAddEntry( srcaddr, dstaddr, panID  );
+
+	//empty buffer before receiving
+	CC2538_RF_CSP_ISFLUSHRX();
+
+	//Enable Filter = Rx Ack Only
+	HWREG(RFCORE_XREG_FRMFILT0) = (RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN_M | RFCORE_XREG_FRMFILT0_MAX_FRAME_VERSION_M | RFCORE_XREG_FRMFILT0_PAN_COORDINATOR);
+	//  HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK | RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD | RFCORE_XREG_FRMFILT1_ACCEPT_FT_1_DATA;
+	HWREG(RFCORE_XREG_FRMFILT1) = RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD;
+	radio_vars.filter_en = TRUE;
+	radio_vars.filter_matched = FALSE;
+
+	HWREG(RFCORE_XREG_SRCMATCH) |= RFCORE_XREG_SRCMATCH_SRC_MATCH_EN_M;
+
+	//enable radio interrupts with packet filters
+	enable_radio_interruptsfilter();
+
+	// HWREG(RFCORE_XREG_FRMCTRL1) |= RFCORE_XREG_FRMCTRL1_SET_RXENMASK_ON_TX;
+
+	// change state
+	radio_vars.state = RADIOSTATE_LISTENING;
+
+	CC2538_RF_CSP_ISRXON();
+	// busy wait until radio really listening
+	while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
+}
+
+void radio_rxNowANDTxAutoAck(void) {
+   uint8_t i=0;
+
+	//empty buffer before receiving
+	CC2538_RF_CSP_ISFLUSHRX();
+
+	for (i=0;i<10;i++){
+	   rff_status0[i] = 0;
+	}
+	rffcount = 0;
+	srcresmask0 = 0;
+	srcresindex = 0;
+
+	//Enable AutoAck
+	HWREG(RFCORE_XREG_FRMCTRL0) |= RFCORE_XREG_FRMCTRL0_AUTOACK;
+
+	enable_radio_interruptsfilter();
+
+	CC2538_RF_CSP_ISRXON();
+	// busy wait until radio really listening
+	while(!((HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_RX_ACTIVE)));
+}
+
+
 void radio_getReceivedFrame(uint8_t* pBufRead,
                             uint8_t* pLenRead,
                             uint8_t  maxBufLen,
                              int8_t* pRssi,
                             uint8_t* pLqi,
                                bool* pCrc) {
-   uint8_t crc_corr,i;
-   
+   uint8_t crc_corr,i,corr;
+   int8_t rssiDbm;
    uint8_t len=0;
    
    /* Check the length */
@@ -525,8 +951,24 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
       pBufRead[i] = HWREG(RFCORE_SFR_RFDATA);
    }
    
+#if (CHK_RSSI_LQI == 1)
+	/* decode RSSI and correlation values */
+	/*
+	rssiDbm = PROPRIETARY_FCS_RSSI(HWREG(RFCORE_SFR_RFDATA)) + MAC_RADIO_RSSI_OFFSET;
+	corr = PROPRIETARY_FCS_CORRELATION_VALUE(HWREG(RFCORE_SFR_RFDATA));
+	*pCrc = PROPRIETARY_FCS_CRC_OK(HWREG(RFCORE_SFR_RFDATA))
+	*/
+    rssiDbm     = ((int8_t)(HWREG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET);
+    crc_corr   = HWREG(RFCORE_SFR_RFDATA);
+    corr       =  (crc_corr & ~PROPRIETARY_FCS_CRC_OK_BIT);
+
+	 *pLqi = macRadioComputeLQI(rssiDbm, corr);
+    *pRssi = rssiDbm;
+#else
    *pRssi     = ((int8_t)(HWREG(RFCORE_SFR_RFDATA)) - RSSI_OFFSET);
    crc_corr   = HWREG(RFCORE_SFR_RFDATA);
+#endif
+
    *pCrc      = crc_corr & CRC_BIT_MASK;
    *pLenRead  = len;
    
@@ -537,15 +979,23 @@ void radio_getReceivedFrame(uint8_t* pBufRead,
 //=========================== private =========================================
 
 port_INLINE  void enable_radio_interrupts(void){
-#if (IEEE802154E_TSCH == 1)
-   /* Enable RF interrupts 0, RXPKTDONE,SFD,FIFOP only -- see page 751  */
-   HWREG(RFCORE_XREG_RFIRQM0) |= ((0x06|0x02|0x01) << RFCORE_XREG_RFIRQM0_RFIRQM_S) & RFCORE_XREG_RFIRQM0_RFIRQM_M;
-#else
-   /* Enable RF interrupts 0, RXPKTDONE,FIFOP only -- see page 751  */
-   HWREG(RFCORE_XREG_RFIRQM0) |= ((0x06|0x02) << RFCORE_XREG_RFIRQM0_RFIRQM_S) & RFCORE_XREG_RFIRQM0_RFIRQM_M;
-#endif
+
+   /* Enable RF interrupts 0, RXPKTDONE=0x06,FIFOP=0x02,FRAME_ACCEPT=0x05 -- see page 751  */
+   HWREG(RFCORE_XREG_RFIRQM0) |= ((RFCORE_SFR_RFIRQF0_RXPKTDONE|RFCORE_SFR_RFIRQF0_SFD) << RFCORE_XREG_RFIRQM0_RFIRQM_S) & RFCORE_XREG_RFIRQM0_RFIRQM_M;
+
    /* Enable RF interrupts 1, TXDONE only */
    HWREG(RFCORE_XREG_RFIRQM1) |= ((0x02) << RFCORE_XREG_RFIRQM1_RFIRQM_S) & RFCORE_XREG_RFIRQM1_RFIRQM_M;
+}
+
+port_INLINE  void enable_radio_interruptsfilter(void){
+
+   HWREG(RFCORE_XREG_RFIRQM0) |= ((RFCORE_SFR_RFIRQF0_RXPKTDONE| RFCORE_SFR_RFIRQF0_SFD| RFCORE_SFR_RFIRQF0_FIFOP |
+		                           RFCORE_SFR_RFIRQF0_FRAME_ACCEPTED | RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE |
+		                           RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND) << RFCORE_XREG_RFIRQM0_RFIRQM_S) & RFCORE_XREG_RFIRQM0_RFIRQM_M;
+
+	/* Enable RF interrupts 1, TXDONE only */
+	HWREG(RFCORE_XREG_RFIRQM1) |= ((0x02) << RFCORE_XREG_RFIRQM1_RFIRQM_S) & RFCORE_XREG_RFIRQM1_RFIRQM_M;
+
 }
 
 port_INLINE  void disable_radio_interrupts(void){
@@ -562,19 +1012,111 @@ port_INLINE void radio_on(void){
 }
 
 port_INLINE void radio_off(void){
+
    /* Wait for ongoing TX to complete (e.g. this could be an outgoing ACK) */
    while(HWREG(RFCORE_XREG_FSMSTAT1) & RFCORE_XREG_FSMSTAT1_TX_ACTIVE);
+
    //CC2538_RF_CSP_ISFLUSHRX();
-   
+
    /* Don't turn off if we are off as this will trigger a Strobe Error */
    if(HWREG(RFCORE_XREG_RXENABLE) != 0) {
       CC2538_RF_CSP_ISRFOFF();
-      //clear fifo isr flag
-      HWREG(RFCORE_SFR_RFIRQF0) = ~(RFCORE_SFR_RFIRQF0_FIFOP|RFCORE_SFR_RFIRQF0_RXPKTDONE);
    }
+
+   //clear fifo isr flag
+   HWREG(RFCORE_SFR_RFIRQF0) = ~(RFCORE_SFR_RFIRQF0_RXMASKZERO_M|RFCORE_SFR_RFIRQF0_SFD|RFCORE_SFR_RFIRQF0_FIFOP|RFCORE_SFR_RFIRQF0_RXPKTDONE);
+
+
 }
 
+
+void radio_flushfifos(void){
+	//flush fifos
+	CC2538_RF_CSP_ISFLUSHRX();
+	CC2538_RF_CSP_ISFLUSHTX();
+}
+
+
 //=========================== callbacks =======================================
+#if (ENABLE_CSMA_CA == 1)
+
+void calculadeltatime(void){
+
+
+  radio_csma_vars.delta[radio_csma_vars.deltapos] = radio_csma_vars.capturedTime1 - radio_csma_vars.capturedTime0;
+
+  if (radio_csma_vars.delta[radio_csma_vars.deltapos] > radio_csma_vars.deltaMax)
+	  radio_csma_vars.deltaMax = radio_csma_vars.delta[radio_csma_vars.deltapos];
+
+  if (radio_csma_vars.deltapos >= MAX_DELTA)
+	  radio_csma_vars.deltapos = 0;
+  radio_csma_vars.deltapos++;
+
+
+
+}
+/**************************************************************************************************
+ * @fn          macCspTxStopIsr
+ *
+ * @brief       Interrupt service routine for handling STOP type interrupts from CSP.
+ *              This interrupt occurs when the CSP program stops by 1) reaching the end of the
+ *              program, 2) executing SSTOP within the program, 3) executing immediate
+ *              instruction ISSTOP.
+ *
+ *              The value of CSPZ indicates if interrupt is being used for ACK timeout or
+ *              is the end of a transmit.
+ *
+ * @param       none
+ *
+ * @return      none
+ **************************************************************************************************
+ */
+void macCspTxStopIsr(void)
+{
+  uint32_t capturedTime=0;
+  macRxOnFlag =0;
+  if (HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_TX_DONE)
+  {
+#if (DEBUG_CSMA == 1)
+	  // leds_debug_off();
+	  radio_csma_vars.capturedTime1 = radiotimer_getCapturedTime();
+
+      calculadeltatime();
+#endif
+
+	  // change state
+      radio_vars.state = RADIOSTATE_TXRX_DONE;
+	  radio_csma_vars.countok++;
+
+	  //leds_debug_off();
+
+      if (radio_vars.endFrame_cb!=NULL) {
+         // call the callback
+         radio_vars.endFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         while(1);
+      }
+  }
+  else if (HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_CHANNEL_BUSY)
+  {
+	  radio_csma_vars.rfftxbusy++;
+
+	  macCspTxBusyIsr(capturedTime);
+	  //leds_sync_toggle();
+  }
+  else
+  {
+     radio_csma_vars.rfftxstop2++;
+	//AQUI EH UMA CONDICAO INESPERADA...NAO SEI O QUE FAZER...
+    //MAC_ASSERT((HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_TX_ACK_TIME_OUT);
+    //macTxAckNotReceivedCallback();
+
+  }
+
+}
+#endif
 
 //=========================== interrupt handlers ==============================
 
@@ -599,6 +1141,206 @@ regiser (see page 131 of the CC2538 manual).
 kick_scheduler_t radio_isr() {
    return DO_NOT_KICK_SCHEDULER;
 }
+
+#if (ENABLE_CSMA_CA == 1)
+
+void macCspTxBusyIsr(PORT_TIMER_WIDTH capturedTime){
+
+	if (macRxOnFlag)
+		{
+			macRxOnFlag = 0;
+			RFST = ISRFOFF;
+			/* just in case a receive was about to start, flush the receive FIFO */
+			//MAC_RADIO_FLUSH_RX_FIFO(); --> neste caso tenho que carregar o frame novamente na fifo (load_packet)
+
+			/* clear any receive interrupt that happened to squeak through */
+			//MAC_RADIO_CLEAR_RX_THRESHOLD_INTERRUPT_FLAG();
+			IntPendClear(INT_RFCORERTX);
+			RFIRQF0 = (IRQ_FIFOP ^ 0xFF);
+		}
+
+		radio_csma_vars.nb++;
+		radio_csma_vars.countBusy++;
+		//leds_sync_toggle();
+
+		if (radio_csma_vars.nb > maxCsmaBackoffs)
+		{
+			 // TODO!!!! AQUI DEVERIA SINALIZAR QUE HOUVE ERRO!!!!
+			 radio_vars.state = RADIOSTATE_TURNING_OFF;
+			 radio_csma_vars.counterr++;
+			 if (radio_vars.endFrame_cb!=NULL) {
+				// call the callback
+				radio_vars.endFrame_cb(capturedTime);
+				// kick the OS
+				return;
+			 } else {
+				while(1);
+			 }
+		}
+		else
+		{
+			radio_csma_vars.macTxBe = MIN(radio_csma_vars.macTxBe+1, radio_csma_vars.maxBe);
+			txCsmaPrep();
+			macCspTxGoCsma();
+		}
+
+}
+
+void radio_isr_internal(void) {
+   volatile PORT_TIMER_WIDTH capturedTime;
+   uint8_t  irq_status0,irq_status1;
+   //volatile uint32_t capture1;
+   //volatile uint16_t capture2;
+   //uint8_t nb=0;
+   
+   // capture the time
+   capturedTime = getdeltaslotperiod_ms();
+   // reading IRQ_STATUS
+   irq_status0 = HWREG(RFCORE_SFR_RFIRQF0);
+   irq_status1 = HWREG(RFCORE_SFR_RFIRQF1);
+   
+   IntPendClear(INT_RFCORERTX);
+
+   //clear interrupt
+   HWREG(RFCORE_SFR_RFIRQF0) = 0;
+   HWREG(RFCORE_SFR_RFIRQF1) = 0;
+
+   if (rffcount < 10){
+	   rff_status0[rffcount++] = irq_status0;
+   }
+   
+   //STATUS1 Register
+#if (ENABLE_CSMA_CA == 1)
+ /*
+   if ((irq_status1 & IRQ_CSP_MANINT) ==  IRQ_CSP_MANINT)   {
+     * This interrupt happens when the CSP instruction INT is executed.  It occurs once the SFD signal
+      *  goes high indicating that transmit has successfully started.
+      *  The timer value has been captured at this point and timestamp can be stored.
+      *  Important!  Because of how the CSP programs are written, CSP_INT interrupts should
+      *  be processed before CSP_STOP interrupts.  This becomes an issue when there are
+      *  long critical sections.
+
+	 HWREG(RFCORE_SFR_RFIRQF1) = ~IRQ_CSP_MANINT;
+
+     return;
+   }
+*/
+   if ((irq_status1 & RFCORE_SFR_RFIRQF1_CSP_STOP) == RFCORE_SFR_RFIRQF1_CSP_STOP) {
+
+	   HWREG(RFCORE_SFR_RFIRQF1) = ~IRQ_CSP_STOP;    /* clear flag */
+	   macCspTxStopIsr();
+       return;
+   }
+   else if ((irq_status1 & IRQ_CSP_WAIT) ==  IRQ_CSP_WAIT)   {
+		HWREG(RFCORE_SFR_RFIRQF1) = ~IRQ_CSP_WAIT;    /* clear flag */
+		radio_csma_vars.rfftxwait++;
+		macCspTxBusyIsr(capturedTime);
+		return;
+   }
+   else if (((irq_status1 & RFCORE_SFR_RFIRQF1_TXDONE) == RFCORE_SFR_RFIRQF1_TXDONE)) {
+	   // end of frame event --either end of tx .
+	  radio_vars.state = RADIOSTATE_TX_DONE;
+
+	  if (radio_vars.endFrame_cb!=NULL) {
+         // call the callback
+		 radio_csma_vars.rfftxendok++;
+
+         radio_vars.endFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         while(1);
+      }
+   }
+#else
+   if (((irq_status1 & RFCORE_SFR_RFIRQF1_TXDONE) == RFCORE_SFR_RFIRQF1_TXDONE)) {
+	   // end of frame event --either end of tx .
+	  radio_vars.state = RADIOSTATE_TXRX_DONE;
+	  if (radio_vars.endFrame_cb!=NULL) {
+         // call the callback
+         radio_vars.endFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         while(1);
+      }
+   }
+   
+#endif
+
+
+   //STATUS0 Register
+   // start of frame event
+   if ((irq_status0 & RFCORE_SFR_RFIRQF0_SFD) == RFCORE_SFR_RFIRQF0_SFD) {
+#if (IEEE802154E_TSCH == 1)
+	   // change state
+      radio_vars.state = RADIOSTATE_RECEIVING;
+      if (radio_vars.startFrame_cb!=NULL) {
+         // call the callback
+         radio_vars.startFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         while(1);
+      }
+#endif
+   }
+   
+   //((irq_status0 & RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND) ==  RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND) ||
+
+   //When frame filtering is enabled and the filtering algorithm accepts a received frame.
+   //Aqui ele verifica quando o endereco source esta sendo usado qual eh a resposta.
+   if ((irq_status0 & RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE) ==  RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE)
+	{
+		radio_vars.filter_matched = TRUE;
+
+		srcresmask0 = HWREG(RFCORE_FFSM_SRCRESMASK0);
+		srcresindex = HWREG(RFCORE_FFSM_SRCRESINDEX);
+	}
+
+   //or RXDONE is full -- we have a packet.
+   if (((irq_status0 & RFCORE_SFR_RFIRQF0_RXPKTDONE) ==  RFCORE_SFR_RFIRQF0_RXPKTDONE)) {
+      // change state
+      radio_vars.state = RADIOSTATE_RX_DONE;
+
+#if CHK_RSSI_LQI
+      /* wait until RSSI is valid */
+      if ((HWREG(RFCORE_XREG_RSSISTAT) & RFCORE_XREG_RSSISTAT_RSSI_VALID_M) == RFCORE_XREG_RSSISTAT_RSSI_VALID) {
+    	  rssivalue = HWREG(RFCORE_XREG_RSSI);
+      }
+#endif
+      if (radio_vars.endFrame_cb!=NULL) {
+         // call the callback
+         radio_vars.endFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         leds_error_on();
+    	 while(1);
+      }
+   }
+   
+   // or FIFOP is full -- we have a packet.
+   if (((irq_status0 & RFCORE_SFR_RFIRQF0_FIFOP) ==  RFCORE_SFR_RFIRQF0_FIFOP)) {
+      // change state
+      radio_vars.state = RADIOSTATE_RECEIVING;
+
+      if (radio_vars.endFrame_cb!=NULL) {
+         // call the callback
+         radio_vars.endFrame_cb(capturedTime);
+         // kick the OS
+         return;
+      } else {
+         while(1);
+      }
+   }
+   
+
+
+   return;
+}
+
+#else //ENABLE_CSMA_CA == 0
 
 void radio_isr_internal(void) {
    volatile PORT_TIMER_WIDTH capturedTime;
@@ -677,64 +1419,34 @@ void radio_isr_internal(void) {
       }
    }
 
-#if (ENABLE_CSMA_CA == 1)
-   if ((irq_status1 & RFCORE_SFR_RFIRQF1_CSP_STOP) == RFCORE_SFR_RFIRQF1_CSP_STOP) {
-	   //MAC_MCU_CSP_STOP_DISABLE_INTERRUPT();
-	   HWREG(RFCORE_XREG_RFIRQM1) &= (~IM_CSP_STOP);
-
-	  if (HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_TX_DONE)
-	  {
-	      // change state
-	      radio_vars.state = RADIOSTATE_TXRX_DONE;
-	      if (radio_vars.endFrame_cb!=NULL) {
-	         // call the callback
-	         radio_vars.endFrame_cb(capturedTime);
-	         // kick the OS
-	         return;
-	      } else {
-	         while(1);
-	      }
-	  }
-	  else if (HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_CHANNEL_BUSY)
-	  {
-		  /*  clear channel assement failed, follow through with CSMA algorithm */
-		  radio_off();
-		  radio_csma_vars.nb++;
-		  if (radio_csma_vars.nb > radio_csma_vars.maxCsmaBackoffs)
-		  {
-		      // TODO!!!! AQUI DEVERIA SINALIZAR QUE HOUVE ERRO!!!!
-		      radio_vars.state = RADIOSTATE_TXRX_DONE;
-		      if (radio_vars.endFrame_cb!=NULL) {
-		         // call the callback
-		         radio_vars.endFrame_cb(capturedTime);
-		         // kick the OS
-		         return;
-		      } else {
-		         while(1);
-		      }
-		  }
-		  else
-		  {
-	  	    radio_csma_vars.macTxBe = MIN(radio_csma_vars.macTxBe+1, radio_csma_vars.maxBe);
-		    radio_txNow();
-		  }
-	  }
-	  else
-	  {
-	    //MAC_ASSERT((HWREG(RFCORE_XREG_CSPZ) == CSPZ_CODE_TX_ACK_TIME_OUT); /* unexpected CSPZ value */
-	    //macTxAckNotReceivedCallback();
-	  }
-   }
-#endif
-
    return;
 }
+#endif
+
+/*
+ *  When the FRM_FILTER_EN bit of the FRMFILT0 register and the AUTOACK bit of the FRMCTRL0 register are both enabled,
+ *  the radio determines automatically whether or not to transmit acknowledgment frames:
+ */
+void radio_autoackdisable (void){
+
+   HWREG(RFCORE_XREG_FRMFILT0)   &= ~RFCORE_XREG_FRMFILT0_FRAME_FILTER_EN;
+   HWREG(RFCORE_XREG_FRMCTRL0)   &= ~RFCORE_XREG_FRMCTRL0_AUTOACK;
+
+	HWREG(RFCORE_XREG_SRCMATCH) &= ~RFCORE_XREG_SRCMATCH_SRC_MATCH_EN_M;
+
+	HWREG(RFCORE_XREG_FRMFILT1) &= ~RFCORE_XREG_FRMFILT1_ACCEPT_FT_2_ACK;
+    HWREG(RFCORE_XREG_FRMFILT1) |= 	RFCORE_XREG_FRMFILT1_ACCEPT_FT_3_MAC_CMD | RFCORE_XREG_FRMFILT1_ACCEPT_FT_1_DATA;
+
+}
+
 
 void radio_error_isr(void){
    uint8_t rferrm;
-   
+
    rferrm = (uint8_t)HWREG(RFCORE_XREG_RFERRM);
-   
+
+   leds_error_toggle();
+
    if ((HWREG(RFCORE_XREG_RFERRM) & (((0x02)<<RFCORE_XREG_RFERRM_RFERRM_S)&RFCORE_XREG_RFERRM_RFERRM_M)) & ((uint32_t)rferrm))
    {
       HWREG(RFCORE_XREG_RFERRM) = ~(((0x02)<<RFCORE_XREG_RFERRM_RFERRM_S)&RFCORE_XREG_RFERRM_RFERRM_M);

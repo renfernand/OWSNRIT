@@ -1,5 +1,6 @@
 #include "opendefs.h"
 #include "iphc.h"
+#include "leds.h"
 #include "packetfunctions.h"
 #include "idmanager.h"
 #include "openserial.h"
@@ -8,15 +9,25 @@
 #include "neighbors.h"
 #include "openbridge.h"
 #include "IEEE802154E.h"
+#if (IEEE802154E_AMCA == 1)
+#include "IEEE802154AMCA.h"
+#elif (IEEE802154E_RITMC == 1)
+#include "IEEE802154RITMC.h"
+#elif (IEEE802154E_ARM == 1)
+#include "IEEE802154ARM.h"
+#elif (IEEE802154E_AMAC == 1)
+#include "IEEE802154AMAC.h"
+#elif (IEEE802154E_RIT == 1)
+#include "IEEE802154RIT.h"
+#endif
 
 //=========================== variables =======================================
 #if (DEBUG_LOG_RIT  == 1)
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-
 #endif
+extern uint8_t rffpasshere;
 //=========================== prototypes ======================================
 
 //===== IPv6 header
@@ -78,7 +89,30 @@ owerror_t iphc_sendFromForwarding(
    uint8_t      next_header;
    uint8_t      tf=IPHC_TF_ELIDED;
    //option header
-  
+
+#if 0 //(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+   {
+	 uint8_t pos=0;
+	 uint32_t address = (uint32_t) &next_header;
+	 uint8_t *pucAux = (uint8_t *) &address;
+
+	   if (rffpasshere) {
+		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+			rffbuf[pos++]= *(pucAux+0);
+			rffbuf[pos++]= *(pucAux+1);
+			rffbuf[pos++]= *(pucAux+2);
+			rffbuf[pos++]= *(pucAux+3);
+		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   openserial_startOutput();
+		   rffpasshere = 0;
+		   return E_FAIL;
+	   }
+   }
+#endif
+
    // take ownership over the packet
    msg->owner = COMPONENT_IPHC;
    
@@ -106,6 +140,23 @@ owerror_t iphc_sendFromForwarding(
      return E_FAIL;
    }
    
+#if 0 //(DEBUG_LOG_RIT == 1)  && (DBG_FORWARDING == 1)
+   {
+	 uint8_t pos=0;
+
+	   if (rffpasshere) {
+		   rffbuf[pos++]= RFF_COMPONENT_FORWARDING_RX;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+		   rffbuf[pos++]= 0x60;
+		   openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+		   openserial_startOutput();
+		   return E_FAIL;
+	   }
+	   rffpasshere = 0;
+
+   }
+#endif
    packetfunctions_ip128bToMac64b(&(msg->l3_destinationAdd),&temp_dest_prefix,&temp_dest_mac64b);
    //xv poipoi -- get the src prefix as well
    packetfunctions_ip128bToMac64b(&(msg->l3_sourceAdd),&temp_src_prefix,&temp_src_mac64b);

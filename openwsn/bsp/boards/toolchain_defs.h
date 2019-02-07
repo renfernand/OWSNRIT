@@ -32,7 +32,8 @@
    #define port_INLINE  __inline
 #else
    // other
-   #define port_INLINE  inline
+   //#define port_INLINE  inline
+   #define port_INLINE
 #endif
 
 //===== packing

@@ -1,4 +1,5 @@
 #include "opendefs.h"
+#include "leds.h"
 #include "IEEE802154.h"
 #include "packetfunctions.h"
 #include "idmanager.h"

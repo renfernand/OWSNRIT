@@ -1,14 +1,97 @@
 #include "packetfunctions.h"
+#include "leds.h"
 #include "openserial.h"
 #include "idmanager.h"
-
+#include "iphc.h"
+//#include "opendefs.h"
+#include "IEEE802154.h"
+//#include "IEEE802154RIT.h"
+#include "neighbors.h"
+#include "radio.h"
+#include "debug.h"
+#include <string.h>
+#if IEEE802154E_RITMC == 1
+#include "IEEE802154RITMC.h"
+#elif IEEE802154E_AMAC == 1
+#include "IEEE802154AMAC.h"
+#elif IEEE802154E_AMCA == 1
+#include "IEEE802154AMCA.h"
+#elif IEEE802154E_RIT == 1
+#include "IEEE802154RIT.h"
+#endif
 //=========================== variables =======================================
+extern OpenQueueEntry_t advRIT;
+uint8_t livelistasn;
+uint8_t olaasn;
+extern RIT_stats_t ritstat;
+extern ieee154e_vars_t    ieee154e_vars;
+extern uint16_t absdutycyclems;          //variavel global pois sera utilizada no frame de diagnostico...no proximo ciclo...ele vai ter o ultimo valor
+extern uint16_t relativedutycyclems;    //variavel global pois sera utilizada no frame de diagnostico...no proximo ciclo...ele vai ter o ultimo valor
+extern uint8_t dutycyclecount;
+uint32_t txwaitola;
 
+#if (IEEE802154E_RITMC == 1)
+extern uint16_t ritmc_txolaack;
+extern uint16_t ritmc_rxolaack;
+extern uint16_t ritmc_rx04err;
+extern ecw_vars_t ecwvars;
+#endif
+
+#if (IEEE802154E_ARM == 1) || (IEEE802154E_AMAC == 1)
+extern uint16_t counttxrts;
+extern uint16_t countrxrts;
+extern uint16_t counttxcts;
+extern uint16_t countrxcts;
+extern uint16_t countrxHA;
+extern uint16_t counttxcw;
+extern uint16_t countrxcw;
+#endif
 //=========================== prototypes ======================================
 
 void onesComplementSum(uint8_t* global_sum, uint8_t* ptr, int length);
-
+void iphc_retrieveIPv6Header(OpenQueueEntry_t* msg, ipv6_header_iht* ipv6_header);
 //=========================== public ==========================================
+//Aqui eu retiro o frame type (DIO,DAO, COAP) para propositos de debug apenas...PROVISORIO!!!!!
+uint8_t parserframerx(OpenQueueEntry_t *msg) {
+     ipv6_header_iht      ipv6_header;
+	 //ipv6_hopbyhop_iht    ipv6_hop_header;
+	 //rpl_option_ht        rpl_option;
+	 uint8_t frametype=0;
+
+	 //  memcpy(&rxaddr_dst, &(ieee802514_header.dest),sizeof(open_addr_t));
+	 //  memcpy(&newsrcaddr, &(ieee802514_header.src),sizeof(open_addr_t));
+
+	 if (msg->l2_frameType == IEEE154_TYPE_DATA) {
+		  if (packetfunctions_isBroadcastMulticast(&msg->l2_nextORpreviousHop)){
+            frametype = IANA_ICMPv6_RPL_DIO;
+
+			ipv6_header.header_length = 0;
+			ipv6_header.next_header = 0;
+			ipv6_header.next_header_compressed = 0;
+			ipv6_header.traffic_class = 0;
+		  }
+		  else { //if (idmanager_isMyAddress(rxaddr_dst) && Ackrequest){
+			  //DAO OR COAP
+			iphc_retrieveIPv6Header(msg,&ipv6_header);
+
+			if ((ipv6_header.next_header == IANA_UDP) || (ipv6_header.next_header == IANA_IPv6ROUTE))
+	            frametype = IANA_UDP;
+			else
+				frametype = IANA_ICMPv6_RPL_DAO;
+		  }
+
+	 }
+	 else if ((msg->l2_frameType == IEEE154_TYPE_CMD) && (msg->packet[12] == 0xA1)) {
+		 frametype = RFF_LIVELIST;
+	 }
+
+
+	return frametype;
+
+}
+
+
+
 
 //======= address translation
 
@@ -194,6 +277,36 @@ bool packetfunctions_sameAddress(open_addr_t* address_1, open_addr_t* address_2)
    return FALSE;
 }
 
+
+open_addr_t packetfunctions_convert2AddressType(open_addr_t* address_1, uint8_t addrtype) {
+
+   open_addr_t address_ret;
+
+   if (address_1->type == addrtype){
+	   memcpy((void *)&address_ret,(void *)address_1,sizeof(open_addr_t));
+   }
+   else if (addrtype == ADDR_16B){
+	   //copiar somente os 2 bytes
+	   address_ret.type = addrtype;
+	   if (address_1->type == ADDR_64B){
+		   address_ret.addr_16b[0] = address_1->addr_64b[6];
+		   address_ret.addr_16b[1] = address_1->addr_64b[7];
+	   }
+	   else if (address_1->type == ADDR_128B){
+			   address_ret.addr_16b[0] = address_1->addr_64b[14];
+			   address_ret.addr_16b[1] = address_1->addr_64b[15];
+		   }
+   }
+   else if (addrtype == ADDR_64B){
+	   address_ret.type = 0;
+   }
+   else {
+	   //nao da para copiar
+	   address_ret.type = 0;
+   }
+
+   return address_ret;
+}
 
 // compare address 128 bits with 64 bits
 bool packetfunctions_sameAddress128_64(open_addr_t* address_1, open_addr_t* address_2) {
@@ -461,6 +574,297 @@ uint32_t packetfunctions_ntohl( uint8_t* src ) {
       (((uint32_t) src[2]) << 8)      |
       (((uint32_t) src[3])
       );
+}
+
+
+/* ####################################
+ * ROTINAS ESPECIFICAS DO RIT
+ * ####################################
+ */
+
+
+/*
+ * Montagem do frame de OLA...para o protocolo AMAC o OLA tem o BestChannel
+ */
+port_INLINE uint8_t activityrx_prepareritdatareq(uint8_t hellotype,uint16_t *dstaddr) {
+
+//	header_IE_ht header_desc;
+//	OpenQueueEntry_t adv;
+	uint8_t i;
+	uint8_t pos=0;
+	uint8_t frame[128];
+//	uint32_t duration;
+	open_addr_t myaddr;
+	open_addr_t *pmyaddr=(open_addr_t *)&myaddr;
+	uint8_t *pucAux= (uint8_t *) dstaddr;
+
+	// MONTA O FRAME DE RIT Data Request
+	// Se addr.source 16bits e addr.dest 64bits = 0xE840
+    //        0110.0011
+	// bits 0-2   - FrameType      - 011 - MAC Command
+	// bit  3     - SecurityEnable - 0 = false
+	// bit  4     - Frame Pending  - 0 = false
+	// bit  5     - Ack Request    - 0 = false
+	// bit  6     - Intra Pan      - 1 = true
+	// bit  7-9   - Reserved       - Reserved
+	// bit  10-11 - Dest Addr Mode - 2 = short 16 bits
+	// bit  12-13 - Frame Ver      - 2 = Version 2
+	// bit  14-15 - Src Addr Mode  - 2 = short 16 bits
+
+	pmyaddr = idmanager_getMyID(ADDR_16B);
+
+
+	if ((hellotype == HELLOTYPE_1) || (hellotype == HELLOTYPE_3))
+		frame[pos++] = 0x40 + IEEE154_TYPE_CMD;  //FCS[0] = IntraPan
+	else
+		frame[pos++] = 0x60 + IEEE154_TYPE_CMD;  //FCS[0] = IntraPan and AckRequest
+
+	frame[pos++] = 0xA8;  //FCS[1] MSB
+	frame[pos++] = olaasn;  //Seq Number
+	frame[pos++] = 0xfe;
+	frame[pos++] = 0xca;
+	//address dest
+	if  (hellotype == HELLOTYPE_1){
+		frame[pos++] = pucAux[0];
+		frame[pos++] = pucAux[1];
+	}
+	else if (hellotype == HELLOTYPE_2){
+		frame[pos++] = pucAux[0];
+		frame[pos++] = pucAux[1];
+	}
+	else { // HELLOTYPE_3
+		frame[pos++] = pucAux[1];
+		frame[pos++] = 0x80;
+	}
+
+	//address source
+	frame[pos++] = pmyaddr->addr_16b[1];
+	frame[pos++] = pmyaddr->addr_16b[0];
+
+	//Command Frame Identifier
+	frame[pos++] = CMDFRMID;
+	//frame[pos++] = hellospec;   //hellospec 0=Dont need ACK ; 1=Need ACK
+	frame[pos++] = macneighbors_getMyBestChan();
+/*
+    for (i=0;i<114;i++) {
+	 frame[pos++] = 0x00;
+	}
+*/
+	//crc
+	frame[pos++] = 0x00;
+	frame[pos++] = 0x00;
+
+	// space for 2-byte CRC
+	//packetfunctions_reserveFooterSize(&adv,2);
+
+	radio_loadPacket((uint8_t *)&frame[0],pos);
+
+	return pos;
+}
+
+//hellospec 0=Dont need ACK ; 1=Need ACK
+port_INLINE sRITelement activityrx_preparemultichannelhello(uint8_t hellospec, uint8_t *frame,uint8_t len) {
+
+	uint8_t pos=0,i=0,auxlen;
+	open_addr_t myaddr;
+	open_addr_t *pmyaddr=(open_addr_t *)&myaddr;
+	sRITelement psEle;
+
+	psEle.timestamp = 0;
+	psEle.msg = frame;
+	psEle.isBroadcastMulticast = TRUE;
+	psEle.destaddr.type = 1;
+	psEle.destaddr.addr_16b[0] = 0xFF;
+	psEle.destaddr.addr_16b[1] = 0xFF;
+	psEle.frameType = IANA_ICMPv6_RA_PREFIX_INFORMATION;  // 3 = MAC COMMAND
+
+	// MONTA O FRAME DE RIT Data Request
+	// Se addr.source 16bits e addr.dest 64bits = 0xE840
+
+	// bits 0-2   - FrameType      - 011 - MAC Command
+	// bit  3     - SecurityEnable - 0 = false
+	// bit  4     - Frame Pending  - 0 = false
+	// bit  5     - Ack Request    - 0 = false
+	// bit  6     - Intra Pan      - 1 = true
+	// bit  7-9   - Reserved       - Reserved
+	// bit  10-11 - Dest Addr Mode - 2 = short 16 bits
+	// bit  12-13 - Frame Ver      - 2 = Version 2
+	// bit  14-15 - Src Addr Mode  - 2 = short 16 bits
+
+
+	frame[pos++] = 0x40 | IEEE154_TYPE_LIVELIST ;  //00...FCS[0] LSB
+	frame[pos++] = 0xA8;                           //01...FCS[1] MSB
+	frame[pos++] = livelistasn;                  //02...Seq Number
+	frame[pos++] = 0xfe;                           //03...PAN[0]
+	frame[pos++] = 0xca;                           //04...PAN[1]
+	//address dest
+	frame[pos++] = psEle.destaddr.addr_16b[0];     //05...DST[0]
+	frame[pos++] = psEle.destaddr.addr_16b[1];     //06...DST[1]
+	//address source
+
+	pmyaddr = idmanager_getMyID(ADDR_16B);
+	frame[pos++] = pmyaddr->addr_16b[1];           //07...SRC[0]
+	frame[pos++] = pmyaddr->addr_16b[0];           //08...SRC[1]
+
+	//Command Frame Identifier
+	frame[pos++] = CMDLIVELIST;                    //09...CMDFRMID; TESTE RFF - SOMENTE PARA MELHORAR DEBUG...PROVISORIO
+ 	frame[pos++] = hellospec;                      //10...hellospec 0=Dont need ACK ; 1=Need ACK
+    //
+
+    //Quando informado o len indica o tamanho de frame desejado...
+ 	if (len > 18) {
+
+ 		//imprime estatisticas no payload...
+		if (len > 40) {
+ 		    frame[pos++] = 0xAA;
+#if (IEEE802154E_RITMC == 1)
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatx,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatxok,sizeof(uint16_t),frame,pos);
+			//pos = printvar((uint8_t *)&ritmc_txolaack,sizeof(uint16_t),frame,pos);
+			//pos = printvar((uint8_t *)&ecwvars.rxcwoccurs,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countacktxrxok,sizeof(uint16_t),frame,pos);
+ 		    frame[pos++] = 0xAA;
+			pos = printvar((uint8_t *)&ritmc_rxolaack,sizeof(uint16_t),frame,pos);  //rx04
+			pos = printvar((uint8_t *)&ritstat.rxola.countdatatxok,sizeof(uint16_t),frame,pos); //rx07
+			pos = printvar((uint8_t *)&ritstat.rxola.countacktxrxok,sizeof(uint16_t),frame,pos); //rx0b
+			//pos = printvar((uint8_t *)&ritmc_rx04err,sizeof(uint16_t),frame,pos);  //rx04
+ 		    frame[pos++] = 0xAA;
+			pos = printvar((uint8_t *)&ecwvars.ecw1occurs,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ecwvars.ecw2occurs,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ecwvars.rxcwoccurs,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ecwvars.ecw2DataTimeout,sizeof(uint16_t),frame,pos);
+//			pos = printvar((uint8_t *)&ecwvars.tx0aFrameNotOk,sizeof(uint16_t),frame,pos);
+//			pos = printvar((uint8_t *)&ritmc_rx04err,sizeof(uint16_t),frame,pos);
+
+
+#elif (IEEE802154E_ARM == 1)
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatx,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countacktxrxok,sizeof(uint16_t),frame,pos);
+ 			pos = printvar((uint8_t *)&counttxrts,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxcts,sizeof(uint16_t),frame,pos);
+		    frame[pos++] = 0xAA;
+			pos = printvar((uint8_t *)&ritstat.rxola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.rxola.countacktxrxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxrts,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&counttxcts,sizeof(uint16_t),frame,pos);
+#elif (IEEE802154E_AMAC == 1)
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatx,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countacktxrxok,sizeof(uint16_t),frame,pos);
+ 			pos = printvar((uint8_t *)&counttxrts,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxcts,sizeof(uint16_t),frame,pos);
+ 		    frame[pos++] = 0xAA;
+			pos = printvar((uint8_t *)&ritstat.rxola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.rxola.countacktxrxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxrts,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&counttxcts,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxHA,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&counttxcw,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&countrxcw,sizeof(uint16_t),frame,pos);
+#else
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatx,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.txola.countacktxrxok,sizeof(uint16_t),frame,pos);
+ 		    frame[pos++] = 0xAA;
+			pos = printvar((uint8_t *)&ritstat.rxola.countdatatxok,sizeof(uint16_t),frame,pos);
+			pos = printvar((uint8_t *)&ritstat.rxola.countacktxrxok,sizeof(uint16_t),frame,pos);
+#endif
+			frame[pos++] = 0xee;
+ 			frame[pos++] = ieee154e_vars.lastRSSI;
+ 		 	frame[pos++] = ieee154e_vars.lastlqi;
+ 		    //[pos++] = 0xee;
+ 		    //frame[pos++] = dutycyclecount;
+			//pos = printvar((uint8_t *)&absdutycyclems,sizeof(uint16_t),frame,pos);
+			//pos = printvar((uint8_t *)&relativedutycyclems,sizeof(uint16_t),frame,pos);
+
+		}
+		/*
+		frame[pos++] = 0xA1;
+		frame[pos++] = 0xA2;
+		frame[pos++] = 0xA3;
+		frame[pos++] = 0xA4;
+		*/
+		auxlen = len - pos - 2;
+
+        for (i=0;i<auxlen;i++) {
+		 frame[pos++] = 0xaa;
+		}
+ 	}
+ 	else{
+ 		//livelist ack + delta ja foi preenchido anteriormente
+		if (pos < (len-2))
+			pos = len-2;
+  	}
+
+	//crc
+	frame[pos++] = 0x00;
+	frame[pos++] = 0x00;
+
+	// space for 2-byte CRC
+	//packetfunctions_reserveFooterSize(&adv,2);
+
+    psEle.msglength = pos;
+
+	return psEle;
+}
+
+// MONTA O FRAME DE CW
+// Se addr.source 16bits e addr.dest 64bits = 0xE840
+
+// bits 0-2   - FrameType      - 011 - MAC Command
+// bit  3     - SecurityEnable - 0 = false
+// bit  4     - Frame Pending  - 0 = false
+// bit  5     - Ack Request    - 0 = false
+// bit  6     - Intra Pan      - 1 = true
+// bit  7-9   - Reserved       - Reserved
+// bit  10-11 - Dest Addr Mode - 2 = short 16 bits
+// bit  12-13 - Frame Ver      - 2 = Version 2
+// bit  14-15 - Src Addr Mode  - 2 = short 16 bits
+
+port_INLINE uint8_t activityrx_preparecw(uint8_t *frame, uint8_t *pecwstatus, open_addr_t *pdstaddr, uint8_t *seqnr) {
+	uint8_t pos=0;
+	open_addr_t myaddr;
+	open_addr_t *pmyaddr=(open_addr_t *)&myaddr;
+
+	frame[pos++] = 0x40 | IEEE154_TYPE_ACK ;       //00...FCS[0] LSB
+	frame[pos++] = 0xaa;                           //01...FCS[1] MSB
+	frame[pos++] = *seqnr;                         //02...Seq Number
+	frame[pos++] = CW_MASK_PANID;                  //03...PAN[0]
+	frame[pos++] = CW_MASK_PANID;                  //04...PAN[1]
+	//address dest
+#if 1
+	frame[pos++] = pdstaddr->addr_16b[1];          //05...DST[0]
+	frame[pos++] = pdstaddr->addr_16b[0];          //06...DST[1]
+#else
+	frame[pos++] = 0x80;                           //05...DST[0]
+	frame[pos++] = 0x80;                           //06...DST[1]
+#endif
+	//address source
+	pmyaddr = idmanager_getMyID(ADDR_16B);
+	frame[pos++] = pmyaddr->addr_16b[1];           //07...SRC[0]
+	frame[pos++] = pmyaddr->addr_16b[0];           //08...SRC[1]
+
+	frame[pos++] = *pecwstatus;                    //09...STATUS CW
+	//crc
+	frame[pos++] = 0x00;
+	frame[pos++] = 0x00;
+
+
+   return (pos);
+}
+
+/*
+ * Atualizo o destination address da msg para o valor do address
+ * Utilizado pela livelist para ao inves de enviar um broadcast enviar o endereco do destino...
+ * Esta mudanca eh importante para reconhecer e enviar um ack se necessario...
+ */
+port_INLINE void updatedstaddr(uint8_t* packet, open_addr_t  address) {
+
+	//address dest
+	packet[6] = address.addr_16b[0];
+	packet[5] = address.addr_16b[1];
+
 }
 
 //=========================== private =========================================

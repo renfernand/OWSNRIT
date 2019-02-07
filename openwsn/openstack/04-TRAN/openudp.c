@@ -7,6 +7,8 @@
 // applications
 #include "opencoap.h"
 #include "uecho.h"
+#include "debug.h"
+#include "leds.h"
 
 //=========================== variables =======================================
 
@@ -22,11 +24,32 @@ owerror_t openudp_send(OpenQueueEntry_t* msg) {
    msg->l4_protocol = IANA_UDP;
    msg->l4_payload  = msg->payload;
    msg->l4_length   = msg->length;
+
    packetfunctions_reserveHeaderSize(msg,sizeof(udp_ht));
    packetfunctions_htons(msg->l4_sourcePortORicmpv6Type,&(msg->payload[0]));
    packetfunctions_htons(msg->l4_destination_port,&(msg->payload[2]));
    packetfunctions_htons(msg->length,&(msg->payload[4]));
    packetfunctions_calculateChecksum(msg,(uint8_t*)&(((udp_ht*)msg->payload)->checksum));
+
+#if (DEBUG_LOG_RIT == 1)
+{
+	uint8_t pos=0;
+
+	rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
+	rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
+	rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
+	rffbuf[pos++]= RFF_COMPONENT_OPENCOAP_TX;
+	rffbuf[pos++]= msg->length;
+	/* pos = printaddress(actualsrcaddr,&rffbuf[0],pos); */
+	pos = printvar((uint8_t *)&msg->l4_sourcePortORicmpv6Type,sizeof(uint16_t),rffbuf,pos);
+	pos = printvar((uint8_t *)&msg->l4_destination_port,sizeof(uint16_t),rffbuf,pos);
+
+	openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
+}
+#endif
+
+
+
    return forwarding_send(msg);
 }
 
@@ -92,14 +115,17 @@ void openudp_receive(OpenQueueEntry_t* msg) {
    }
    
 //teste rff  DBG6TOP_RX
-#if (DEBUG_LOG_RIT  == 1)
-rffbuf[0]= 0x41;
-rffbuf[1]= msg->l4_protocol;
-rffbuf[2]= msg->l4_protocol_compressed;
-rffbuf[3]= (uint8_t) msg->l4_destination_port;
-rffbuf[4]= msg->l4_sourcePortORicmpv6Type;
-rffbuf[5]= (uint8_t) msg->length;
-openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,6);
+#if  1 //(DEBUG_LOG_RIT  == 1)
+		uint8_t pos=0;
+
+        rffbuf[pos++]= 0x41;
+		rffbuf[pos++]= msg->l4_protocol;
+		rffbuf[pos++]= msg->l4_protocol_compressed;
+		rffbuf[pos++]= (uint8_t) msg->l4_destination_port;
+		rffbuf[pos++]= msg->l4_sourcePortORicmpv6Type;
+		rffbuf[pos++]= (uint8_t) msg->length;
+
+		openserial_printStatus(STATUS_RFF,(uint8_t*)&rffbuf,pos);
 #endif
 //teste rff
 

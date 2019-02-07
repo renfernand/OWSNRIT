@@ -26,8 +26,21 @@
 #define RIT500ms   0
 #define RIT1000ms  0
 
+//Command Frame Identifier
+#define CMDFRMID_RIT        0x20
+#define CMDFRMID_RIT_HELLO 0x1E
+
+#define CMDFRMID       CMDFRMID_RIT_HELLO
+#define CMDLIVELIST    0x2E
+#define CMDCW          0x50
+
+#define HELLOTYPE_1 1   //Ola tipo 1 e quando nao tem acknowledge
+#define HELLOTYPE_2 2   //Ola tipo 2 tem ack
+#define HELLOTYPE_3 3   //Ola tipo 3 é o ola do Transmissor com a mascara no Source...sem ack
 
 //valores dos ticks
+//    1 ms -    33 ticks
+//   10 ms -   328 ticks
 //   12 ms -   393 ticks
 //   25 ms -   819 ticks
 //   50 ms -  1638 ticks
@@ -37,6 +50,10 @@
 //  400 ms - 13107 ticks
 //  500 ms - 16384 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
 // 1000 ms - 32768 ticks   --> AQUI JA ESTOURA O SCHED_TIMER que vai ate 16500
+
+#define TICK_MAC_RITMC_PERIOD   33
+
+
 #if (RIT100ms == 1)
 	#define TICK_MAC_RIT_PERIOD           3277
 	#define TICK_MAC_RIT_RX_TO_TX_PERIOD  TICK_MAC_RIT_PERIOD + 819 //RIT + 25 ms - tenho que garantir ao menos um ola por periodo
@@ -161,61 +178,25 @@ bit after the start of the packet.
 #define FIRST_FRAME_BYTE             1
 
 
-#if (IEEE802154E_RIT == 1) || (IEEE802154E_AMAC == 1) || (IEEE802154E_RITMC == 1)
-// the different states of the IEEE802.15.4e state machine
-typedef enum {
-   S_RIT_SLEEP                   = 0x00,   // ready for next slot
-   S_RIT_SLEEP_WINDOW            = 0x01,   // Finish the tx Message
-   // TX
-   S_RIT_TXDATAOFFSET            = 0x02,   // waiting to prepare for Tx data
-   //S_RIT_TXDATAPREPARE           = 0x05,   // preparing for Tx data
-   S_RIT_TXDATAREADY             = 0x03,   // ready to Tx data, waiting for 'go'
-   //S_RIT_TXDATADELAY             = 0x07,   // 'go' signal given, waiting for SFD Tx data
-   S_RIT_TXDATA                  = 0x04,   // Tx data SFD received, sending bytes
+/*
+ *
+ */
+//----------------RIT stage
+enum RITstate{
+	S_RIT_sleep_state         = 0x00,
+	S_RIT_RX_state            = 0x01,
+	S_RIT_TX_state            = 0x02,
+	S_RIT_multichnhello_state = 0x03,
+	S_RIT_RX_livelist         = 0x04
+};
 
-   S_RIT_RXACKOFFSET             = 0x05,   // Tx data done, waiting to prepare for Rx ACK
-   //S_RIT_RXACKPREPARE            = 0x0a,   // preparing for Rx ACK
-
-   //S_RIT_RXACKREADY              = 0x0b,   // ready to Rx ACK, waiting for 'go'
-   //S_RIT_RXACKLISTEN             = 0x0c,   // idle listening for ACK
-   S_RIT_RXACK                   = 0x06,   // Rx ACK SFD received, receiving bytes
-   S_RIT_TXPROC                  = 0x07,   // processing sent data
-   // RX
-   S_RIT_RXDATAOFFSET            = 0x08,   // waiting to prepare for Rx data
-   S_RIT_RXDATAPREPARE           = 0x09,   // preparing for Rx data
-   S_RIT_RXDATAREADY             = 0x10,   // ready to Rx data, waiting for 'go'
-   S_RIT_RXDATALISTEN            = 0x11,   // idle listening for data
-   S_RIT_RXDATA                  = 0x12,   // data SFD received, receiving more bytes
-   S_RIT_TXACKOFFSET             = 0x13,   // waiting to prepare for Tx ACK
-   S_RIT_TXACKPREPARE            = 0x14,   // preparing for Tx ACK
-   S_RIT_TXACKREADY              = 0x15,   // Tx ACK ready, waiting for 'go'
-   S_RIT_TXACKDELAY              = 0x16,   // 'go' signal given, waiting for SFD Tx ACK
-   S_RIT_TXACK                   = 0x17,   // Tx ACK SFD received, sending bytes
-   S_RIT_RXPROC                  = 0x18,   // processing received data
-
-   S_RIT_RXOLAPREPARE        = 0x20,   // Open the window to receive data !!!!!
-   S_RIT_RXOLA               = 0x21,   // Open the window to receive data !!!!!
-   S_RIT_RXOLANOECHO         = 0x22,   // Open the window to receive data !!!!!
-   S_RIT_TXDATANOECHO        = 0x23,    // nao houve echo para um tx
-   S_RIT_RXNOACK             = 0x24,    // Atividade do Tx (transmissor) - esperou um ack mas nao ocorreu
-   S_RIT_OLAACKPREPARE       = 0x25,
-   S_RIT_OLAACK              = 0x26,
-   S_RIT_OLAACKECHO          = 0x27,
-   S_RIT_NOOLAACKECHO        = 0x28,
-   S_RIT_TXOLA               = 0x29,
-   S_RIT_TXOLAPREPARE        = 0x30,
-   S_RIT_RXOLAACK            = 0x31,
-   S_RIT_RXOLAACKPREPARE     = 0x32,
-   S_RIT_TXDATAECHO          = 0x33,
-   S_RIT_NOECHOTXACK         = 0x34,
-   S_RIT_TXDATAPREPARE       = 0x35,
-   S_RIT_RXOLA1              = 0x36
-
-} ieee154e_state_t;
+enum CSMAstate{
+	TX_NOT_USE_CSMA_CA     = 0x00,
+	TX_USE_CSMA_CA         = 0x01
+};
 
 
-
-#else
+#if (IEEE802154E_TSCH == 1)
 // the different states of the IEEE802.15.4e state machine
 typedef enum {
    S_SLEEP                   = 0x00,   // ready for next slot
@@ -341,7 +322,7 @@ typedef struct {
                            sizeof(sync_IE_ht)
 
 //=========================== module variables ================================
-
+#if (IEEE802154E_TSCH == 1)
 typedef struct {
    // misc
    asn_t                     asn;                     // current absolute slot number
@@ -351,6 +332,7 @@ typedef struct {
    bool                      isSync;                  // TRUE iff mote is synchronized to network
    // as shown on the chronogram
    ieee154e_state_t          state;                   // state of the FSM
+   ieee154e_state_t          laststate;                   // state of the FSM
    OpenQueueEntry_t*         dataToSend;              // pointer to the data to send
    OpenQueueEntry_t*         dataReceived;            // pointer to the data received
    OpenQueueEntry_t*         ackToSend;               // pointer to the ack to send
@@ -365,8 +347,11 @@ typedef struct {
    PORT_RADIOTIMER_WIDTH     radioOnTics;             // how many tics within the slot the radio is on
    bool                      radioOnThisSlot;         // to control if the radio has been turned on in a slot.
 
+   uint8_t                   RITQueue_ElementPending;      //salvo o elemento atual na lista do RIT para ser enviado
    uint8_t                   macRIT_Pending_TX_frameType;  //RIT - flag TX message pending
+   open_addr_t               targetaddr;                   //quando broadcast o atual endereco que estou buscando
 } ieee154e_vars_t;
+#endif
 
 BEGIN_PACK
 typedef struct {
@@ -385,6 +370,10 @@ typedef struct {
    PORT_RADIOTIMER_WIDTH     num_timer;
    PORT_RADIOTIMER_WIDTH     num_startOfFrame;
    PORT_RADIOTIMER_WIDTH     num_endOfFrame;
+   PORT_RADIOTIMER_WIDTH     num_txslot;
+   PORT_RADIOTIMER_WIDTH     num_rxslot;
+   PORT_RADIOTIMER_WIDTH     num_txend;
+   PORT_RADIOTIMER_WIDTH     num_rxend;
 } ieee154e_dbg_t;
 
 //=========================== prototypes ======================================

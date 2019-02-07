@@ -5,6 +5,7 @@
 #include "openserial.h"
 #include "neighbors.h"
 #include "board.h"
+#include "leds.h"
 
 //=========================== variables =======================================
 
@@ -108,6 +109,22 @@ void idmanager_setIsBridge(bool newRole) {
 }
 #endif
 
+
+uint16_t idmanager_getMyID16bits(void) {
+
+	open_addr_t myaddr;
+	uint16_t myaddr16;
+	uint8_t *pucAux = (uint8_t *)&myaddr16;
+	open_addr_t *pmyaddr=(open_addr_t *)&myaddr;
+
+	pmyaddr = idmanager_getMyID(ADDR_16B);
+
+	pucAux[1] = pmyaddr->addr_16b[0];
+	pucAux[0] = pmyaddr->addr_16b[1];
+
+	return myaddr16;
+}
+
 open_addr_t* idmanager_getMyID(uint8_t type) {
    open_addr_t* res;
    INTERRUPT_DECLARATION();
@@ -200,13 +217,38 @@ bool idmanager_isMyAddress(open_addr_t* addr) {
         ENABLE_INTERRUPTS();
         return res;
      default:
+    	/* PROVISORIO!!! Aqui tem horas que o frame tem um data type 0xAA e ele reseta a CPU
+    	 * Para teste foi mudado o codigo para retornar false e continuar sem resetar...
         openserial_printCritical(COMPONENT_IDMANAGER,ERR_WRONG_ADDR_TYPE,
+              (errorparameter_t)addr->type,
+              (errorparameter_t)2);
+    	 */
+    	 openserial_printError(COMPONENT_IDMANAGER,ERR_WRONG_ADDR_TYPE,
               (errorparameter_t)addr->type,
               (errorparameter_t)2);
         ENABLE_INTERRUPTS();
         return FALSE;
    }
 }
+
+bool idmanager_isMyAddressMasked(open_addr_t* addr) {
+   //open_addr_t temp_my128bID;
+   //bool res;
+   INTERRUPT_DECLARATION();
+   DISABLE_INTERRUPTS();
+
+   if (addr->type == ADDR_16B) {
+
+	    if (addr->addr_16b[0] == 0x80) {
+	    	if ((addr->addr_16b[1] == 0xFF) || (addr->addr_16b[1] == idmanager_vars.my16bID.addr_16b[1])) {
+	            return TRUE;
+	    	}
+	    }
+        return FALSE;
+   }
+   return FALSE;
+}
+
 #if (NEW_DAG_BRIDGE == 1)
 void idmanager_triggerAboutRoot() {
    uint8_t number_bytes_from_input_buffer;

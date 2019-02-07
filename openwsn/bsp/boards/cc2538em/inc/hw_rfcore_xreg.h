@@ -2429,6 +2429,79 @@
 
 #define RFCORE_XREG_TXFILTCFG_FC_S 0
 
+//*****************************************************************************
+//
+// The following are defines for the bit fields in the
+// RFCORE_SFR_RFIRQF0 register.
+//
+//*****************************************************************************
+#define RFCORE_SFR_RFIRQF0_RXMASKZERO \
+                                0x00000080  // The RXENABLE register has gone
+                                            // from a nonzero state to an
+                                            // all-zero state. 0: No interrupt
+                                            // pending 1: Interrupt pending
 
+#define RFCORE_SFR_RFIRQF0_RXMASKZERO_M \
+                                0x00000080
+#define RFCORE_SFR_RFIRQF0_RXMASKZERO_S 7
+#define RFCORE_SFR_RFIRQF0_RXPKTDONE \
+                                0x00000040  // A complete frame has been
+                                            // received. 0: No interrupt
+                                            // pending 1: Interrupt pending
+
+#define RFCORE_SFR_RFIRQF0_RXPKTDONE_M \
+                                0x00000040
+#define RFCORE_SFR_RFIRQF0_RXPKTDONE_S 6
+#define RFCORE_SFR_RFIRQF0_FRAME_ACCEPTED \
+                                0x00000020  // Frame has passed frame
+                                            // filtering. 0: No interrupt
+                                            // pending 1: Interrupt pending
+
+#define RFCORE_SFR_RFIRQF0_FRAME_ACCEPTED_M \
+                                0x00000020
+#define RFCORE_SFR_RFIRQF0_FRAME_ACCEPTED_S 5
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND \
+                                0x00000010  // Source match is found. 0: No
+                                            // interrupt pending 1: Interrupt
+                                            // pending
+
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND_M \
+                                0x00000010
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_FOUND_S 4
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE \
+                                0x00000008  // Source matching is complete. 0:
+                                            // No interrupt pending 1:
+                                            // Interrupt pending
+
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE_M \
+                                0x00000008
+#define RFCORE_SFR_RFIRQF0_SRC_MATCH_DONE_S 3
+#define RFCORE_SFR_RFIRQF0_FIFOP \
+                                0x00000004  // The number of bytes in the RX
+                                            // FIFO is greater than the
+                                            // threshold. Also raised when a
+                                            // complete frame is received, and
+                                            // when a packet is read out
+                                            // completely and more complete
+                                            // packets are available. 0: No
+                                            // interrupt pending 1: Interrupt
+                                            // pending
+
+#define RFCORE_SFR_RFIRQF0_FIFOP_M \
+                                0x00000004
+#define RFCORE_SFR_RFIRQF0_FIFOP_S 2
+#define RFCORE_SFR_RFIRQF0_SFD  0x00000002  // SFD has been received or
+                                            // transmitted. 0: No interrupt
+                                            // pending 1: Interrupt pending
+#define RFCORE_SFR_RFIRQF0_SFD_M \
+                                0x00000002
+#define RFCORE_SFR_RFIRQF0_SFD_S 1
+#define RFCORE_SFR_RFIRQF0_ACT_UNUSED \
+                                0x00000001  // Reserved 0: No interrupt
+                                            // pending 1: Interrupt pending
+
+#define RFCORE_SFR_RFIRQF0_ACT_UNUSED_M \
+                                0x00000001
+#define RFCORE_SFR_RFIRQF0_ACT_UNUSED_S 0
 #endif // __HW_RFCORE_XREG_H__
 

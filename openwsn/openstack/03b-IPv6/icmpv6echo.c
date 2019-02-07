@@ -6,7 +6,16 @@
 #include "packetfunctions.h"
 #include "debugpins.h"
 #include "IEEE802154E.h"
-
+#if IEEE802154E_RITMC == 1
+#include "IEEE802154RITMC.h"
+#elif IEEE802154E_AMAC == 1
+#include "IEEE802154AMAC.h"
+#elif IEEE802154E_AMCA == 1
+#include "IEEE802154AMCA.h"
+#elif IEEE802154E_RIT == 1
+#include "IEEE802154RIT.h"
+#endif
+#include "debug.h"
 //=========================== variables =======================================
 
 icmpv6echo_vars_t icmpv6echo_vars;
@@ -15,7 +24,6 @@ icmpv6echo_vars_t icmpv6echo_vars;
 extern ieee154e_vars_t    ieee154e_vars;
 extern ieee154e_stats_t   ieee154e_stats;
 extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
 #endif
 //=========================== prototypes ======================================
 

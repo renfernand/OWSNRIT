@@ -9,6 +9,7 @@
 */
 
 #include "opendefs.h"
+#include "board.h"
 
 //=========================== define ==========================================
 
@@ -18,8 +19,11 @@
 The superframe repears over time and can be arbitrarly long.
 */
 #define SUPERFRAME_LENGTH    11 //should be 101
-
+#if (IEEE802154E_TSCH == 1)
 #define NUMADVSLOTS          1
+#else
+#define NUMADVSLOTS          0
+#endif
 #define NUMSHAREDTXRX        5 
 #define NUMSERIALRX          3
 

@@ -23,6 +23,7 @@
 #include "osens.h"
 #include "osens_itf.h"
 #include "openserial.h"
+#include "leds.h"
 
 //=========================== defines =========================================
 
@@ -36,6 +37,7 @@ typedef struct {
    uart_rx_cbt rxCb;
 } uart_vars_t;
 
+uint8_t Uart0ErrorOccur=0;
 uart_vars_t uart_vars;
 extern uint8_t frame[OSENS_MAX_FRAME_SIZE];
 extern uint8_t num_rx_bytes;
@@ -63,6 +65,8 @@ void uart1_isr_private(void);
 void uart_init() {
    register uint32_t i;
    
+   Uart0ErrorOccur =0;
+
    // reset local variables
    memset(&uart_vars,0,sizeof(uart_vars_t));
    
@@ -88,6 +92,7 @@ void uart_init() {
    GPIOPinTypeUARTOutput(GPIO_A_BASE, PIN_UART_TXD);
    IOCPinConfigPeriphInput(GPIO_A_BASE, PIN_UART_RXD, IOC_UARTRXD_UART0);
    GPIOPinTypeUARTInput(GPIO_A_BASE, PIN_UART_RXD);
+
 
    // Configure the UART for 115,200, 8-N-1 operation.
    // This function uses SysCtrlClockGet() to get the system clock
@@ -118,17 +123,61 @@ void uart_init() {
    IntEnable(INT_UART0);
 }
 
+
+/*
+ * Aqui eh utilizado somente para desligar o hardware e ligar novamente...
+ * entao nao afeta as variaveis globais de callback e status.
+ */
+
+void uart_reset(void) {
+   //register uint32_t i;
+
+   // Disable UART function
+   UARTDisable(UART0_BASE);
+
+   // Disable all UART module interrupts
+   UARTIntDisable(UART0_BASE, 0x1FFF);
+
+   // Enable UART hardware
+   UARTEnable(UART0_BASE);
+
+   // Disable FIFO as we only one 1byte buffer
+   UARTFIFODisable(UART0_BASE);
+
+   // Raise interrupt at end of tx (not by fifo)
+   UARTTxIntModeSet(UART0_BASE, UART_TXINT_MODE_EOT);
+
+   // Register isr in the nvic and enable isr at the nvic
+   //UARTIntRegister(UART0_BASE, uart_isr_private);
+
+   // Enable the UART0 interrupt
+   IntEnable(INT_UART0);
+}
+
 void uart_setCallbacks(uart_tx_cbt txCb, uart_rx_cbt rxCb) {
     uart_vars.txCb = txCb;
     uart_vars.rxCb = rxCb;
 }
 
 void uart_enableInterrupts(){
+#if 0
     UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_TX);
+#else
+    //teste rff - habilito tambem as interrupcoes de erro para verificar problema da serial
+    //! - \b UART_INT_OE - Overrun Error interrupt
+    //! - \b UART_INT_BE - Break Error interrupt
+    //! - \b UART_INT_PE - Parity Error interrupt
+    //! - \b UART_INT_FE - Framing Error interrupt
+    //! - \b UART_INT_RT - Receive Timeout interrupt
+    //! - \b UART_INT_TX - Transmit interrupt
+    //! - \b UART_INT_RX - Receive interrupt
+    UARTIntEnable(UART0_BASE, UART_INT_RX | UART_INT_TX | UART_INT_RT | UART_INT_FE | UART_INT_PE | UART_INT_BE | UART_INT_OE);
+
+#endif
 }
 
 void uart_disableInterrupts(){
-    UARTIntDisable(UART0_BASE, UART_INT_RX | UART_INT_TX);
+    UARTIntDisable(UART0_BASE, UART_INT_RX | UART_INT_TX | UART_INT_RT | UART_INT_FE | UART_INT_PE | UART_INT_BE | UART_INT_OE);
 }
 
 void uart_clearRxInterrupts(){
@@ -137,6 +186,10 @@ void uart_clearRxInterrupts(){
 
 void uart_clearTxInterrupts(){
     UARTIntClear(UART0_BASE, UART_INT_TX);
+}
+
+void uart_clearErrorInterrupts(){
+    UARTIntClear(UART0_BASE, UART_INT_RT | UART_INT_FE | UART_INT_PE | UART_INT_BE | UART_INT_OE);
 }
 
 void  uart_writeByte(uint8_t byteToWrite){
@@ -161,6 +214,11 @@ static void uart_isr_private(void){
 	// Clear UART interrupt in the NVIC
 	IntPendClear(INT_UART0);
 
+	//trata erro
+	if(reg & (UART_INT_RT | UART_INT_FE | UART_INT_PE | UART_INT_BE | UART_INT_OE)){
+		uart_error_isr();
+	}
+
 	// Process TX interrupt
 	if(reg & UART_INT_TX){
 	     uart_tx_isr();
@@ -174,6 +232,15 @@ static void uart_isr_private(void){
 	debugpins_isr_clr();
 }
 
+kick_scheduler_t uart_error_isr() {
+   uart_clearErrorInterrupts(); // TODO: do not clear, but disable when done
+   uart_clearTxInterrupts();
+   uart_clearRxInterrupts();      // clear possible pending interrupts
+
+   Uart0ErrorOccur++;
+   return DO_NOT_KICK_SCHEDULER;
+}
+
 kick_scheduler_t uart_tx_isr() {
    uart_clearTxInterrupts(); // TODO: do not clear, but disable when done
    if (uart_vars.txCb != NULL) {
@@ -184,7 +251,7 @@ kick_scheduler_t uart_tx_isr() {
 
 kick_scheduler_t uart_rx_isr() {
    uart_clearRxInterrupts(); // TODO: do not clear, but disable when done
-   if (uart_vars.txCb != NULL) {
+   if (uart_vars.rxCb != NULL) {
        uart_vars.rxCb();
    }
    return DO_NOT_KICK_SCHEDULER;

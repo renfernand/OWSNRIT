@@ -17,19 +17,18 @@
 #include "leds.h"
 #include "hw_ints.h"
 #include "interrupt.h"
+//#include "IEEE802154RIT.h"
+#include "debug.h"
+#include "openserial.h"
 
 extern osens_point_ctrl_t sensor_points;
 static volatile bool g_bGPIOIntFlag = false;
 static volatile uint8_t g_Lightchange;
 void bspLedToggle(uint8_t ui8Leds);
 
-#if DEBUG_LOG_RIT
-static uint8_t rffbuf[10];
-#endif
-
 void light_mote_sm(void)
 {
-	uint8_t ucBotao;
+	//uint8_t ucBotao;
 
 	//pega o valor da lampada
 	//sensor_points.points[0].value.value.u8 = light_get_value();

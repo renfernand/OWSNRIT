@@ -58,6 +58,8 @@ static const uint8_t infoStackName[] = "OpenWSN ";
 #define RFF_OPENBRIDGE_TX            0x80
 #define RFF_OPENBRIDGE_RX            0x85
 
+#define RFF_IEEE802_CW               0xFE
+
 #define RFF_OPENQUEUE_ALLOC          0xA0
 #define RFF_OPENQUEUE_FREE           0xA5
 
@@ -82,6 +84,9 @@ enum {
    OW_BIG_ENDIAN                       = FALSE,
 };
 
+//usado para distinguir entre DAO e DAO com ACK apenas para estatitisticas
+#define ICMPv6_RPL_DAO_ACK  249
+#define ICMPv6_RPL_COAP_ACK 248
 // protocol numbers, as defined by the IANA
 enum {
    IANA_IPv6HOPOPT                     = 0x00,
@@ -99,6 +104,7 @@ enum {
    IANA_ICMPv6_RPL_DAO                 = 0x02,
    IANA_RSVP                           =   46,
    IANA_UNDEFINED                      =  250, //use an unassigned
+   RFF_LIVELIST                        =  253  //Aqui eh um comando de livelist ou um ola normal..
 };
 
 // well known ports (which we define)
@@ -258,6 +264,8 @@ enum {
    ERR_INVALIDPACKETFROMRADIO          = 0x37, // invalid packet frome radio, length {1} (code location {0})
    ERR_BUSY_RECEIVING                  = 0x38, // busy receiving when stop of serial activity, buffer input length {1} (code location {0})
    ERR_WRONG_CRC_INPUT                 = 0x39, // wrong CRC in input Buffer (input length {0})
+   ERR_WRONG_RIT_CHANNEL               = 0x40, // wrong channel
+   ERR_WRONG_HEADER_OR_ADDRESS         = 0x41, // Topologia nao bate com o endereco ou erro no header
 };
 
 //=========================== typedef =========================================

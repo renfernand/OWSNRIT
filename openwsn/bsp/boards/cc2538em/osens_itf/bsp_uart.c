@@ -40,7 +40,7 @@ static tBuBuf sBuBufRx;
 #if (USE_SPI_INTERFACE == 0)
 static tBuBuf sBuBufTx;
 static void buBufFlush(tBuBuf *psBuf);
-static void buBufPopByte(void);
+//static void buBufPopByte(void);
 static void buBufPushByte(void);
 
 /******************************************************************************
@@ -326,7 +326,6 @@ void ssi_isr_private(void)
 	if (SSIIntStatus(BSP_SPI_SSI_BASE,SSI_TXFF) == 1)
 	{
 		SSIDataPut(BSP_SPI_SSI_BASE, tx_frame[num_tx_bytes] );
-	    //leds_radio_toggle();
 			 = value;
 
 		num_rx_bytes++;
@@ -336,7 +335,6 @@ void ssi_isr_private(void)
 
 	if (SSIIntStatus(BSP_SPI_SSI_BASE,SSI_RXTO) == 1)
 	{
-	    //leds_radio_toggle();
 
 	    SSIDataGetNonBlocking(BSP_SPI_SSI_BASE, &u32Value);
 
@@ -616,7 +614,7 @@ bspUartDataGet(uint8_t *pui8Data, uint16_t ui16Length)
 ******************************************************************************/
 uint16_t bspUartRxCharsAvail(void)
 {
-    uint_fast16_t ui16Space;
+    uint_fast16_t ui16Space=0;
 
     //
     // Critical section. Read volatile variable from RX control structure.

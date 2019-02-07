@@ -1,4 +1,5 @@
 #include "opendefs.h"
+#include "leds.h"
 #include "uecho.h"
 #include "openudp.h"
 #include "openqueue.h"

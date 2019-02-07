@@ -6,15 +6,9 @@
 #include "openqueue.h"
 #include "openserial.h"
 #include "IEEE802154E.h"
-
+//#include "IEEE802154RIT.h"
+#include "debug.h"
 //=========================== variables =======================================
-#if (DEBUG_LOG_RIT  == 1)
-//extern ieee154e_vars_t    ieee154e_vars;
-//extern ieee154e_stats_t   ieee154e_stats;
-//extern ieee154e_dbg_t     ieee154e_dbg;
-static uint8_t rffbuf[10];
-
-#endif
 //=========================== prototypes ======================================
 
 //=========================== public ==========================================
